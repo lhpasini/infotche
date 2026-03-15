@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webmail - Infotche</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        body {
+            background-color: #050510;
+            background-image: url('../fundo.png'); /* Reaproveita o seu fundo do site */
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+
+        .login-card {
+            background: rgba(10, 10, 30, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            border: 1px solid #00f2fe;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .logo-webmail {
+            width: 90px;
+            height: 62px;
+            margin-bottom: 20px;
+        }
+
+        h2 { margin-bottom: 25px; font-weight: 300; color: #00f2fe; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #101025;
+            border: 1px solid #333;
+            border-radius: 5px;
+            color: white;
+            outline: none;
+        }
+
+        input:focus { border-color: #00f2fe; }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #00f2fe;
+            border: none;
+            border-radius: 5px;
+            color: #050510;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #4facfe; box-shadow: 0 0 15px #00f2fe; }
+
+        .footer-link { margin-top: 20px; font-size: 12px; color: #666; }
+        .footer-link a { color: #00f2fe; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <img src="../logo.png" alt="Infotche" class="logo-webmail">
+        <h2>Acesso ao Webmail</h2>
+        
+        <form action="https://mail.hostinger.com/webmail.php" method="post">
+            <input type="email" name="webmail_email" placeholder="E-mail (ex: atendimento@infotche.com.br)" required>
+            <input type="password" name="webmail_password" placeholder="Sua senha" required>
+            <button type="submit">ENTRAR NA CAIXA POSTAL</button>
+        </form>
+
+        <div class="footer-link">
+            <p>Infotche Conectividade © 2026</p>
+            <p>Protegido por SSL Seguro</p>
+        </div>
+    </div>
+
+</body>
+</html>
