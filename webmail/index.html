@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webmail - Infotche</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
         body {
             background-color: #050510;
-            background-image: url('../fundo.jpg'); /* Reaproveita o seu fundo do site */
+            background-image: linear-gradient(rgba(5, 5, 16, 0.7), rgba(5, 5, 16, 0.7)), url('../fundo.jpg');
             background-size: cover;
+            background-position: center;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -20,6 +21,7 @@
 
         .login-card {
             background: rgba(10, 10, 30, 0.9);
+            backdrop-filter: blur(10px);
             padding: 40px;
             border-radius: 10px;
             border: 1px solid #00f2fe;
@@ -33,56 +35,48 @@
             width: 90px;
             height: 62px;
             margin-bottom: 20px;
+            object-fit: contain;
         }
 
-        h2 { margin-bottom: 25px; font-weight: 300; color: #00f2fe; }
+        h2 { margin-bottom: 10px; font-weight: 300; color: #00f2fe; }
+        
+        p { margin-bottom: 30px; font-size: 14px; color: #ccc; line-height: 1.5; }
 
-        input {
+        .btn-entrar {
+            display: block;
             width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            background: #101025;
-            border: 1px solid #333;
-            border-radius: 5px;
-            color: white;
-            outline: none;
-        }
-
-        input:focus { border-color: #00f2fe; }
-
-        button {
-            width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: #00f2fe;
             border: none;
             border-radius: 5px;
             color: #050510;
             font-weight: bold;
+            text-decoration: none;
             cursor: pointer;
             transition: 0.3s;
+            text-transform: uppercase;
         }
 
-        button:hover { background: #4facfe; box-shadow: 0 0 15px #00f2fe; }
+        .btn-entrar:hover { 
+            background: #4facfe; 
+            box-shadow: 0 0 15px #00f2fe; 
+            transform: translateY(-2px);
+        }
 
-        .footer-link { margin-top: 20px; font-size: 12px; color: #666; }
-        .footer-link a { color: #00f2fe; text-decoration: none; }
+        .footer-link { margin-top: 25px; font-size: 12px; color: #666; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <img src="../logo.png" alt="Infotche" class="logo-webmail">
-        <h2>Acesso ao Webmail</h2>
+        <img src="../logo.png?v=4" alt="Infotche" class="logo-webmail">
+        <h2>Webmail Corporativo</h2>
+        <p>Acesse sua caixa postal através do nosso ambiente seguro.</p>
         
-        <form action="https://mail.hostinger.com/webmail.php" method="post">
-            <input type="email" name="webmail_email" placeholder="E-mail (ex: atendimento@infotche.com.br)" required>
-            <input type="password" name="webmail_password" placeholder="Sua senha" required>
-            <button type="submit">ENTRAR NA CAIXA POSTAL</button>
-        </form>
+        <a href="https://mail.hostinger.com/" class="btn-entrar">Acessar Servidor</a>
 
         <div class="footer-link">
             <p>Infotche Conectividade © 2026</p>
-            <p>Protegido por SSL Seguro</p>
         </div>
     </div>
 
