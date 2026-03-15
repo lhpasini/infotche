@@ -1,226 +1,129 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Infotche - Conexão e Tecnologia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Infotche - Tecnologia em Conectividade</title>
     <style>
-        /* Estilos Globais */
+        /* CSS RESET */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-        }
-        body {
-            background-color: #f4f7f6;
-            color: #333;
-            line-height: 1.6;
-        }
-        a {
-            text-decoration: none;
-            color: inherit;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Cabeçalho (Header) */
+        body {
+            background-color: #050510;
+            color: #ffffff;
+            overflow-x: hidden;
+            /* CONFIGURAÇÃO DO FUNDO JPG */
+            background-image: linear-gradient(rgba(5, 5, 16, 0.6), rgba(5, 5, 16, 0.6)), url('fundo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* CABEÇALHO (HEADER) */
         header {
-            background-color: #0b192c;
-            color: #fff;
-            padding: 20px 5%;
+            background-color: rgba(5, 5, 16, 0.85);
+            backdrop-filter: blur(10px); /* Efeito de vidro fosco */
+            padding: 10px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid #00f2fe;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
             position: fixed;
-            width: 100%;
             top: 0;
+            width: 100%;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #00a8ff; /* Azul Neon */
-        }
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 20px;
-        }
-        .nav-links li a {
-            font-weight: 600;
-            transition: color 0.3s;
-        }
-        .nav-links li a:hover {
-            color: #00a8ff;
         }
 
-        /* Seção Principal (Hero) */
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        /* LOGO NAS DIMENSÕES 90x62 */
+        .logo-image {
+            width: 90px;
+            height: 62px;
+            display: block;
+            object-fit: contain;
+        }
+
+        /* BOTÃO DE ORÇAMENTO */
+        .btn-orcamento {
+            background-color: transparent;
+            color: #ffffff;
+            border: 2px solid #4facfe;
+            padding: 10px 22px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s all ease;
+            box-shadow: 0 0 5px rgba(79, 172, 254, 0.4);
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        .btn-orcamento:hover {
+            background-color: #4facfe;
+            color: #050510;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.8);
+            transform: translateY(-2px);
+        }
+
+        /* CONTEÚDO HERO (DESTAQUE) */
         .hero {
-            /* Substitua 'fundo.jpg' pelo nome do arquivo da imagem que geramos/você salvou */
-            background-image: linear-gradient(rgba(11, 25, 44, 0.8), rgba(11, 25, 44, 0.8)), url('fundo.png');
-            background-size: cover;
-            background-position: center;
             height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: flex-start;
-            padding: 0 10%;
-            color: #fff;
-            margin-top: 60px;
+            align-items: center;
+            text-align: center;
+            padding: 0 5%;
         }
+
         .hero h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             margin-bottom: 20px;
-            max-width: 600px;
+            background: linear-gradient(to right, #ffffff, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
+
         .hero p {
             font-size: 1.2rem;
-            margin-bottom: 30px;
             max-width: 600px;
-            color: #d1d8e0;
-        }
-        .btn {
-            background-color: #00a8ff;
-            color: #fff;
-            padding: 15px 30px;
-            border-radius: 5px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: background 0.3s, transform 0.2s;
-            border: none;
-            cursor: pointer;
-        }
-        .btn:hover {
-            background-color: #008ecc;
-            transform: scale(1.05);
+            line-height: 1.6;
+            color: #ccc;
         }
 
-        /* Seção de Serviços */
-        .services {
-            padding: 80px 10%;
-            text-align: center;
-        }
-        .services h2 {
-            font-size: 2.5rem;
-            color: #0b192c;
-            margin-bottom: 50px;
-        }
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-        .service-card {
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-            border-bottom: 4px solid #00a8ff;
-        }
-        .service-card:hover {
-            transform: translateY(-10px);
-        }
-        .service-card h3 {
-            font-size: 1.3rem;
-            color: #0b192c;
-            margin-bottom: 15px;
-        }
-        .service-card p {
-            color: #666;
-            font-size: 0.95rem;
-        }
-
-        /* Rodapé (Footer) */
-        footer {
-            background-color: #0b192c;
-            color: #fff;
-            text-align: center;
-            padding: 30px 20px;
-            margin-top: 40px;
-        }
-        footer p {
-            font-size: 0.9rem;
-            color: #a4b0be;
-        }
-
-        /* Responsividade */
+        /* RESPONSIVIDADE PARA CELULAR */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none; /* Em um site real, aqui entraria um menu hamburguer */
-            }
-            .hero h1 {
-                font-size: 2rem;
-            }
-            .hero p {
-                font-size: 1rem;
-            }
+            .hero h1 { font-size: 2.2rem; }
+            .btn-orcamento { padding: 8px 15px; font-size: 12px; }
+            .logo-image { width: 75px; height: 52px; } /* Reduz um pouco no mobile */
         }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">INFOTCHE</div>
-        <ul class="nav-links">
-            <li><a href="#home">Home</a></li>
-            <li><a href="#servicos">Serviços</a></li>
-            <li><a href="#contato">Contato</a></li>
-        </ul>
+        <div class="logo-container">
+            <img src="logo.png" alt="Infotche" class="logo-image">
+        </div>
+        <a href="https://wa.me/SEUNUMERO" target="_blank" class="btn-orcamento">Orçamento via WhatsApp</a>
     </header>
 
-    <section class="hero" id="home">
-        <h1>Conexão e Tecnologia do Seu Jeito.</h1>
-        <p>Especialistas em infraestrutura de rede, instalação de fibra óptica e suporte de TI completo para sua residência e empresa.</p>
-        <a href="#contato" class="btn">Solicite um Orçamento</a>
+    <section class="hero">
+        <h1>Conectividade sem limites.</h1>
+        <p>A Infotche traz a evolução tecnológica para Santa Bárbara do Sul. Fibra óptica de ultravelocidade e suporte especializado para sua casa ou empresa.</p>
     </section>
-
-    <section class="services" id="servicos">
-        <h2>Nossas Soluções</h2>
-        <div class="services-grid">
-            
-            <div class="service-card">
-                <h3>Fibra Óptica</h3>
-                <p>Instalação profissional e manutenção de fibra óptica para garantir a máxima velocidade e estabilidade na sua conexão.</p>
-            </div>
-
-            <div class="service-card">
-                <h3>Redes Internas</h3>
-                <p>Construção e estruturação de redes de internet internas, otimizando o sinal Wi-Fi e cabeado em residências e empresas.</p>
-            </div>
-
-            <div class="service-card">
-                <h3>Suporte Empresarial</h3>
-                <p>Suporte técnico dedicado para empresas, garantindo que sua operação não pare por problemas de tecnologia.</p>
-            </div>
-
-            <div class="service-card">
-                <h3>Manutenção de Máquinas</h3>
-                <p>Conserto, formatação e otimização de computadores e notebooks, aumentando a vida útil dos seus equipamentos.</p>
-            </div>
-
-            <div class="service-card">
-                <h3>Backup de Dados</h3>
-                <p>Soluções seguras de backup para proteger as informações vitais do seu negócio contra perdas e falhas de hardware.</p>
-            </div>
-
-            <div class="service-card">
-                <h3>Proteção e Segurança</h3>
-                <p>Implementação de antivírus, firewalls e rotinas de segurança para blindar suas máquinas contra ameaças virtuais.</p>
-            </div>
-
-        </div>
-    </section>
-
-    <footer id="contato">
-        <h2>Fale com a Infotche</h2>
-        <br>
-        <p>Email: contato@infotche.com.br | Telefone/WhatsApp: (XX) XXXX-XXXX</p>
-        <br>
-        <p>&copy; 2026 Portal Infotche. Todos os direitos reservados.</p>
-    </footer>
 
 </body>
 </html>
