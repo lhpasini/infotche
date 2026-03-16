@@ -1,3 +1,4 @@
+// Configuração do Prisma e Banco de Dados
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,70 +8,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// -------------------------------------------------
+// TABELAS DO SISTEMA
+// -------------------------------------------------
+
+model Categoria {
+  id        String   @id @default(uuid())
+  nome      String   @unique
+  criadoEm  DateTime @default(now())
+}
+
 model Cliente {
   id        String    @id @default(uuid())
   nome      String
-  cpfCnpj   String?
-  whatsapp  String?
+  cpfCnpj   String?   
   email     String?
+  whatsapp  String?
+  status    String    @default("Ativo")
+  
+  // Relacionamento: Um cliente pode ter várias conexões
+  conexoes  Conexao[] 
+  
   criadoEm  DateTime  @default(now())
-  conexoes  Conexao[]
-  chamados  Chamado[]
 }
 
 model Conexao {
-  id               String    @id @default(uuid())
-  clienteId        String
-  cliente          Cliente   @relation(fields: [clienteId], references: [id])
-  contratoMhnet    String?
-  enderecoCompleto String
-  pppoe            String?
-  senhaPpoe        String?
-  status           String    @default("ATIVO")
-  chamados         Chamado[]
-}
-
-model Categoria {
-  id       String    @id @default(uuid())
-  nome     String
-  ativa    Boolean   @default(true)
-  chamados Chamado[]
-}
-
-model Equipe {
-  id       String    @id @default(uuid())
-  nome     String
-  email    String?
-  telefone String?
-  funcao   String    @default("TECNICO")
-  chamados Chamado[]
-}
-
-model Chamado {
-  protocolo         Int        @id @default(autoincrement())
+  id            String   @id @default(uuid())
+  contratoMhnet String?
+  endereco      String
+  bairro        String?
+  pppoe         String?
+  senhaPpoe     String?
   
-  clienteId         String?
-  cliente           Cliente?   @relation(fields: [clienteId], references: [id])
-  conexaoId         String?
-  conexao           Conexao?   @relation(fields: [conexaoId], references: [id])
-  tecnicoId         String?
-  tecnico           Equipe?    @relation(fields: [tecnicoId], references: [id])
-  categoriaId       String
-  categoria         Categoria  @relation(fields: [categoriaId], references: [id])
-
-  nomeAvulso        String?
-  whatsAvulso       String?
-  enderecoCompleto  String?
-  contratoSalvo     String?
-  pppoeSalvo        String?
-  senhaPpoeSalva    String?
-
-  motivo            String
-  observacoes       String?
-  solucao           String?
-  prioridade        String     @default("Média")
-  status            String     @default("novos")
-
-  criadoEm          DateTime   @default(now())
-  atualizadoEm      DateTime   @updatedAt
+  // Relacionamento: Esta conexão pertence a UM cliente
+  // onDelete: Cascade garante que se apagar o cliente, a conexão some junto
+  clienteId     String
+  cliente       Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 }
