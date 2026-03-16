@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-// Importação das Server Actions para conexão com o banco
-import { getCategorias, upsertCategoria, deleteCategoria } from '@/app/actions/categorias';
+
+// Importação blindada com caminho relativo (volta de admin -> (sistema) -> app -> entra em actions)
+import { getCategorias, upsertCategoria, deleteCategoria } from '../../actions/categorias';
 
 // --- Tipagens ---
 type Conexao = { id: string; contratoMhnet: string; endereco: string; bairro: string; pppoe: string; senhaPpoe: string; };
@@ -21,7 +22,7 @@ export default function AdminDashboard() {
   
   // Modais e Estados de Controle
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
-  const [isCatModalOpen, setIsCatModalOpen] = useState(false); // Modal para gerenciar categorias
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [editingCat, setEditingCat] = useState<Categoria | null>(null);
   const [draggedTicketId, setDraggedTicketId] = useState<string | null>(null);

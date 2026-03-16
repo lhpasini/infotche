@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import "@/app/globals.css"; 
+// Voltamos 1 nível para achar o globals.css dentro da pasta app
+import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "Admin - Infotche",
+  title: "Admin - Infotchê",
 };
 
-export default function SistemaLayout({ children }: { children: React.ReactNode }) {
+export default function SistemaLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="pt-br">
-      <body className="bg-[#f3f4f6] m-0 p-0 overflow-hidden text-gray-800 font-sans">
-        {children}
-      </body>
-    </html>
+    <div className="sistema-layout">
+      {children}
+    </div>
   );
 }

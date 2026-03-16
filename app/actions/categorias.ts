@@ -1,6 +1,7 @@
 'use server';
 
-import { prisma } from '@/lib/prisma';
+// Voltamos 2 níveis para acessar a pasta lib na raiz do projeto
+import { prisma } from '../../lib/prisma';
 import { revalidatePath } from 'next/cache';
 
 // Buscar todas as categorias
