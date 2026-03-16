@@ -10,11 +10,10 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
+.fundo-site {
     background-color: #050510;
     color: #ffffff;
     overflow-x: hidden;
-    /* Caminho da imagem ajustado para o Next.js (pasta public usa / direto) */
     background-image: linear-gradient(rgba(5, 5, 16, 0.7), rgba(5, 5, 16, 0.7)), url('/fundo.jpg');
     background-size: cover;
     background-position: center;
@@ -22,8 +21,9 @@ body {
     min-height: 100vh;
 }
 
-/* --- ESTILOS DO CABEÇALHO GLOBAL --- */
-header {
+/* --- ESTILOS DO CABEÇALHO GLOBAL DO SITE --- */
+/* Mudamos de 'header' para '.header-site' para não quebrar o Admin */
+.header-site {
     background-color: rgba(5, 5, 16, 0.9);
     backdrop-filter: blur(10px);
     padding: 10px 5%;
@@ -107,7 +107,7 @@ nav a:hover {
     box-shadow: 0 0 20px #4facfe;
 }
 
-/* --- ESTILOS DA PÁGINA INICIAL (HERO) --- */
+/* --- HERO --- */
 .hero {
     height: 100vh;
     display: flex;
@@ -134,13 +134,13 @@ nav a:hover {
     line-height: 1.6;
 }
 
-/* --- ESTILOS ESPECÍFICOS DO WEBMAIL --- */
+/* --- WEBMAIL --- */
 .webmail-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding-top: 80px; /* Compensa o tamanho do cabeçalho fixo */
+    padding-top: 80px;
 }
 
 .login-card {
@@ -202,7 +202,6 @@ nav a:hover {
     color: #666;
 }
 
-/* --- RESPONSIVIDADE GERAL --- */
 @media (max-width: 992px) {
     nav { display: none; }
     .hero h1 { font-size: 2.5rem; }

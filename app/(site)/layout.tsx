@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from 'next/link';
-import "./globals.css";
+import "../globals.css";
 
 export const metadata: Metadata = {
   title: "Infotche - Tecnologia em Conectividade",
@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-br">
-      <body>
-        {/* CABEÇALHO GLOBAL: Aparece em todas as páginas automaticamente */}
-        <header>
+      <body className="fundo-site">
+        {/* CABEÇALHO GLOBAL DO SITE - Agora com a classe header-site isolada */}
+        <header className="header-site">
           <div className="logo-container">
             <Link href="/">
               <img src="/logo.png" alt="Infotche" className="logo-image" />
@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </header>
 
-        {/* Aqui é onde o conteúdo das outras páginas é injetado */}
+        {/* CONTEÚDO DA PÁGINA */}
         {children}
       </body>
     </html>
