@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id        String    @id @default(uuid())
+  nome      String
+  cpfCnpj   String?
+  whatsapp  String?
+  email     String?
+  criadoEm  DateTime  @default(now())
+  conexoes  Conexao[]
+  chamados  Chamado[]
+}
+
+model Conexao {
+  id               String    @id @default(uuid())
+  clienteId        String
+  cliente          Cliente   @relation(fields: [clienteId], references: [id])
+  contratoMhnet    String?
+  enderecoCompleto String
+  pppoe            String?
+  senhaPpoe        String?
+  status           String    @default("ATIVO")
+  chamados         Chamado[]
+}
+
+model Categoria {
+  id       String    @id @default(uuid())
+  nome     String
+  ativa    Boolean   @default(true)
+  chamados Chamado[]
+}
+
+model Equipe {
+  id       String    @id @default(uuid())
+  nome     String
+  email    String?
+  telefone String?
+  funcao   String    @default("TECNICO")
+  chamados Chamado[]
+}
+
+model Chamado {
+  protocolo         Int        @id @default(autoincrement())
+  
+  clienteId         String?
+  cliente           Cliente?   @relation(fields: [clienteId], references: [id])
+  conexaoId         String?
+  conexao           Conexao?   @relation(fields: [conexaoId], references: [id])
+  tecnicoId         String?
+  tecnico           Equipe?    @relation(fields: [tecnicoId], references: [id])
+  categoriaId       String
+  categoria         Categoria  @relation(fields: [categoriaId], references: [id])
+
+  nomeAvulso        String?
+  whatsAvulso       String?
+  enderecoCompleto  String?
+  contratoSalvo     String?
+  pppoeSalvo        String?
+  senhaPpoeSalva    String?
+
+  motivo            String
+  observacoes       String?
+  solucao           String?
+  prioridade        String     @default("Média")
+  status            String     @default("novos")
+
+  criadoEm          DateTime   @default(now())
+  atualizadoEm      DateTime   @updatedAt
+}
