@@ -88,3 +88,15 @@ model HistoricoLegado {
   
   criadoEm        DateTime @default(now())
 }
+
+// -------------------------------------------------
+// USUÁRIOS DO SISTEMA (LOGIN)
+// -------------------------------------------------
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  login     String   @unique
+  senha     String   
+  role      String   @default("TECNICO") 
+  criadoEm  DateTime @default(now())
+}

@@ -7,7 +7,7 @@ import { getCategorias, upsertCategoria, deleteCategoria } from '../../actions/c
 import { getClientes, createCliente, updateCliente, deleteCliente, addConexao, updateConexao, deleteConexao } from '../../actions/clientes';
 import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteChamado } from '../../actions/chamados';
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
-
+import { fazerLogout } from '../../actions/auth'; // <-- ADICIONE ESTA LINHA
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
         <header className="top-nav">
           <input className="search-input" placeholder="🔍 Buscar cliente, pppoe, rua..." value={buscaGlobal} onChange={(e) => { setBuscaGlobal(e.target.value); if(e.target.value && activeTab !== 'historico') setActiveTab('historico'); }} />
           <div style={{flex:1}}></div>
-          <button onClick={() => router.push('/login')} style={{background:'none', border:'none', color:'#95a5a6', cursor:'pointer', fontWeight:'bold'}}>SAIR</button>
+          <button onClick={async () => { await fazerLogout(); router.push('/login'); }} style={{background:'none', border:'none', color:'#95a5a6', cursor:'pointer', fontWeight:'bold'}}>SAIR</button>
         </header>
 
         {activeTab === 'dashboard' && (
