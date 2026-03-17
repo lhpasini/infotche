@@ -1,12 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { getCategorias, upsertCategoria, deleteCategoria } from '../../actions/categorias';
 import { getClientes, createCliente, updateCliente, deleteCliente, addConexao, updateConexao, deleteConexao } from '../../actions/clientes';
 import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteChamado } from '../../actions/chamados';
-import { importarHistoricoLegado, buscarHistoricoLegado } from '../../actions/legado';
+import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado } from '../../actions/legado';
 
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
@@ -57,6 +57,7 @@ export default function AdminDashboard() {
   const [abaHistorico, setAbaHistorico] = useState<'sistema' | 'legado'>('sistema');
   const [legadoBusca, setLegadoBusca] = useState("");
   const [legadoResultados, setLegadoResultados] = useState<any[]>([]);
+  const [legadoLimit, setLegadoLimit] = useState<number | 'todos'>(100); // <-- Controle de exibição (Padrão 100)
   const [isImporting, setIsImporting] = useState(false);
   const [expandedLegadoId, setExpandedLegadoId] = useState<string | null>(null);
 
@@ -73,6 +74,18 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => { loadData(); }, []);
+
+  // --- CARREGAMENTO AUTOMÁTICO DO LEGADO ---
+  const carregarUltimosLegado = async (limite: number | 'todos') => {
+    const ultimos = await getUltimosLegado(limite);
+    setLegadoResultados(ultimos);
+  };
+
+  useEffect(() => {
+    if (activeTab === 'historico' && abaHistorico === 'legado' && legadoBusca === '') {
+      carregarUltimosLegado(legadoLimit);
+    }
+  }, [activeTab, abaHistorico, legadoLimit]);
 
   const ticketsFiltrados = tickets.filter(t => {
     if (buscaGlobal.trim() !== "") {
@@ -202,8 +215,14 @@ export default function AdminDashboard() {
   };
 
   // --- FUNÇÕES DO ARQUIVO MORTO ---
-  const handlePesquisaLegado = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePesquisaLegado = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    
+    if (legadoBusca.trim() === '') {
+      carregarUltimosLegado(legadoLimit);
+      return;
+    }
+    
     if (legadoBusca.length < 3) return alert('Digite pelo menos 3 letras para buscar no passado.');
     const resultados = await buscarHistoricoLegado(legadoBusca);
     setLegadoResultados(resultados);
@@ -220,10 +239,10 @@ export default function AdminDashboard() {
       const linhas = text.split('\n').filter(l => l.trim().length > 0);
       const payload = [];
 
-      for (let i = 1; i < linhas.length; i++) { // Ignora cabeçalho (linha 0)
+      for (let i = 1; i < linhas.length; i++) {
         const colunas = linhas[i].split(',');
         const nome = colunas[0] ? colunas[0].replace(/"/g, '').trim() : 'Sem Nome';
-        const detalhes = linhas[i]; // Salva a linha inteira "suja" para segurança
+        const detalhes = linhas[i];
 
         payload.push({
           cliente_nome: nome,
@@ -233,7 +252,6 @@ export default function AdminDashboard() {
         });
       }
 
-      // Envio em lotes de 500 para não estourar a memória
       let salvos = 0;
       for (let i = 0; i < payload.length; i += 500) {
         const lote = payload.slice(i, i + 500);
@@ -243,6 +261,7 @@ export default function AdminDashboard() {
 
       alert(`✅ Sucesso! ${salvos} registros antigos foram importados para o Arquivo Morto.`);
       setIsImporting(false);
+      carregarUltimosLegado(legadoLimit); 
     };
     reader.readAsText(file);
   };
@@ -486,7 +505,7 @@ export default function AdminDashboard() {
                       <td>{t.status.toUpperCase()}</td>
                     </tr>
                   ))}
-                  {ticketsRelatorio.length === 0 && <tr><td colSpan={5} style={{textAlign:'center', color:'#999'}}>Nenhum chamado encontrado.</td></tr>}
+                  {ticketsRelatorio.length === 0 && <tr><td colSpan={5} style={{textAlign:'center', color:'#999'}}>Nenhum chamado encontrado nestes filtros.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -540,13 +559,33 @@ export default function AdminDashboard() {
               </table>
             )}
 
-            {/* TABELA ARQUIVO MORTO */}
+            {/* TABELA ARQUIVO MORTO COM DROPDOWN DE LIMITE */}
             {abaHistorico === 'legado' && (
               <div className="chart-box">
-                <form onSubmit={handlePesquisaLegado} style={{display:'flex', gap:'10px', marginBottom:'20px'}}>
-                  <input type="text" className="search-input" style={{flex:1}} placeholder="Busque por Nome do Cliente no Arquivo Morto..." value={legadoBusca} onChange={e => setLegadoBusca(e.target.value)} required />
-                  <button type="submit" className="btn-new">🔍 BUSCAR NO PASSADO</button>
-                </form>
+                <div style={{display:'flex', gap:'15px', marginBottom:'20px'}}>
+                  <form onSubmit={handlePesquisaLegado} style={{display:'flex', gap:'10px', flex: 1}}>
+                    <input type="text" className="search-input" style={{flex:1}} placeholder="Busque por Nome do Cliente no Arquivo Morto..." value={legadoBusca} onChange={e => setLegadoBusca(e.target.value)} />
+                    <button type="submit" className="btn-new">🔍 BUSCAR NO PASSADO</button>
+                  </form>
+                  
+                  <div style={{display:'flex', alignItems:'center', gap:'10px', background:'#f4f7f9', padding:'0 15px', borderRadius:'6px', border:'1px solid #dfe6ed'}}>
+                    <span style={{fontSize:'11px', fontWeight:'bold', color:'#7f8c8d'}}>Exibir:</span>
+                    <select 
+                      value={legadoLimit} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setLegadoLimit(val === 'todos' ? 'todos' : Number(val));
+                        setLegadoBusca(''); 
+                      }}
+                      style={{border:'none', outline:'none', background:'transparent', fontSize:'12px', fontWeight:'bold', color:'#2c3e50', cursor:'pointer'}}
+                    >
+                      <option value={100}>Últimos 100</option>
+                      <option value={500}>Últimos 500</option>
+                      <option value={1000}>Últimos 1000</option>
+                      <option value="todos">Todos (Lento)</option>
+                    </select>
+                  </div>
+                </div>
 
                 <table className="data-table">
                   <thead><tr><th>CLIENTE (LEGADO)</th><th>DATA</th><th>RESUMO</th><th>AÇÃO</th></tr></thead>
@@ -570,7 +609,7 @@ export default function AdminDashboard() {
                         )}
                       </React.Fragment>
                     ))}
-                    {legadoResultados.length === 0 && <tr><td colSpan={4} style={{textAlign:'center', color:'#999', padding:'30px'}}>Nenhum resultado. Digite o nome acima e clique em Buscar.</td></tr>}
+                    {legadoResultados.length === 0 && <tr><td colSpan={4} style={{textAlign:'center', color:'#999', padding:'30px'}}>Nenhum resultado encontrado.</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -613,7 +652,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* --- MODAL CHAMADO (Z-INDEX 1000) --- */}
+      {/* --- MODAL DE CHAMADO --- */}
       {isTicketModalOpen && (
         <div className="modal-overlay" style={{zIndex: 1000}}>
           <div className="modal-box">
