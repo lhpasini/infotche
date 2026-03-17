@@ -1,7 +1,16 @@
 'use client';
 
-type Conexao = { id: string; contratoMhnet: string | null; endereco: string; bairro: string | null; pppoe: string | null; senhaPpoe: string | null; };
-type Cliente = { id: string; nome: string; cpfCnpj: string | null; email: string | null; whatsapp: string | null; status: string; conexoes: Conexao[]; };
+// AQUI ADICIONAMOS A CIDADE NO TIPO DO CLIENTE
+type Cliente = { 
+  id: string; 
+  nome: string; 
+  cpfCnpj: string | null; 
+  email: string | null; 
+  whatsapp: string | null; 
+  status: string; 
+  cidade: string | null; // <-- ADICIONADO
+  conexoes: any[]; 
+};
 
 interface Props {
   clientes: Cliente[];
@@ -15,8 +24,9 @@ export function TabelaClientes({ clientes, onEdit, onDelete }: Props) {
       <thead>
         <tr>
           <th>NOME</th>
+          <th>CIDADE</th>
           <th>CONTATO</th>
-          <th>INSTALAÇÕES</th>
+          <th>CPF/CNPJ</th>
           <th>AÇÕES</th>
         </tr>
       </thead>
@@ -24,11 +34,13 @@ export function TabelaClientes({ clientes, onEdit, onDelete }: Props) {
         {clientes.map(cli => (
           <tr key={cli.id}>
             <td><strong>{cli.nome}</strong></td>
+            {/* EXIBINDO A CIDADE NA TABELA */}
+            <td><span style={{fontSize:'12px', color:'#7f8c8d'}}>{cli.cidade || 'Não informada'}</span></td>
             <td>{cli.whatsapp || '---'}</td>
-            <td><span style={{ background: '#eef2f5', padding: '3px 8px', borderRadius: '10px', fontSize: '11px' }}>{cli.conexoes.length} local(is)</span></td>
+            <td>{cli.cpfCnpj || '---'}</td>
             <td>
-              <button onClick={() => onEdit(cli)} style={{ marginRight: '15px', cursor: 'pointer', background: 'none', border: 'none' }}>✏️</button>
-              <button onClick={() => onDelete(cli.id)} style={{ cursor: 'pointer', background: 'none', border: 'none' }}>🗑️</button>
+              <button onClick={() => onEdit(cli)} style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}>✏️</button>
+              <button onClick={() => onDelete(cli.id)} style={{background:'none', border:'none', cursor:'pointer'}}>🗑️</button>
             </td>
           </tr>
         ))}
