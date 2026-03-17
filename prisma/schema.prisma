@@ -26,8 +26,8 @@ model Cliente {
   whatsapp  String?
   status    String    @default("Ativo")
   
-  // Relacionamento: Um cliente pode ter várias conexões
   conexoes  Conexao[] 
+  chamados  Chamado[] 
   
   criadoEm  DateTime  @default(now())
 }
@@ -40,8 +40,51 @@ model Conexao {
   pppoe         String?
   senhaPpoe     String?
   
-  // Relacionamento: Esta conexão pertence a UM cliente
-  // onDelete: Cascade garante que se apagar o cliente, a conexão some junto
   clienteId     String
   cliente       Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  
+  chamados      Chamado[] 
+}
+
+model Chamado {
+  id               String   @id @default(uuid())
+  protocolo        String   
+  
+  clienteId        String?
+  cliente          Cliente? @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  
+  conexaoId        String?
+  conexao          Conexao? @relation(fields: [conexaoId], references: [id], onDelete: SetNull)
+
+  nomeCliente      String   
+  whatsCliente     String?
+  enderecoCompleto String
+  categoria        String
+  motivo           String
+  pppoe            String?
+  senhaPpoe        String?
+  contratoMhnet    String?
+  obs              String?
+  tecnico          String?
+  
+  abertoPor        String?  @default("Admin")
+  resolucao        String?  
+  prioridade       String   @default("Média")
+  status           String   @default("novos") 
+
+  criadoEm         DateTime @default(now())
+  atualizadoEm     DateTime @updatedAt
+}
+
+// -------------------------------------------------
+// ARQUIVO MORTO (HISTÓRICO LEGADO)
+// -------------------------------------------------
+model HistoricoLegado {
+  id              String   @id @default(uuid())
+  cliente_nome    String
+  resumo          String?  
+  detalhes_brutos String   
+  data_referencia String?  
+  
+  criadoEm        DateTime @default(now())
 }
