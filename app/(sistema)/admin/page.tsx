@@ -8,6 +8,7 @@ import { getClientes, createCliente, updateCliente, deleteCliente, addConexao, u
 import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteChamado } from '../../actions/chamados';
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
 import { fazerLogout } from '../../actions/auth'; // <-- ADICIONE ESTA LINHA
+import { getUsuarios, upsertUsuario, deleteUsuario } from '../../actions/usuarios';
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -22,7 +23,7 @@ type Ticket = {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clientes' | 'categorias' | 'relatorios' | 'historico'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clientes' | 'categorias' | 'relatorios' | 'historico' | 'usuarios'>('dashboard');
   
   const isAdmin = true; 
 
@@ -68,8 +69,8 @@ export default function AdminDashboard() {
 
   async function loadData() {
     setLoading(true);
-    const [cats, clis, tks] = await Promise.all([ getCategorias(), getClientes(), getChamados() ]);
-    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]);
+    const [cats, clis, tks, usrs] = await Promise.all([ getCategorias(), getClientes(), getChamados(), getUsuarios() ]);
+    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as Usuario[]);
     setLoading(false);
   }
 
@@ -372,6 +373,7 @@ export default function AdminDashboard() {
           <div className={`nav-item ${activeTab === 'clientes' ? 'active' : ''}`} onClick={() => setActiveTab('clientes')}><span className="nav-icon">👥</span>Clientes</div>
           <div className={`nav-item ${activeTab === 'categorias' ? 'active' : ''}`} onClick={() => setActiveTab('categorias')}><span className="nav-icon">🏷️</span>Categorias</div>
           {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">📈</span>Relatórios</div>}
+          {isAdmin && <div className={`nav-item ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}><span className="nav-icon">🔐</span>Usuários</div>}
         </div>
       </aside>
 
@@ -393,7 +395,33 @@ export default function AdminDashboard() {
           </>
         )}
 
-        {/* --- ABA RELATÓRIOS --- */}
+        {/* --- ABA USUÁRIOS --- */}
+        {activeTab === 'usuarios' && isAdmin && (
+          <div style={{padding:'30px'}}>
+            <div style={{display:'flex', justifyContent:'space-between', marginBottom:'20px'}}>
+              <h1>Controle de Acesso</h1>
+              <button className="btn-new" onClick={() => { setEditingUsuario(null); setIsUserModalOpen(true); }}>+ NOVO USUÁRIO</button>
+            </div>
+            <table className="data-table">
+              <thead><tr><th>NOME</th><th>LOGIN</th><th>PERMISSÃO</th><th>AÇÕES</th></tr></thead>
+              <tbody>
+                {usuarios.map(usr => (
+                  <tr key={usr.id}>
+                    <td><strong>{usr.nome}</strong></td>
+                    <td>{usr.login}</td>
+                    <td><span style={{padding:'4px 8px', borderRadius:'4px', color:'#fff', fontSize:'11px', fontWeight:'bold', background: usr.role === 'ADMIN' ? '#e74c3c' : '#3498db'}}>{usr.role}</span></td>
+                    <td>
+                      <button onClick={() => { setEditingUsuario(usr); setIsUserModalOpen(true); }} style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}>✏️</button>
+                      {usr.login !== 'admin' && (
+                        <button onClick={async () => { if(confirm('Remover acesso?')) { await deleteUsuario(usr.id); loadData(); } }} style={{background:'none', border:'none', cursor:'pointer'}}>🗑️</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         {activeTab === 'relatorios' && isAdmin && (
           <div style={{padding:'30px', overflowY:'auto'}}>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
@@ -829,6 +857,42 @@ export default function AdminDashboard() {
             <form onSubmit={async (e) => { e.preventDefault(); const formData = new FormData(e.currentTarget); await upsertCategoria(editingCat?.id || null, formData.get('nomeCat') as string); loadData(); setIsCatModalOpen(false); }}>
               <div className="field" style={{margin:'20px 0'}}><label>Nome Categoria *</label><input name="nomeCat" required defaultValue={editingCat?.nome} /></div>
               <button type="submit" className="btn-new" style={{width:'100%'}}>Salvar Categoria</button>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* --- MODAL USUÁRIO (Z-INDEX 5000) --- */}
+      {isUserModalOpen && (
+        <div className="modal-overlay" style={{zIndex:5000}}>
+          <div className="modal-box" style={{width:'400px'}}>
+            <button type="button" className="btn-close" onClick={() => setIsUserModalOpen(false)}>✖</button>
+            <h2>{editingUsuario ? 'Editar Usuário' : 'Novo Usuário'}</h2>
+            <form onSubmit={async (e) => { 
+              e.preventDefault(); 
+              const formData = new FormData(e.currentTarget); 
+              const data = {
+                nome: formData.get('nome') as string, login: formData.get('login') as string,
+                senha: formData.get('senha') as string, role: formData.get('role') as string
+              };
+              await upsertUsuario(editingUsuario?.id || null, data); 
+              loadData(); setIsUserModalOpen(false); 
+            }}>
+              <div className="field-group" style={{gridTemplateColumns: '1fr'}}>
+                <div className="field"><label>Nome Completo *</label><input name="nome" required defaultValue={editingUsuario?.nome} /></div>
+                <div className="field"><label>Login de Acesso *</label><input name="login" required defaultValue={editingUsuario?.login} disabled={editingUsuario?.login === 'admin'} /></div>
+                <div className="field">
+                  <label>Senha {editingUsuario ? '(Deixe em branco para não alterar)' : '*'}</label>
+                  <input type="password" name="senha" required={!editingUsuario} />
+                </div>
+                <div className="field">
+                  <label>Permissão *</label>
+                  <select name="role" required defaultValue={editingUsuario?.role || 'TECNICO'} disabled={editingUsuario?.login === 'admin'}>
+                    <option value="TECNICO">Técnico (Apenas Kanban, Clientes, Legado)</option>
+                    <option value="ADMIN">Administrador (Acesso Total)</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar Usuário</button>
             </form>
           </div>
         </div>
