@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { getCategorias, upsertCategoria, deleteCategoria } from '../../actions/categorias';
 import { getClientes, createCliente, updateCliente, deleteCliente, addConexao, updateConexao, deleteConexao } from '../../actions/clientes';
 import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteChamado } from '../../actions/chamados';
-import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado } from '../../actions/legado';
+import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
 
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
   const [abaHistorico, setAbaHistorico] = useState<'sistema' | 'legado'>('sistema');
   const [legadoBusca, setLegadoBusca] = useState("");
   const [legadoResultados, setLegadoResultados] = useState<any[]>([]);
-  const [legadoLimit, setLegadoLimit] = useState<number | 'todos'>(100); // <-- Controle de exibição (Padrão 100)
+  const [legadoLimit, setLegadoLimit] = useState<number | 'todos'>(100);
   const [isImporting, setIsImporting] = useState(false);
   const [expandedLegadoId, setExpandedLegadoId] = useState<string | null>(null);
 
@@ -75,7 +75,6 @@ export default function AdminDashboard() {
 
   useEffect(() => { loadData(); }, []);
 
-  // --- CARREGAMENTO AUTOMÁTICO DO LEGADO ---
   const carregarUltimosLegado = async (limite: number | 'todos') => {
     const ultimos = await getUltimosLegado(limite);
     setLegadoResultados(ultimos);
@@ -217,15 +216,18 @@ export default function AdminDashboard() {
   // --- FUNÇÕES DO ARQUIVO MORTO ---
   const handlePesquisaLegado = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
-    if (legadoBusca.trim() === '') {
-      carregarUltimosLegado(legadoLimit);
-      return;
-    }
-    
+    if (legadoBusca.trim() === '') { carregarUltimosLegado(legadoLimit); return; }
     if (legadoBusca.length < 3) return alert('Digite pelo menos 3 letras para buscar no passado.');
     const resultados = await buscarHistoricoLegado(legadoBusca);
     setLegadoResultados(resultados);
+  };
+
+  const handleLimparLegado = async () => {
+    if (confirm('ATENÇÃO: Isso vai apagar TODOS os registros do Arquivo Morto para você importar um arquivo novo. Tem certeza?')) {
+      await limparHistoricoLegado();
+      setLegadoResultados([]);
+      alert('Arquivo Morto limpo com sucesso! Pode importar o novo arquivo.');
+    }
   };
 
   const handleUploadLegado = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,15 +242,35 @@ export default function AdminDashboard() {
       const payload = [];
 
       for (let i = 1; i < linhas.length; i++) {
-        const colunas = linhas[i].split(',');
+        const linha = linhas[i];
+        
+        // 1. Extração Inteligente de Data
+        const regexData = /(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})/;
+        const matchData = linha.match(regexData);
+        let dataEncontrada = matchData ? matchData[0] : 'Sem Data';
+        
+        // 2. Extração Inteligente de Resumo (Baseado nos "Pipes" | do seu sistema)
+        let resumoEncontrado = 'Importado de Planilha Antiga';
+        if (linha.includes('|')) {
+            const partes = linha.split('|').map(p => p.trim()).filter(p => p.length > 0);
+            if (partes.length >= 2) {
+                // Geralmente o problema relatado cai na segunda ou terceira parte útil após o nome
+                resumoEncontrado = partes[1].substring(0, 100); 
+            }
+        } else {
+            const colunas = linha.split(',');
+            if (colunas.length >= 3) resumoEncontrado = colunas[2].replace(/"/g, '').substring(0, 100);
+        }
+
+        // O Nome ainda puxa da primeira vírgula (padrão Excel)
+        const colunas = linha.split(',');
         const nome = colunas[0] ? colunas[0].replace(/"/g, '').trim() : 'Sem Nome';
-        const detalhes = linhas[i];
 
         payload.push({
           cliente_nome: nome,
-          resumo: 'Importado de Planilha Antiga',
-          detalhes_brutos: detalhes,
-          data_referencia: new Date().toISOString().split('T')[0]
+          resumo: resumoEncontrado,
+          detalhes_brutos: linha,
+          data_referencia: dataEncontrada
         });
       }
 
@@ -531,6 +553,7 @@ export default function AdminDashboard() {
                 isAdmin && (
                   <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                     {isImporting && <span style={{fontSize:'12px', color:'#f39c12', fontWeight:'bold'}}>Importando... Pode levar 1 minuto.</span>}
+                    <button onClick={handleLimparLegado} className="btn-new" style={{background: '#e74c3c', margin:0}}>🗑️ LIMPAR ARQUIVO MORTO</button>
                     <label className="btn-new btn-green" style={{cursor:'pointer', margin:0}}>
                       {isImporting ? '⏳ AGUARDE...' : '📥 IMPORTAR ARQUIVO CSV'}
                       <input type="file" accept=".csv" style={{display:'none'}} onChange={handleUploadLegado} disabled={isImporting} />

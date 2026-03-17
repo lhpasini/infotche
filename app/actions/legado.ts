@@ -17,7 +17,6 @@ export async function importarHistoricoLegado(linhas: any[]) {
   }
 }
 
-// Aceita número exato ou a palavra "todos"
 export async function getUltimosLegado(limite: number | 'todos') {
   try {
     return await prisma.historicoLegado.findMany({
@@ -32,7 +31,6 @@ export async function getUltimosLegado(limite: number | 'todos') {
 
 export async function buscarHistoricoLegado(termo: string) {
   if (!termo || termo.length < 3) return [];
-  
   try {
     return await prisma.historicoLegado.findMany({
       where: {
@@ -41,11 +39,23 @@ export async function buscarHistoricoLegado(termo: string) {
           { detalhes_brutos: { contains: termo, mode: 'insensitive' } }
         ]
       },
-      take: 500, // Limite de 500 na busca para a tela não congelar com termos muito genéricos
+      take: 500,
       orderBy: { criadoEm: 'desc' }
     });
   } catch (error) {
     console.error("Erro ao buscar legado:", error);
     return [];
+  }
+}
+
+// NOVA FUNÇÃO: Limpar a tabela inteira para reimportar
+export async function limparHistoricoLegado() {
+  try {
+    await prisma.historicoLegado.deleteMany({});
+    revalidatePath('/admin');
+    return { sucesso: true };
+  } catch (error) {
+    console.error("Erro ao limpar legado:", error);
+    return { sucesso: false };
   }
 }
