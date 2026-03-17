@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { getCategorias, upsertCategoria, deleteCategoria } from '../../actions/categorias';
 import { getClientes, createCliente, updateCliente, deleteCliente, addConexao, updateConexao, deleteConexao } from '../../actions/clientes';
