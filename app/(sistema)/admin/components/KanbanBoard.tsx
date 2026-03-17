@@ -43,6 +43,17 @@ export function KanbanBoard({ tickets, expandedId, setExpandedId, onDragStart, o
                 draggable 
                 onDragStart={(e) => onDragStart(e, t.id)} 
                 onClick={() => setExpandedId(expandedId === t.id ? null : t.id)}
+                style={{ 
+                  // CORES DE FUNDO POR CIDADE (Tons Pastéis)
+                  background: t.cidadeCliente === 'Santa Bárbara do Sul' ? '#e8f5e9' : // Verde Claro
+                             t.cidadeCliente === 'Saldanha Marinho' ? '#fffde7' :    // Amarelo Claro
+                             t.cidadeCliente === 'Panambi' ? '#e3f2fd' :             // Azul Claro
+                             'white',
+                  // DESTAQUE LATERAL PARA LINK LOSS
+                  borderLeft: t.categoria === 'Mhnet / Link Loss' ? '8px solid #e74c3c' : '4px solid transparent',
+                  marginBottom: '10px',
+                  transition: '0.3s'
+                }}
               >
                 <div className="card-top">
                   <span className="prot-badge">{t.protocolo}</span>
@@ -53,17 +64,22 @@ export function KanbanBoard({ tickets, expandedId, setExpandedId, onDragStart, o
                   </div>
                 </div>
                 
-                <div className="card-client">{t.nomeCliente}</div>
+                <div className="card-client" style={{marginBottom: '2px'}}>{t.nomeCliente}</div>
                 
                 {/* CIDADE EM DESTAQUE LOGO ABAIXO DO NOME */}
                 {t.cidadeCliente && (
-                  <div style={{ fontSize: '11px', color: '#e74c3c', fontWeight: 'bold', margin: '2px 0 6px 0', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '10px', color: '#2c3e50', fontWeight: 'bold', marginBottom: '6px', textTransform: 'uppercase' }}>
                     📍 {t.cidadeCliente}
                   </div>
                 )}
 
                 <span className="card-whats">📱 {t.whatsCliente || 'Sem Whats'}</span>
-                <span className="card-cat">🏷️ {t.categoria}</span>
+                
+                {/* CATEGORIA COM COR DINÂMICA SE FOR LINK LOSS */}
+                <span className="card-cat" style={{ color: t.categoria === 'Mhnet / Link Loss' ? '#e74c3c' : '#3498db', fontWeight: t.categoria === 'Mhnet / Link Loss' ? 'bold' : 'normal' }}>
+                  🏷️ {t.categoria}
+                </span>
+
                 <div className="card-desc">📝 {t.motivo}</div>
                 <div className="card-footer"><span>👷 {t.tecnico || 'S/ Tec'}</span><span>🕒 {new Date(t.criadoEm).toLocaleDateString('pt-BR')}</span></div>
                 
