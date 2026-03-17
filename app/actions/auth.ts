@@ -40,3 +40,9 @@ export async function fazerLogout() {
   cookieStore.delete('auth_infotche');
   return { sucesso: true };
 }
+export async function getSessao() {
+  const cookieStore = await cookies();
+  const auth = cookieStore.get('auth_infotche');
+  if (!auth) return null;
+  return JSON.parse(auth.value);
+}

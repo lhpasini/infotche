@@ -7,7 +7,7 @@ import { getCategorias, upsertCategoria, deleteCategoria } from '../../actions/c
 import { getClientes, createCliente, updateCliente, deleteCliente, addConexao, updateConexao, deleteConexao } from '../../actions/clientes';
 import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteChamado } from '../../actions/chamados';
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
-import { fazerLogout } from '../../actions/auth'; // <-- ADICIONE ESTA LINHA
+import { fazerLogout, getSessao } from '../../actions/auth';
 import { getUsuarios, upsertUsuario, deleteUsuario } from '../../actions/usuarios';
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
@@ -25,7 +25,8 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'clientes' | 'categorias' | 'relatorios' | 'historico' | 'usuarios'>('dashboard');
   
-  const isAdmin = true; 
+  const [usuarioLogado, setUsuarioLogado] = useState<{id: string, nome: string, role: string} | null>(null);
+  const isAdmin = usuarioLogado?.role === 'ADMIN'; 
 
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
@@ -66,11 +67,15 @@ export default function AdminDashboard() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
+  type Usuario = { id: string; nome: string; login: string; role: string; senha?: string; };
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
 
   async function loadData() {
     setLoading(true);
-    const [cats, clis, tks, usrs] = await Promise.all([ getCategorias(), getClientes(), getChamados(), getUsuarios() ]);
-    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as Usuario[]);
+    const [cats, clis, tks, usrs, sessao] = await Promise.all([ getCategorias(), getClientes(), getChamados(), getUsuarios(), getSessao() ]);
+    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as Usuario[]); setUsuarioLogado(sessao);
     setLoading(false);
   }
 
@@ -381,7 +386,18 @@ export default function AdminDashboard() {
         <header className="top-nav">
           <input className="search-input" placeholder="🔍 Buscar cliente, pppoe, rua..." value={buscaGlobal} onChange={(e) => { setBuscaGlobal(e.target.value); if(e.target.value && activeTab !== 'historico') setActiveTab('historico'); }} />
           <div style={{flex:1}}></div>
-          <button onClick={async () => { await fazerLogout(); router.push('/login'); }} style={{background:'none', border:'none', color:'#95a5a6', cursor:'pointer', fontWeight:'bold'}}>SAIR</button>
+          {usuarioLogado && (
+            <div style={{display:'flex', alignItems:'center', gap:'10px', marginRight:'20px', paddingRight:'20px', borderRight:'1px solid #dce3e8'}}>
+              <div style={{width:'32px', height:'32px', borderRadius:'50%', background:'#3498db', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', fontSize:'14px'}}>
+                {usuarioLogado.nome.charAt(0).toUpperCase()}
+              </div>
+              <div style={{display:'flex', flexDirection:'column'}}>
+                <span style={{fontSize:'12px', fontWeight:'bold', color:'#2c3e50'}}>{usuarioLogado.nome}</span>
+                <span style={{fontSize:'10px', color:'#7f8c8d', textTransform:'uppercase'}}>{usuarioLogado.role}</span>
+              </div>
+            </div>
+          )}
+          <button onClick={async () => { await fazerLogout(); router.push('/login'); }} style={{background:'none', border:'none', color:'#e74c3c', cursor:'pointer', fontWeight:'bold'}}>SAIR</button>
         </header>
 
         {activeTab === 'dashboard' && (
