@@ -1,9 +1,10 @@
 'use client';
 
+// AQUI ESTÁ A CORREÇÃO: O Ticket agora conhece todos os campos novos (prioridade, resolucao, etc)
 type Ticket = { 
-  id: string; protocolo: string; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; 
+  id: string; protocolo: string; clienteId: string | null; conexaoId: string | null; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; 
   tecnico: string | null; categoria: string; motivo: string; pppoe: string | null; senhaPpoe: string | null; contratoMhnet: string | null;
-  obs: string | null; criadoEm: any; status: string; 
+  obs: string | null; abertoPor: string | null; resolucao: string | null; prioridade: string; criadoEm: any; atualizadoEm?: any; status: string; 
 };
 
 interface Props {
