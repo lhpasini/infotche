@@ -1,6 +1,5 @@
 'use client';
 
-// AQUI ESTÁ A CORREÇÃO: O Ticket agora conhece todos os campos novos (prioridade, resolucao, cidade, etc)
 type Ticket = { 
   id: string; protocolo: string; clienteId: string | null; conexaoId: string | null; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; cidadeCliente: string | null;
   tecnico: string | null; categoria: string; motivo: string; pppoe: string | null; senhaPpoe: string | null; contratoMhnet: string | null;
@@ -54,11 +53,11 @@ export function KanbanBoard({ tickets, expandedId, setExpandedId, onDragStart, o
                   </div>
                 </div>
                 
-                <span className="card-client">{t.nomeCliente}</span>
+                <div className="card-client">{t.nomeCliente}</div>
                 
-                {/* AQUI ESTÁ A CIDADE EM DESTAQUE */}
+                {/* CIDADE EM DESTAQUE LOGO ABAIXO DO NOME */}
                 {t.cidadeCliente && (
-                  <div style={{ fontSize: '11px', color: '#e74c3c', fontWeight: 'bold', margin: '4px 0' }}>
+                  <div style={{ fontSize: '11px', color: '#e74c3c', fontWeight: 'bold', margin: '2px 0 6px 0', textTransform: 'uppercase' }}>
                     📍 {t.cidadeCliente}
                   </div>
                 )}

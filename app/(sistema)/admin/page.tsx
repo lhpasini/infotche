@@ -314,7 +314,10 @@ export default function AdminDashboard() {
         .board-header { padding: 20px 30px; display: flex; align-items: center; gap: 15px; }
         .board-header h1 { font-size: 20px; color: #2c3e50; font-weight: 800; }
         .kanban { display: flex; gap: 15px; padding: 0 30px 25px; overflow-x: auto; flex: 1; }
-        .column { background: #dce3e8; width: 320px; border-radius: 8px; flex-shrink: 0; display: flex; flex-direction: column; }
+        
+        /* ATUALIZAÇÃO DA LARGURA DA COLUNA AQUI (DE 320 PARA 360) */
+        .column { background: #dce3e8; width: 360px; border-radius: 8px; flex-shrink: 0; display: flex; flex-direction: column; }
+        
         .col-title { padding: 12px 15px; color: white; font-weight: bold; font-size: 11px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; }
         .bg-blue { background: #3498db; } .bg-orange { background: #f39c12; } .bg-cyan { background: #1abc9c; } .bg-green { background: #2ecc71; }
         .kanban-card { background: white; margin: 10px; padding: 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; border-left: 4px solid transparent; }
