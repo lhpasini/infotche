@@ -53,6 +53,7 @@ export async function updateCliente(id: string, dadosCliente: DadosCliente) {
         cpfCnpj: dadosCliente.cpfCnpj || null,
         whatsapp: dadosCliente.whatsapp || null,
         email: dadosCliente.email || null,
+        cidade: dados.cidade // <-- ESTA LINHA É A QUE FALTA
       }
     });
     revalidatePath('/admin');

@@ -737,7 +737,17 @@ export default function AdminDashboard() {
               <div className="field-group">
                 
                 <div className="field" style={{ gridColumn: 'span 2', position: 'relative' }}>
-                  <label>1. Buscar ou Novo Cliente *</label>
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                    <label>1. Buscar ou Novo Cliente *</label>
+                    {tempClientId && (
+                      <button type="button" onClick={() => { 
+                        const cli = clientes.find(c => c.id === tempClientId);
+                        if(cli) { setEditingCliente(cli); setIsClientModalOpen(true); }
+                      }} style={{fontSize:'10px', color:'#3498db', background:'none', border:'none', cursor:'pointer', fontWeight:'bold'}}>
+                        ✏️ EDITAR DADOS DESTE CLIENTE
+                      </button>
+                    )}
+                  </div>
                   <input 
                     value={clientSearch} 
                     onChange={(e) => { 
