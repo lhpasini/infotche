@@ -8,7 +8,7 @@ import { getClientes, createCliente, updateCliente, deleteCliente, addConexao, u
 import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteChamado } from '../../actions/chamados';
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
 import { fazerLogout, getSessao } from '../../actions/auth';
-import { getUsuarios, upsertUsuario, deleteUsuario } from '../../actions/usuarios';
+import { getUsuarios, upsertUsuario, deleteUsuario, atualizarMeuPerfil } from '../../actions/usuarios';
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -71,6 +71,7 @@ export default function AdminDashboard() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
+  const [isPerfilModalOpen, setIsPerfilModalOpen] = useState(false);
 
   async function loadData() {
     setLoading(true);
@@ -387,13 +388,17 @@ export default function AdminDashboard() {
           <input className="search-input" placeholder="🔍 Buscar cliente, pppoe, rua..." value={buscaGlobal} onChange={(e) => { setBuscaGlobal(e.target.value); if(e.target.value && activeTab !== 'historico') setActiveTab('historico'); }} />
           <div style={{flex:1}}></div>
           {usuarioLogado && (
-            <div style={{display:'flex', alignItems:'center', gap:'10px', marginRight:'20px', paddingRight:'20px', borderRight:'1px solid #dce3e8'}}>
+            <div 
+              onClick={() => setIsPerfilModalOpen(true)}
+              style={{display:'flex', alignItems:'center', gap:'10px', marginRight:'20px', paddingRight:'20px', borderRight:'1px solid #dce3e8', cursor:'pointer'}}
+              title="Editar Meu Perfil"
+            >
               <div style={{width:'32px', height:'32px', borderRadius:'50%', background:'#3498db', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', fontSize:'14px'}}>
                 {usuarioLogado.nome.charAt(0).toUpperCase()}
               </div>
               <div style={{display:'flex', flexDirection:'column'}}>
                 <span style={{fontSize:'12px', fontWeight:'bold', color:'#2c3e50'}}>{usuarioLogado.nome}</span>
-                <span style={{fontSize:'10px', color:'#7f8c8d', textTransform:'uppercase'}}>{usuarioLogado.role}</span>
+                <span style={{fontSize:'10px', color:'#3498db', fontWeight:'bold'}}>✏️ Editar Perfil</span>
               </div>
             </div>
           )}
@@ -909,6 +914,32 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar Usuário</button>
+            </form>
+          </div>
+        </div>
+      )}
+    {/* --- MODAL MEU PERFIL (Z-INDEX 6000) --- */}
+      {isPerfilModalOpen && usuarioLogado && (
+        <div className="modal-overlay" style={{zIndex:6000}}>
+          <div className="modal-box" style={{width:'400px'}}>
+            <button type="button" className="btn-close" onClick={() => setIsPerfilModalOpen(false)}>✖</button>
+            <h2>Meu Perfil</h2>
+            <form onSubmit={async (e) => { 
+              e.preventDefault(); 
+              const formData = new FormData(e.currentTarget); 
+              await atualizarMeuPerfil(usuarioLogado.id, formData.get('nome') as string, formData.get('senha') as string);
+              loadData(); 
+              setIsPerfilModalOpen(false); 
+              alert('Perfil atualizado com sucesso!');
+            }}>
+              <div className="field-group" style={{gridTemplateColumns: '1fr'}}>
+                <div className="field"><label>Seu Nome *</label><input name="nome" required defaultValue={usuarioLogado.nome} /></div>
+                <div className="field">
+                  <label>Nova Senha (Deixe em branco para manter a atual)</label>
+                  <input type="password" name="senha" />
+                </div>
+              </div>
+              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Atualizar Meus Dados</button>
             </form>
           </div>
         </div>

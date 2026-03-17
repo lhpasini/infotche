@@ -2,6 +2,7 @@
 
 import { prisma } from '../../lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export async function getUsuarios() {
   try {
@@ -45,6 +46,31 @@ export async function deleteUsuario(id: string) {
     return { sucesso: true };
   } catch (error) {
     console.error("Erro ao deletar usuario:", error);
+    return { sucesso: false };
+  }
+}
+export async function atualizarMeuPerfil(id: string, nome: string, senha?: string) {
+  try {
+    const updateData: any = { nome };
+    if (senha && senha.trim() !== '') updateData.senha = senha;
+    
+    await prisma.usuario.update({ where: { id }, data: updateData });
+
+    // Atualiza o "Crachá" para o nome novo aparecer na hora
+    const cookieStore = await cookies();
+    const auth = cookieStore.get('auth_infotche');
+    if (auth) {
+      const sessao = JSON.parse(auth.value);
+      sessao.nome = nome;
+      cookieStore.set('auth_infotche', JSON.stringify(sessao), {
+        httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 7, path: '/'
+      });
+    }
+
+    revalidatePath('/admin');
+    return { sucesso: true };
+  } catch (error) {
+    console.error("Erro ao atualizar perfil:", error);
     return { sucesso: false };
   }
 }
