@@ -172,7 +172,7 @@ export default function AdminDashboard() {
     setTempContrato(t.contratoMhnet || ""); setIsTicketModalOpen(true);
   };
 
-  const handleSaveTicket = async (e: React.FormEvent<HTMLFormElement>) => {
+ const handleSaveTicket = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const isAvulso = !tempClientId;
@@ -187,7 +187,6 @@ export default function AdminDashboard() {
       conexaoId: isAvulso ? null : tempConexaoId,
       nomeCliente: isAvulso ? clientSearch : (clienteEncontrado?.nome || ''), 
       whatsCliente: isAvulso ? '' : (clienteEncontrado?.whatsapp || ''),
-      // AQUI ESTÁ A MÁGICA: Pega a cidade direto do cadastro do cliente para salvar no chamado
       cidadeCliente: isAvulso ? '' : (clienteEncontrado?.cidade || ''),
       enderecoCompleto: isAvulso ? '' : (con ? `${con.endereco} - ${con.bairro || ''}` : ''),
       categoria: formData.get('categoria') as string, 
@@ -202,12 +201,16 @@ export default function AdminDashboard() {
       prioridade: formData.get('prioridade') as string
     };
 
-    if (editingTicket) await updateChamado(editingTicket.id, ticketData);
-    else await createChamado(ticketData);
+    if (editingTicket) {
+      await updateChamado(editingTicket.id, ticketData);
+    } else {
+      await createChamado(ticketData);
+    }
     
     await loadData(); 
     setIsTicketModalOpen(false);
   };
+  
 
     if (editingTicket) await updateChamado(editingTicket.id, ticketData);
     else await createChamado(ticketData);
