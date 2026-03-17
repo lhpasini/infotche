@@ -201,12 +201,34 @@ export default function AdminDashboard() {
   const handleSaveCliente = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const dadosCliente = { nome: formData.get('nome') as string, cpfCnpj: formData.get('cpfCnpj') as string, whatsapp: formData.get('whatsapp') as string, email: formData.get('email') as string, cidade: formData.get('cidade') as string };
-    if (editingCliente) await updateCliente(editingCliente.id, dadosCliente);
-    else {
-      const dadosConexao = { endereco: formData.get('endereco') as string, bairro: formData.get('bairro') as string, contratoMhnet: formData.get('contratoMhnet') as string, pppoe: formData.get('pppoe') as string, senhaPpoe: formData.get('senhaPpoe') as string };
-      await createCliente(dadosCliente, dadosConexao); setIsClientModalOpen(false); 
+    
+    // Pegamos a cidade (priorizando o campo manual se ele existir, ou o select)
+    const cidadeFinal = (formData.get('cidade_manual') as string) || (formData.get('cidade') as string);
+
+    const dadosCliente = { 
+      nome: formData.get('nome') as string, 
+      cpfCnpj: formData.get('cpfCnpj') as string, 
+      whatsapp: formData.get('whatsapp') as string, 
+      email: formData.get('email') as string, 
+      cidade: cidadeFinal 
+    };
+
+    if (editingCliente) {
+      await updateCliente(editingCliente.id, dadosCliente);
+      alert('✅ Cliente atualizado com sucesso!'); 
+    } else {
+      const dadosConexao = { 
+        endereco: formData.get('endereco') as string, 
+        bairro: formData.get('bairro') as string, 
+        contratoMhnet: formData.get('contratoMhnet') as string, 
+        pppoe: formData.get('pppoe') as string, 
+        senhaPpoe: formData.get('senhaPpoe') as string 
+      };
+      await createCliente(dadosCliente, dadosConexao); 
+      alert('✅ Novo cliente cadastrado com sucesso!');
+      setIsClientModalOpen(false); 
     }
+    
     await loadData();
   };
 
@@ -845,7 +867,26 @@ export default function AdminDashboard() {
                 <div className="field"><label>WhatsApp</label><input name="whatsapp" defaultValue={editingCliente?.whatsapp || ''} /></div>
                 <div className="field"><label>CPF/CNPJ</label><input name="cpfCnpj" defaultValue={editingCliente?.cpfCnpj || ''} /></div>
                 <div className="field"><label>Email</label><input type="email" name="email" defaultValue={editingCliente?.email || ''} /></div>
-                <div className="field"><label>Cidade</label><input name="cidade" defaultValue={editingCliente?.cidade || ''} placeholder="Ex: Santa Bárbara do Sul" /></div>
+                <div className="field">
+                  <label>Cidade</label>
+                  <select name="cidade" defaultValue={editingCliente?.cidade || ''} style={{padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px'}}>
+                    <option value="">-- Selecione ou digite abaixo --</option>
+                    <option value="Santa Bárbara do Sul">Santa Bárbara do Sul</option>
+                    <option value="Saldanha Marinho">Saldanha Marinho</option>
+                    <option value="Panambi">Panambi</option>
+                  </select>
+                  <input 
+                    name="cidade_manual" 
+                    placeholder="Ou digite outra cidade aqui..." 
+                    style={{marginTop: '5px', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px'}}
+                    onChange={(e) => {
+                      if(e.target.value) {
+                        const sel = e.target.previousSibling as HTMLSelectElement;
+                        sel.value = ""; // Desmarca o select se estiver digitando
+                      }
+                    }}
+                  />
+                </div>
               </div>
               {!editingCliente && (
                 <>
