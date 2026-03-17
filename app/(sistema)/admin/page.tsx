@@ -172,7 +172,7 @@ export default function AdminDashboard() {
     setTempContrato(t.contratoMhnet || ""); setIsTicketModalOpen(true);
   };
 
- const handleSaveTicket = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveTicket = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const isAvulso = !tempClientId;
@@ -209,13 +209,6 @@ export default function AdminDashboard() {
     
     await loadData(); 
     setIsTicketModalOpen(false);
-  };
-  
-
-    if (editingTicket) await updateChamado(editingTicket.id, ticketData);
-    else await createChamado(ticketData);
-    
-    await loadData(); setIsTicketModalOpen(false);
   };
 
   const handleSaveCliente = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -304,7 +297,6 @@ export default function AdminDashboard() {
         if (linha.includes('|')) {
             const partes = linha.split('|').map(p => p.trim()).filter(p => p.length > 0);
             if (partes.length >= 2) {
-                // Geralmente o problema relatado cai na segunda ou terceira parte útil após o nome
                 resumoEncontrado = partes[1].substring(0, 100); 
             }
         } else {
@@ -312,7 +304,6 @@ export default function AdminDashboard() {
             if (colunas.length >= 3) resumoEncontrado = colunas[2].replace(/"/g, '').substring(0, 100);
         }
 
-        // O Nome ainda puxa da primeira vírgula (padrão Excel)
         const colunas = linha.split(',');
         const nome = colunas[0] ? colunas[0].replace(/"/g, '').trim() : 'Sem Nome';
 
@@ -357,7 +348,6 @@ export default function AdminDashboard() {
         .board-header h1 { font-size: 20px; color: #2c3e50; font-weight: 800; }
         .kanban { display: flex; gap: 15px; padding: 0 30px 25px; overflow-x: auto; flex: 1; }
         
-        /* ATUALIZAÇÃO DA LARGURA DA COLUNA AQUI (DE 320 PARA 360) */
         .column { background: #dce3e8; width: 360px; border-radius: 8px; flex-shrink: 0; display: flex; flex-direction: column; }
         
         .col-title { padding: 12px 15px; color: white; font-weight: bold; font-size: 11px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; }
