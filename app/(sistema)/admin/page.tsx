@@ -553,7 +553,6 @@ export default function AdminDashboard() {
                 isAdmin && (
                   <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                     {isImporting && <span style={{fontSize:'12px', color:'#f39c12', fontWeight:'bold'}}>Importando... Pode levar 1 minuto.</span>}
-                    <button onClick={handleLimparLegado} className="btn-new" style={{background: '#e74c3c', margin:0}}>🗑️ LIMPAR ARQUIVO MORTO</button>
                     <label className="btn-new btn-green" style={{cursor:'pointer', margin:0}}>
                       {isImporting ? '⏳ AGUARDE...' : '📥 IMPORTAR ARQUIVO CSV'}
                       <input type="file" accept=".csv" style={{display:'none'}} onChange={handleUploadLegado} disabled={isImporting} />
