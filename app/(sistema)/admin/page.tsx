@@ -617,7 +617,7 @@ export default function AdminDashboard() {
                       <React.Fragment key={leg.id}>
                         <tr>
                           <td><strong>{leg.cliente_nome}</strong></td>
-                          <td>{leg.data_referencia || 'N/A'}</td>
+                          <td>{leg.data_referencia ? (leg.data_referencia.includes('-') ? leg.data_referencia.split('-').reverse().join('/') : leg.data_referencia) : 'N/A'}</td>
                           <td><span style={{background:'#f0f3f4', padding:'3px 6px', borderRadius:'4px', fontSize:'11px'}}>{leg.resumo}</span></td>
                           <td><button onClick={() => setExpandedLegadoId(expandedLegadoId === leg.id ? null : leg.id)} style={{fontSize:'12px', background:'none', border:'none', color:'#3498db', cursor:'pointer', fontWeight:'bold'}}>
                             {expandedLegadoId === leg.id ? 'Ocultar' : 'Ver Linha Original'}
@@ -686,9 +686,26 @@ export default function AdminDashboard() {
                 
                 <div className="field" style={{ gridColumn: 'span 2', position: 'relative' }}>
                   <label>1. Buscar ou Novo Cliente *</label>
-                  <input value={clientSearch} onChange={(e) => { setClientSearch(e.target.value); setTempClientId(""); }} placeholder="Digite o nome..." required autoComplete="off" />
+                  <input 
+                    value={clientSearch} 
+                    onChange={(e) => { 
+                      setClientSearch(e.target.value); 
+                      setTempClientId(""); 
+                      const drop = document.getElementById('dropdown-cliente');
+                      if (drop) drop.style.display = 'block';
+                    }} 
+                    onKeyDown={(e) => {
+                      if (e.key === 'Tab' || e.key === 'Escape') {
+                        const drop = document.getElementById('dropdown-cliente');
+                        if (drop) drop.style.display = 'none';
+                      }
+                    }}
+                    placeholder="Digite o nome (Tecle TAB para ocultar sugestões)..." 
+                    required 
+                    autoComplete="off" 
+                  />
                   {clientSearch && !tempClientId && !editingTicket && (
-                    <div style={{ position: 'absolute', top: '55px', left: 0, right: 0, background: '#fff', border: '1px solid #dce3e8', borderRadius: '4px', zIndex: 1500, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                    <div id="dropdown-cliente" style={{ position: 'absolute', top: '55px', left: 0, right: 0, background: '#fff', border: '1px solid #dce3e8', borderRadius: '4px', zIndex: 1500, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                       {clientes.filter(c => c.nome.toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
                         <div key={c.id} onClick={() => { setTempClientId(c.id); setClientSearch(c.nome); }} style={{ padding: '10px', cursor: 'pointer', borderBottom: '1px solid #eee' }}>
                           <strong>{c.nome}</strong> <span style={{ fontSize: '10px', color: '#7f8c8d' }}>{c.whatsapp ? `(${c.whatsapp})` : ''}</span>
