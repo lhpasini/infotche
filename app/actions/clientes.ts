@@ -44,20 +44,24 @@ export async function createCliente(dadosCliente: DadosCliente, dadosConexao: Da
 }
 
 // 3. Atualizar Dados Pessoais do Cliente
-export async function updateCliente(id: string, dadosCliente: DadosCliente) {
+export async function updateCliente(id: string, dados: { nome: string; cpfCnpj?: string; whatsapp?: string; email?: string; cidade?: string }) {
   try {
-    await prisma.cliente.update({
+    const res = await prisma.cliente.update({
       where: { id },
       data: {
-        nome: dadosCliente.nome,
-        cpfCnpj: dadosCliente.cpfCnpj || null,
-        whatsapp: dadosCliente.whatsapp || null,
-        email: dadosCliente.email || null,
-        cidade: dados.cidade // <-- ESTA LINHA É A QUE FALTA
+        nome: dados.nome,
+        cpfCnpj: dados.cpfCnpj,
+        whatsapp: dados.whatsapp,
+        email: dados.email,
+        cidade: dados.cidade // Esta linha faz a mágica de salvar no banco
       }
     });
     revalidatePath('/admin');
-  } catch (error) { console.error("Erro ao atualizar cliente:", error); }
+    return res;
+  } catch (error) {
+    console.error("Erro ao atualizar cliente:", error);
+    return null;
+  }
 }
 
 // 4. Excluir Cliente (apaga conexões junto)
