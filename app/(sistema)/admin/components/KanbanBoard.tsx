@@ -1,8 +1,8 @@
 'use client';
 
-// AQUI ESTÁ A CORREÇÃO: O Ticket agora conhece todos os campos novos (prioridade, resolucao, etc)
+// AQUI ESTÁ A CORREÇÃO: O Ticket agora conhece todos os campos novos (prioridade, resolucao, cidade, etc)
 type Ticket = { 
-  id: string; protocolo: string; clienteId: string | null; conexaoId: string | null; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; 
+  id: string; protocolo: string; clienteId: string | null; conexaoId: string | null; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; cidadeCliente: string | null;
   tecnico: string | null; categoria: string; motivo: string; pppoe: string | null; senhaPpoe: string | null; contratoMhnet: string | null;
   obs: string | null; abertoPor: string | null; resolucao: string | null; prioridade: string; criadoEm: any; atualizadoEm?: any; status: string; 
 };
@@ -24,7 +24,7 @@ export function KanbanBoard({ tickets, expandedId, setExpandedId, onDragStart, o
 
   const handleCopy = (e: React.MouseEvent, t: Ticket) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(`PROTOCOLO: ${t.protocolo}\nCLIENTE: ${t.nomeCliente}\nCONTATO: ${t.whatsCliente || 'N/A'}\nENDEREÇO: ${t.enderecoCompleto}\nPPPoE: ${t.pppoe || 'N/A'}\nSENHA: ${t.senhaPpoe || 'N/A'}\nCÓDIGO CONEXÃO: ${t.contratoMhnet || 'N/A'}\nCATEGORIA: ${t.categoria}\nDETALHES: ${t.motivo}\nOBS: ${t.obs || 'Nenhuma'}`);
+    navigator.clipboard.writeText(`PROTOCOLO: ${t.protocolo}\nCLIENTE: ${t.nomeCliente}\nCONTATO: ${t.whatsCliente || 'N/A'}\nCIDADE: ${t.cidadeCliente || 'N/A'}\nENDEREÇO: ${t.enderecoCompleto}\nPPPoE: ${t.pppoe || 'N/A'}\nSENHA: ${t.senhaPpoe || 'N/A'}\nCÓDIGO CONEXÃO: ${t.contratoMhnet || 'N/A'}\nCATEGORIA: ${t.categoria}\nDETALHES: ${t.motivo}\nOBS: ${t.obs || 'Nenhuma'}`);
     alert('Copiado para o técnico!');
   };
 
@@ -53,11 +53,20 @@ export function KanbanBoard({ tickets, expandedId, setExpandedId, onDragStart, o
                     <button onClick={(e) => { e.stopPropagation(); onDelete(t.id); }} title="Excluir">🗑️</button>
                   </div>
                 </div>
+                
                 <span className="card-client">{t.nomeCliente}</span>
+                
+                {/* AQUI ESTÁ A CIDADE EM DESTAQUE */}
+                {t.cidadeCliente && (
+                  <div style={{ fontSize: '11px', color: '#e74c3c', fontWeight: 'bold', margin: '4px 0' }}>
+                    📍 {t.cidadeCliente}
+                  </div>
+                )}
+
                 <span className="card-whats">📱 {t.whatsCliente || 'Sem Whats'}</span>
                 <span className="card-cat">🏷️ {t.categoria}</span>
                 <div className="card-desc">📝 {t.motivo}</div>
-                <div className="card-footer"><span>👷 {t.tecnico || 'S/ Tec'}</span><span>🕒 {new Date(t.criadoEm).toLocaleDateString()}</span></div>
+                <div className="card-footer"><span>👷 {t.tecnico || 'S/ Tec'}</span><span>🕒 {new Date(t.criadoEm).toLocaleDateString('pt-BR')}</span></div>
                 
                 {expandedId === t.id && (
                   <div className="card-details">

@@ -13,23 +13,24 @@ datasource db {
 // -------------------------------------------------
 
 model Categoria {
-  id        String   @id @default(uuid())
-  nome      String   @unique
-  criadoEm  DateTime @default(now())
+  id       String   @id @default(uuid())
+  nome     String   @unique
+  criadoEm DateTime @default(now())
 }
 
 model Cliente {
-  id        String    @id @default(uuid())
-  nome      String
-  cpfCnpj   String?   
-  email     String?
-  whatsapp  String?
-  status    String    @default("Ativo")
+  id       String    @id @default(uuid())
+  nome     String
+  cidade    String?
+  cpfCnpj  String?   
+  email    String?
+  whatsapp String?
+  status   String    @default("Ativo")
   
-  conexoes  Conexao[] 
-  chamados  Chamado[] 
+  conexoes Conexao[] 
+  chamados Chamado[] 
   
-  criadoEm  DateTime  @default(now())
+  criadoEm DateTime  @default(now())
 }
 
 model Conexao {
@@ -56,7 +57,8 @@ model Chamado {
   conexaoId        String?
   conexao          Conexao? @relation(fields: [conexaoId], references: [id], onDelete: SetNull)
 
-  nomeCliente      String   
+  nomeCliente      String
+  cidadeCliente    String?   
   whatsCliente     String?
   enderecoCompleto String
   categoria        String
@@ -93,10 +95,34 @@ model HistoricoLegado {
 // USUÁRIOS DO SISTEMA (LOGIN)
 // -------------------------------------------------
 model Usuario {
-  id        String   @id @default(uuid())
-  nome      String
-  login     String   @unique
-  senha     String   
-  role      String   @default("TECNICO") 
-  criadoEm  DateTime @default(now())
+  id       String   @id @default(uuid())
+  nome     String
+  login    String   @unique
+  senha    String   
+  role     String   @default("TECNICO") 
+  criadoEm DateTime @default(now())
+
+  // Relação com as capturas feitas pelo técnico
+  capturas CapturaEquipamento[] 
+}
+
+// -------------------------------------------------
+// NOVO MÓDULO: GESTÃO DE EQUIPAMENTOS (MOBILE)
+// -------------------------------------------------
+model CapturaEquipamento {
+  id              String   @id @default(uuid())
+  
+  // Relacionamento com o técnico que fez a captura
+  tecnicoId       String
+  tecnico         Usuario  @relation(fields: [tecnicoId], references: [id])
+  
+  clienteNome     String
+  tipoAtendimento String   // Ex: "Nova instalação", "Troca de equipamento"
+  tipoEquipamento String   // Ex: "ONT", "ONU", "Roteador"
+  macSerial       String
+  fotoUrl         String?  // Link da imagem salva no Google Drive
+  observacao      String?  // Campo extra para o técnico anotar algo, se precisar
+
+  criadoEm        DateTime @default(now())
+  atualizadoEm    DateTime @updatedAt
 }

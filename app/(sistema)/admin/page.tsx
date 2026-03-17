@@ -13,10 +13,10 @@ import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
 
 type Conexao = { id: string; contratoMhnet: string | null; endereco: string; bairro: string | null; pppoe: string | null; senhaPpoe: string | null; };
-type Cliente = { id: string; nome: string; cpfCnpj: string | null; email: string | null; whatsapp: string | null; status: string; conexoes: Conexao[]; };
+type Cliente = { id: string; nome: string; cpfCnpj: string | null; email: string | null; whatsapp: string | null; status: string; conexoes: Conexao[]; cidade: string | null; };
 type Categoria = { id: string; nome: string; };
 type Ticket = { 
-  id: string; protocolo: string; clienteId: string | null; conexaoId: string | null; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; 
+  id: string; protocolo: string; clienteId: string | null; conexaoId: string | null; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; cidadeCliente: string | null; 
   tecnico: string | null; categoria: string; motivo: string; pppoe: string | null; senhaPpoe: string | null; contratoMhnet: string | null;
   obs: string | null; abertoPor: string | null; resolucao: string | null; prioridade: string; criadoEm: any; atualizadoEm?: any; status: string; 
 };
@@ -183,6 +183,7 @@ export default function AdminDashboard() {
       protocolo: editingTicket ? editingTicket.protocolo : `#${Math.floor(1000 + Math.random() * 9000)}`,
       clienteId: isAvulso ? null : tempClientId, conexaoId: isAvulso ? null : tempConexaoId,
       nomeCliente: isAvulso ? clientSearch : (cliente?.nome || ''), whatsCliente: isAvulso ? '' : (cliente?.whatsapp || ''),
+      cidadeCliente: isAvulso ? '' : (cliente?.cidade || ''),
       enderecoCompleto: isAvulso ? '' : (con ? `${con.endereco} - ${con.bairro || ''}` : ''),
       categoria: formData.get('categoria') as string, motivo: formData.get('motivo') as string, 
       pppoe: formData.get('pppoe') as string, senhaPpoe: formData.get('senhaPpoe') as string,
@@ -200,7 +201,7 @@ export default function AdminDashboard() {
   const handleSaveCliente = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const dadosCliente = { nome: formData.get('nome') as string, cpfCnpj: formData.get('cpfCnpj') as string, whatsapp: formData.get('whatsapp') as string, email: formData.get('email') as string };
+    const dadosCliente = { nome: formData.get('nome') as string, cpfCnpj: formData.get('cpfCnpj') as string, whatsapp: formData.get('whatsapp') as string, email: formData.get('email') as string, cidade: formData.get('cidade') as string };
     if (editingCliente) await updateCliente(editingCliente.id, dadosCliente);
     else {
       const dadosConexao = { endereco: formData.get('endereco') as string, bairro: formData.get('bairro') as string, contratoMhnet: formData.get('contratoMhnet') as string, pppoe: formData.get('pppoe') as string, senhaPpoe: formData.get('senhaPpoe') as string };
@@ -830,7 +831,8 @@ export default function AdminDashboard() {
                 <div className="field" style={{gridColumn:'span 2'}}><label>Nome Completo *</label><input name="nome" required defaultValue={editingCliente?.nome || clientSearch} /></div>
                 <div className="field"><label>WhatsApp</label><input name="whatsapp" defaultValue={editingCliente?.whatsapp || ''} /></div>
                 <div className="field"><label>CPF/CNPJ</label><input name="cpfCnpj" defaultValue={editingCliente?.cpfCnpj || ''} /></div>
-                <div className="field" style={{gridColumn:'span 2'}}><label>Email</label><input type="email" name="email" defaultValue={editingCliente?.email || ''} /></div>
+                <div className="field"><label>Email</label><input type="email" name="email" defaultValue={editingCliente?.email || ''} /></div>
+                <div className="field"><label>Cidade</label><input name="cidade" defaultValue={editingCliente?.cidade || ''} placeholder="Ex: Santa Bárbara do Sul" /></div>
               </div>
               {!editingCliente && (
                 <>
