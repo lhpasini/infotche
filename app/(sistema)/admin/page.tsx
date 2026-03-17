@@ -176,21 +176,38 @@ export default function AdminDashboard() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const isAvulso = !tempClientId;
-    const cliente = isAvulso ? null : clientes.find(c => c.id === tempClientId);
-    const con = cliente?.conexoes.find(c => c.id === tempConexaoId);
+    
+    // Buscamos o cliente atualizado da lista de clientes
+    const clienteEncontrado = isAvulso ? null : clientes.find(c => c.id === tempClientId);
+    const con = clienteEncontrado?.conexoes.find(c => c.id === tempConexaoId);
 
     const ticketData = {
       protocolo: editingTicket ? editingTicket.protocolo : `#${Math.floor(1000 + Math.random() * 9000)}`,
-      clienteId: isAvulso ? null : tempClientId, conexaoId: isAvulso ? null : tempConexaoId,
-      nomeCliente: isAvulso ? clientSearch : (cliente?.nome || ''), whatsCliente: isAvulso ? '' : (cliente?.whatsapp || ''),
-      cidadeCliente: isAvulso ? '' : (cliente?.cidade || ''),
+      clienteId: isAvulso ? null : tempClientId, 
+      conexaoId: isAvulso ? null : tempConexaoId,
+      nomeCliente: isAvulso ? clientSearch : (clienteEncontrado?.nome || ''), 
+      whatsCliente: isAvulso ? '' : (clienteEncontrado?.whatsapp || ''),
+      // AQUI ESTÁ A MÁGICA: Pega a cidade direto do cadastro do cliente para salvar no chamado
+      cidadeCliente: isAvulso ? '' : (clienteEncontrado?.cidade || ''),
       enderecoCompleto: isAvulso ? '' : (con ? `${con.endereco} - ${con.bairro || ''}` : ''),
-      categoria: formData.get('categoria') as string, motivo: formData.get('motivo') as string, 
-      pppoe: formData.get('pppoe') as string, senhaPpoe: formData.get('senhaPpoe') as string,
-      contratoMhnet: formData.get('contratoMhnet') as string, obs: formData.get('obs') as string,
-      tecnico: formData.get('tecnico') as string, abertoPor: formData.get('abertoPor') as string,
-      resolucao: formData.get('resolucao') as string, prioridade: formData.get('prioridade') as string
+      categoria: formData.get('categoria') as string, 
+      motivo: formData.get('motivo') as string, 
+      pppoe: formData.get('pppoe') as string, 
+      senhaPpoe: formData.get('senhaPpoe') as string,
+      contratoMhnet: formData.get('contratoMhnet') as string, 
+      obs: formData.get('obs') as string,
+      tecnico: formData.get('tecnico') as string, 
+      abertoPor: formData.get('abertoPor') as string,
+      resolucao: formData.get('resolucao') as string, 
+      prioridade: formData.get('prioridade') as string
     };
+
+    if (editingTicket) await updateChamado(editingTicket.id, ticketData);
+    else await createChamado(ticketData);
+    
+    await loadData(); 
+    setIsTicketModalOpen(false);
+  };
 
     if (editingTicket) await updateChamado(editingTicket.id, ticketData);
     else await createChamado(ticketData);
