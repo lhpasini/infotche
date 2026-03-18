@@ -860,7 +860,23 @@ export default function AdminDashboard() {
                 <div className="field" style={{gridColumn:'span 2'}}><label>Código da Conexão (Mhnet)</label><input name="contratoMhnet" value={tempContrato} onChange={e => setTempContrato(e.target.value)} /></div>
                 
                 <div className="field"><label>Aberto por</label><input name="abertoPor" defaultValue={editingTicket?.abertoPor || "Admin"} /></div>
-                <div className="field"><label>Técnico Responsável</label><input name="tecnico" defaultValue={editingTicket?.tecnico || ""} placeholder="Opcional" /></div>
+                <div className="field">
+                  <label>Técnico Responsável</label>
+                  <input 
+                    name="tecnico" 
+                    list="lista-tecnicos" 
+                    defaultValue={editingTicket?.tecnico || ""} 
+                    placeholder="Selecione ou digite o nome..." 
+                    autoComplete="off"
+                  />
+                  <datalist id="lista-tecnicos">
+                    <option value="Renan Vargas" />
+                    <option value="GILSON DA COSTA" />
+                    <option value="João Maia" />
+                    <option value="Luiz Pasini" />
+                    <option value="Pedro Zenatti" />
+                  </datalist>
+                </div>
 
                 <div className="field" style={{gridColumn:'span 2'}}><label>Observações</label><textarea name="obs" defaultValue={editingTicket?.obs || ""} style={{height:'40px'}} /></div>
                 <div className="field" style={{gridColumn:'span 2'}}><label>Fechamento da Ordem</label><textarea name="resolucao" defaultValue={editingTicket?.resolucao || ""} style={{height:'40px'}} placeholder="Preencher após a conclusão..." /></div>
