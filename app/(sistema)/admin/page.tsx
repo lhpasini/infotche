@@ -93,7 +93,14 @@ export default function AdminDashboard() {
     }
   }, [activeTab, abaHistorico, legadoLimit]);
 
-  const ticketsFiltrados = tickets.filter(t => {
+  // INJEÇÃO DINÂMICA: Puxa a cidade direto do cadastro do cliente em tempo real!
+  const ticketsComCidade = tickets.map(t => {
+    if (!t.clienteId) return t; // Se for chamado avulso, ignora
+    const clienteVinculado = clientes.find(c => c.id === t.clienteId);
+    return { ...t, cidadeCliente: clienteVinculado?.cidade || t.cidadeCliente || '' };
+  });
+
+  const ticketsFiltrados = ticketsComCidade.filter(t => {
     if (buscaGlobal.trim() !== "") {
       const termo = buscaGlobal.toLowerCase();
       return (t.nomeCliente.toLowerCase().includes(termo) || t.pppoe?.toLowerCase().includes(termo) || t.enderecoCompleto?.toLowerCase().includes(termo) || t.protocolo.toLowerCase().includes(termo));
