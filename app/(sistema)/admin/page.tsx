@@ -437,12 +437,12 @@ export default function AdminDashboard() {
         .btn-tab.active { background: #3498db; color: #fff; }
       `}} />
 
-          <div className={`nav-item ${activeTab === 'equipamentos' ? 'active' : ''}`} onClick={() => setActiveTab('equipamentos')}><span className="nav-icon">??</span>Equipamentos</div>
       <aside className="sidebar">
         <div className="logo-container"><img src="/logo-admin.png" className="logo-img" /><span className="logo-subtext">Infotchê</span></div>
         <div className="nav-links">
           <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}><span className="nav-icon">📊</span>Dashboard</div>
           <div className={`nav-item ${activeTab === 'historico' ? 'active' : ''}`} onClick={() => setActiveTab('historico')}><span className="nav-icon">🗂️</span>Atendimentos</div>
+          <div className={`nav-item ${activeTab === 'equipamentos' ? 'active' : ''}`} onClick={() => setActiveTab('equipamentos')}><span className="nav-icon">??</span>Equipamentos</div>
           <div className={`nav-item ${activeTab === 'clientes' ? 'active' : ''}`} onClick={() => setActiveTab('clientes')}><span className="nav-icon">👥</span>Clientes</div>
           <div className={`nav-item ${activeTab === 'categorias' ? 'active' : ''}`} onClick={() => setActiveTab('categorias')}><span className="nav-icon">🏷️</span>Categorias</div>
           {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">📈</span>Relatórios</div>}
