@@ -26,6 +26,13 @@ const KNOWN_BRANDS = [
   'ACTIONTEC',
 ];
 
+const OCR_NOISE_PATTERNS = [
+  /SCAN\s*FOR\s*QUICK\s*START/gi,
+  /QUICK\s*START/gi,
+  /HUAWEI\s+AI\s+LIFE/gi,
+  /WIFI\s+CERTIFIED/gi,
+];
+
 function cleanValue(value: string | undefined) {
   return (value || '').replace(/[^\w:/.-]/g, '').trim();
 }
@@ -40,9 +47,18 @@ function cleanHexLike(value: string | undefined) {
 }
 
 function normalizeInlineText(text: string) {
-  return text
+  let normalized = text
     .replace(/\r/g, '\n')
     .replace(/[|]/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n+/g, '\n')
+    .trim();
+
+  for (const pattern of OCR_NOISE_PATTERNS) {
+    normalized = normalized.replace(pattern, ' ');
+  }
+
+  return normalized
     .replace(/[ \t]+/g, ' ')
     .replace(/\n+/g, '\n')
     .trim();
@@ -120,7 +136,10 @@ function findByLabeledLine(labelPatterns: RegExp[], text: string) {
 }
 
 function sanitizeSerial(value: string) {
-  const compact = cleanValue(value).replace(/\s+/g, '');
+  const compact = cleanValue(value)
+    .replace(/SCANFORQUICKSTART/gi, '')
+    .replace(/QUICKSTART/gi, '')
+    .replace(/\s+/g, '');
 
   if (compact.length > 14 && compact.endsWith('40')) {
     return compact.slice(0, -2);
