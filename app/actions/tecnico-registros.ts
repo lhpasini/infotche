@@ -2,16 +2,14 @@
 
 import { prisma } from '../../lib/prisma';
 import { getAuthSession } from '../../lib/auth-session';
-import { getGoogleDriveConnection } from '../../lib/google-drive-oauth';
 
 export async function getResumoTecnico() {
   const sessao = await getAuthSession();
 
   if (!sessao) {
-    return { sessao: null, recentes: [], drive: null };
+    return { sessao: null, recentes: [] };
   }
 
-  const drive = await getGoogleDriveConnection();
   const recentes = await prisma.atendimentoEquipamento.findMany({
     where: { tecnicoId: sessao.id },
     include: { itens: true },
@@ -19,7 +17,7 @@ export async function getResumoTecnico() {
     take: 5,
   });
 
-  return { sessao, recentes, drive };
+  return { sessao, recentes };
 }
 
 export async function buscarHistoricoEquipamentos(termo: string) {
@@ -54,5 +52,22 @@ export async function buscarHistoricoEquipamentos(termo: string) {
     },
     orderBy: { criadoEm: 'desc' },
     take: 50,
+  });
+}
+
+export async function getRegistrosEquipamentosAdmin() {
+  const sessao = await getAuthSession();
+
+  if (!sessao || sessao.role !== 'ADMIN') {
+    return [];
+  }
+
+  return prisma.atendimentoEquipamento.findMany({
+    include: {
+      tecnico: true,
+      itens: true,
+    },
+    orderBy: { criadoEm: 'desc' },
+    take: 300,
   });
 }

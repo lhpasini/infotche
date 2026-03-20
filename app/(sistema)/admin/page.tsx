@@ -9,6 +9,7 @@ import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteC
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
 import { fazerLogout, getSessao } from '../../actions/auth';
 import { getUsuarios, upsertUsuario, deleteUsuario, atualizarMeuPerfil, toggleUsuarioAtivo } from '../../actions/usuarios';
+import { getRegistrosEquipamentosAdmin } from '../../actions/tecnico-registros';
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -23,7 +24,7 @@ type Ticket = {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clientes' | 'categorias' | 'relatorios' | 'historico' | 'usuarios'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clientes' | 'categorias' | 'relatorios' | 'historico' | 'usuarios' | 'equipamentos'>('dashboard');
   
   const [usuarioLogado, setUsuarioLogado] = useState<{id: string, nome: string, role: string} | null>(null);
   const isAdmin = usuarioLogado?.role === 'ADMIN'; 
@@ -68,15 +69,18 @@ export default function AdminDashboard() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   type Usuario = { id: string; nome: string; login: string; role: string; ativo: boolean; senha?: string; };
+  type RegistroEquipamento = { id: string; clienteNome: string; tipoAtendimento: string; criadoEm: any; tecnico: { nome: string } | null; itens: { id: string; tipoEquipamento: string; marca: string | null; modelo: string | null; codigoEquipamento: string | null; macAddress: string | null; serialNumber: string | null; imagemUrl: string | null; }[]; };
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [registrosEquipamentos, setRegistrosEquipamentos] = useState<RegistroEquipamento[]>([]);
+  const [equipamentoBusca, setEquipamentoBusca] = useState("");
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
   const [isPerfilModalOpen, setIsPerfilModalOpen] = useState(false);
 
   async function loadData() {
     setLoading(true);
-    const [cats, clis, tks, usrs, sessao] = await Promise.all([ getCategorias(), getClientes(), getChamados(), getUsuarios(), getSessao() ]);
-    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as unknown as Usuario[]); setUsuarioLogado(sessao);
+    const [cats, clis, tks, usrs, sessao, registros] = await Promise.all([ getCategorias(), getClientes(), getChamados(), getUsuarios(), getSessao(), getRegistrosEquipamentosAdmin() ]);
+    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as unknown as Usuario[]); setUsuarioLogado(sessao); setRegistrosEquipamentos(registros as RegistroEquipamento[]);
     setLoading(false);
   }
 
@@ -117,6 +121,25 @@ export default function AdminDashboard() {
     if (relCats.length > 0 && !relCats.includes(t.categoria)) return false;
     if (relTecs.length > 0 && !relTecs.includes(t.tecnico || 'Sem Técnico')) return false;
     return true;
+  });
+
+  const registrosEquipamentosFiltrados = registrosEquipamentos.filter((registro) => {
+    const termo = equipamentoBusca.trim().toLowerCase();
+    if (!termo) return true;
+
+    const tecnicoNome = registro.tecnico?.nome?.toLowerCase() || '';
+    const itensTexto = registro.itens
+      .flatMap((item) => [item.tipoEquipamento, item.marca, item.modelo, item.codigoEquipamento, item.macAddress, item.serialNumber])
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    return (
+      registro.clienteNome.toLowerCase().includes(termo) ||
+      registro.tipoAtendimento.toLowerCase().includes(termo) ||
+      tecnicoNome.includes(termo) ||
+      itensTexto.includes(termo)
+    );
   });
 
   const chamadosPorCategoria = ticketsRelatorio.reduce((acc, t) => { acc[t.categoria] = (acc[t.categoria] || 0) + 1; return acc; }, {} as Record<string, number>);
@@ -414,6 +437,7 @@ export default function AdminDashboard() {
         .btn-tab.active { background: #3498db; color: #fff; }
       `}} />
 
+          <div className={`nav-item ${activeTab === 'equipamentos' ? 'active' : ''}`} onClick={() => setActiveTab('equipamentos')}><span className="nav-icon">??</span>Equipamentos</div>
       <aside className="sidebar">
         <div className="logo-container"><img src="/logo-admin.png" className="logo-img" /><span className="logo-subtext">Infotchê</span></div>
         <div className="nav-links">
@@ -742,10 +766,69 @@ export default function AdminDashboard() {
                       </React.Fragment>
                     ))}
                     {legadoResultados.length === 0 && <tr><td colSpan={4} style={{textAlign:'center', color:'#999', padding:'30px'}}>Nenhum resultado encontrado.</td></tr>}
+
                   </tbody>
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+
+
+        {activeTab === 'equipamentos' && (
+          <div style={{padding:'30px', overflowY:'auto'}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'15px', marginBottom:'20px'}}>
+              <div>
+                <h1>Controle de Equipamentos</h1>
+                <p style={{fontSize:'12px', color:'#7f8c8d', marginTop:'4px'}}>Registros capturados pelos t?cnicos em campo.</p>
+              </div>
+              <input
+                className="search-input"
+                placeholder="Buscar cliente, tecnico, MAC, serial, modelo..."
+                value={equipamentoBusca}
+                onChange={(e) => setEquipamentoBusca(e.target.value)}
+                style={{width:'360px'}}
+              />
+            </div>
+
+            <div style={{display:'grid', gap:'15px'}}>
+              {registrosEquipamentosFiltrados.length === 0 && (
+                <div className="chart-box" style={{color:'#7f8c8d'}}>Nenhum registro de equipamento encontrado.</div>
+              )}
+
+              {registrosEquipamentosFiltrados.map((registro) => (
+                <div key={registro.id} className="chart-box">
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'15px', marginBottom:'15px'}}>
+                    <div>
+                      <h3 style={{fontSize:'18px', color:'#2c3e50', margin:0}}>{registro.clienteNome}</h3>
+                      <div style={{marginTop:'6px', display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                        <span style={{background:'#eaf4ff', color:'#3498db', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{registro.tipoAtendimento}</span>
+                        <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>T?cnico: {registro.tecnico?.nome || 'Sem t?cnico'}</span>
+                        <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{new Date(registro.criadoEm).toLocaleString('pt-BR')}</span>
+                      </div>
+                    </div>
+                    <span style={{background:'#dff5e8', color:'#1f8f55', padding:'6px 10px', borderRadius:'999px', fontSize:'12px', fontWeight:'bold'}}>{registro.itens.length} item(ns)</span>
+                  </div>
+
+                  <table className="data-table">
+                    <thead><tr><th>TIPO</th><th>MARCA / MODELO</th><th>MAC</th><th>SERIAL</th><th>C?DIGO</th><th>FOTO</th></tr></thead>
+                    <tbody>
+                      {registro.itens.map((item) => (
+                        <tr key={item.id}>
+                          <td>{item.tipoEquipamento}</td>
+                          <td><strong>{[item.marca, item.modelo].filter(Boolean).join(' / ') || '-'}</strong></td>
+                          <td style={{fontFamily:'monospace'}}>{item.macAddress || '-'}</td>
+                          <td style={{fontFamily:'monospace'}}>{item.serialNumber || '-'}</td>
+                          <td style={{fontFamily:'monospace'}}>{item.codigoEquipamento || '-'}</td>
+                          <td>{item.imagemUrl ? <a href={item.imagemUrl} target="_blank" rel="noreferrer" style={{color:'#3498db', fontWeight:'bold'}}>Abrir</a> : '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

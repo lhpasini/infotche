@@ -8,7 +8,7 @@ function formatDate(value: Date | string) {
 }
 
 export default async function TecnicoDashboardPage() {
-  const { sessao, recentes, drive } = await getResumoTecnico();
+  const { sessao, recentes } = await getResumoTecnico();
 
   if (!sessao) {
     redirect('/tecnico/login');
@@ -57,33 +57,6 @@ export default async function TecnicoDashboardPage() {
               Sair
             </button>
           </form>
-        </section>
-
-        <section className="rounded-[28px] border border-white/70 bg-white/95 px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Google Drive</p>
-              <h2 className="mt-2 text-xl font-black text-slate-900">
-                {drive ? 'Drive conectado' : 'Conectar seu Google Drive'}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {drive
-                  ? `As fotos serao enviadas para ${drive.email}.`
-                  : 'Como a conta e pessoal, o upload precisa ser autorizado por OAuth do Google.'}
-              </p>
-            </div>
-            <span className={`rounded-full px-3 py-1 text-xs font-black ${drive ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
-              {drive ? 'Ativo' : 'Pendente'}
-            </span>
-          </div>
-          <div className="mt-4">
-            <a
-              href="/api/google/drive/start"
-              className="inline-flex rounded-full bg-sky-600 px-4 py-3 text-sm font-black text-white transition hover:bg-sky-700"
-            >
-              {drive ? 'Reconectar Google Drive' : 'Conectar Google Drive'}
-            </a>
-          </div>
         </section>
 
         <Link

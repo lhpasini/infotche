@@ -423,15 +423,35 @@ export default function NovoRegistroTecnicoPage() {
             onChange={handleImageChange}
           />
 
-          <label
-            htmlFor="tecnico-camera-input"
-            aria-disabled={ocrLoading}
-            className={`flex w-full flex-col items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,#082f49_0%,#0f172a_100%)] px-5 py-6 text-white shadow-[0_18px_30px_rgba(15,23,42,0.2)] transition ${ocrLoading ? 'pointer-events-none cursor-not-allowed opacity-70' : 'cursor-pointer hover:translate-y-[-1px]'}`}
-          >
-            <span className="text-sm font-black uppercase tracking-[0.3em] text-sky-200">Camera</span>
-            <span className="mt-3 text-xl font-black">{ocrLoading ? 'Lendo etiqueta...' : 'Ler etiqueta com camera ou arquivo'}</span>
-            <span className="mt-1 text-sm text-slate-300">Voce pode tirar uma foto na hora ou escolher uma imagem do aparelho.</span>
-          </label>
+          <input
+            id="tecnico-gallery-input"
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={handleImageChange}
+          />
+
+          <div className="space-y-3">
+            <label
+              htmlFor="tecnico-camera-input"
+              aria-disabled={ocrLoading}
+              className={`flex w-full flex-col items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,#082f49_0%,#0f172a_100%)] px-5 py-6 text-white shadow-[0_18px_30px_rgba(15,23,42,0.2)] transition ${ocrLoading ? 'pointer-events-none cursor-not-allowed opacity-70' : 'cursor-pointer hover:translate-y-[-1px]'}`}
+            >
+              <span className="text-sm font-black uppercase tracking-[0.3em] text-sky-200">Camera</span>
+              <span className="mt-3 text-xl font-black">{ocrLoading ? 'Lendo etiqueta...' : 'Tirar foto agora'}</span>
+              <span className="mt-1 text-sm text-slate-300">Abre a camera do aparelho para capturar a etiqueta na hora.</span>
+            </label>
+
+            <label
+              htmlFor="tecnico-gallery-input"
+              aria-disabled={ocrLoading}
+              className={`flex w-full flex-col items-center justify-center rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5 text-slate-900 shadow-sm transition ${ocrLoading ? 'pointer-events-none cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-sky-300 hover:bg-white'}`}
+            >
+              <span className="text-sm font-black uppercase tracking-[0.3em] text-slate-500">Galeria</span>
+              <span className="mt-2 text-lg font-black">{ocrLoading ? 'Processando imagem...' : 'Escolher imagem do celular'}</span>
+              <span className="mt-1 text-sm text-slate-500">Use uma foto que ja esteja salva no aparelho.</span>
+            </label>
+          </div>
 
           {draftItem.imagePreview && (
             <img
