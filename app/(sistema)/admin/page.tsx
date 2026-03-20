@@ -9,7 +9,7 @@ import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteC
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
 import { fazerLogout, getSessao } from '../../actions/auth';
 import { getUsuarios, upsertUsuario, deleteUsuario, atualizarMeuPerfil, toggleUsuarioAtivo } from '../../actions/usuarios';
-import { getRegistrosEquipamentosAdmin } from '../../actions/tecnico-registros';
+import { deleteRegistroEquipamentoAdmin, getRegistrosEquipamentosAdmin, updateRegistroEquipamentoAdmin } from '../../actions/tecnico-registros';
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -31,6 +31,7 @@ export default function AdminDashboard() {
 
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [isEquipamentoModalOpen, setIsEquipamentoModalOpen] = useState(false);
 
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<Categoria | null>(null); 
@@ -69,10 +70,15 @@ export default function AdminDashboard() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   type Usuario = { id: string; nome: string; login: string; role: string; ativo: boolean; senha?: string; };
-  type RegistroEquipamento = { id: string; clienteNome: string; tipoAtendimento: string; criadoEm: any; tecnico: { nome: string } | null; itens: { id: string; tipoEquipamento: string; marca: string | null; modelo: string | null; codigoEquipamento: string | null; macAddress: string | null; serialNumber: string | null; imagemUrl: string | null; }[]; };
+  type RegistroEquipamentoItem = { id: string; tipoEquipamento: string; marca: string | null; modelo: string | null; codigoEquipamento: string | null; macAddress: string | null; serialNumber: string | null; usuarioAcesso?: string | null; senhaAcesso?: string | null; imagemUrl: string | null; driveFileId?: string | null; ocrTextoBruto?: string | null; observacao?: string | null; };
+  type RegistroEquipamento = { id: string; clienteNome: string; tipoAtendimento: string; criadoEm: any; tecnico: { nome: string } | null; itens: RegistroEquipamentoItem[]; };
+  type RegistroEquipamentoEditavel = { id: string; clienteNome: string; tipoAtendimento: string; itens: RegistroEquipamentoItem[]; };
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [registrosEquipamentos, setRegistrosEquipamentos] = useState<RegistroEquipamento[]>([]);
   const [equipamentoBusca, setEquipamentoBusca] = useState("");
+  const [equipamentoDataInicio, setEquipamentoDataInicio] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split('T')[0]; });
+  const [equipamentoDataFim, setEquipamentoDataFim] = useState(() => new Date().toISOString().split('T')[0]);
+  const [editingRegistroEquipamento, setEditingRegistroEquipamento] = useState<RegistroEquipamentoEditavel | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
   const [isPerfilModalOpen, setIsPerfilModalOpen] = useState(false);
@@ -125,6 +131,12 @@ export default function AdminDashboard() {
 
   const registrosEquipamentosFiltrados = registrosEquipamentos.filter((registro) => {
     const termo = equipamentoBusca.trim().toLowerCase();
+    const registroData = new Date(registro.criadoEm);
+    const dentroDoPeriodo =
+      registroData >= new Date(equipamentoDataInicio + "T00:00:00") &&
+      registroData <= new Date(equipamentoDataFim + "T23:59:59");
+
+    if (!dentroDoPeriodo) return false;
     if (!termo) return true;
 
     const tecnicoNome = registro.tecnico?.nome?.toLowerCase() || '';
@@ -141,6 +153,50 @@ export default function AdminDashboard() {
       itensTexto.includes(termo)
     );
   });
+
+  const openEditRegistroEquipamento = (registro: RegistroEquipamento) => {
+    setEditingRegistroEquipamento({
+      id: registro.id,
+      clienteNome: registro.clienteNome,
+      tipoAtendimento: registro.tipoAtendimento,
+      itens: registro.itens.map((item) => ({ ...item })),
+    });
+    setIsEquipamentoModalOpen(true);
+  };
+
+  const handleSaveRegistroEquipamento = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingRegistroEquipamento) return;
+
+    const resposta = await updateRegistroEquipamentoAdmin(editingRegistroEquipamento.id, {
+      clienteNome: editingRegistroEquipamento.clienteNome,
+      tipoAtendimento: editingRegistroEquipamento.tipoAtendimento,
+      itens: editingRegistroEquipamento.itens,
+    });
+
+    if (!resposta.sucesso) {
+      alert(resposta.erro || 'Não foi possível atualizar o registro.');
+      return;
+    }
+
+    await loadData();
+    setIsEquipamentoModalOpen(false);
+    setEditingRegistroEquipamento(null);
+  };
+
+  const handleDeleteRegistroEquipamento = async (id: string) => {
+    if (!confirm('Apagar este registro de equipamento? Esta ação remove o atendimento e todos os itens vinculados.')) {
+      return;
+    }
+
+    const resposta = await deleteRegistroEquipamentoAdmin(id);
+    if (!resposta.sucesso) {
+      alert(resposta.erro || 'Não foi possível remover o registro.');
+      return;
+    }
+
+    await loadData();
+  };
 
   const chamadosPorCategoria = ticketsRelatorio.reduce((acc, t) => { acc[t.categoria] = (acc[t.categoria] || 0) + 1; return acc; }, {} as Record<string, number>);
   const chamadosPorTecnico = ticketsRelatorio.reduce((acc, t) => { const tec = t.tecnico || 'Sem Técnico'; acc[tec] = (acc[tec] || 0) + 1; return acc; }, {} as Record<string, number>);
@@ -438,14 +494,14 @@ export default function AdminDashboard() {
       `}} />
 
       <aside className="sidebar">
-        <div className="logo-container"><img src="/logo-admin.png" className="logo-img" /><span className="logo-subtext">Infotchê</span></div>
+        <div className="logo-container"><img src="/logo-admin.png" className="logo-img" alt="Infotchê" /><span className="logo-subtext">Infotchê</span></div>
         <div className="nav-links">
           <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}><span className="nav-icon">{'\u{1F4CA}'}</span>Dashboard</div>
           <div className={`nav-item ${activeTab === 'historico' ? 'active' : ''}`} onClick={() => setActiveTab('historico')}><span className="nav-icon">{'\u{1F5C2}\uFE0F'}</span>Atendimentos</div>
           <div className={`nav-item ${activeTab === 'clientes' ? 'active' : ''}`} onClick={() => setActiveTab('clientes')}><span className="nav-icon">{'\u{1F465}'}</span>Clientes</div>
           <div className={`nav-item ${activeTab === 'categorias' ? 'active' : ''}`} onClick={() => setActiveTab('categorias')}><span className="nav-icon">{'\u{1F3F7}\uFE0F'}</span>Categorias</div>
-          {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">{'\u{1F4C8}'}</span>Relat?rios</div>}
-          {isAdmin && <div className={`nav-item ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}><span className="nav-icon">{'\u{1F510}'}</span>Usu?rios</div>}
+          {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">{'\u{1F4C8}'}</span>Relatórios</div>}
+          {isAdmin && <div className={`nav-item ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}><span className="nav-icon">{'\u{1F510}'}</span>Usuários</div>}
           <div className={`nav-item ${activeTab === 'equipamentos' ? 'active' : ''}`} onClick={() => setActiveTab('equipamentos')}><span className="nav-icon">{'\u{1F4E6}'}</span>Equipamentos</div>
         </div>
       </aside>
@@ -488,10 +544,10 @@ export default function AdminDashboard() {
           <div style={{padding:'30px'}}>
             <div style={{display:'flex', justifyContent:'space-between', marginBottom:'20px'}}>
               <h1>Controle de Acesso</h1>
-              <button className="btn-new" onClick={() => { setEditingUsuario(null); setIsUserModalOpen(true); }}>+ NOVO USU?RIO</button>
+              <button className="btn-new" onClick={() => { setEditingUsuario(null); setIsUserModalOpen(true); }}>+ NOVO USUÁRIO</button>
             </div>
             <table className="data-table">
-              <thead><tr><th>NOME</th><th>LOGIN</th><th>PERMISS?O</th><th>STATUS</th><th>A??ES</th></tr></thead>
+              <thead><tr><th>NOME</th><th>LOGIN</th><th>PERMISSÃO</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
               <tbody>
                 {usuarios.map(usr => (
                   <tr key={usr.id}>
@@ -778,18 +834,25 @@ export default function AdminDashboard() {
 
         {activeTab === 'equipamentos' && (
           <div style={{padding:'30px', overflowY:'auto'}}>
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'15px', marginBottom:'20px'}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end', gap:'15px', marginBottom:'20px', flexWrap:'wrap'}}>
               <div>
                 <h1>Controle de Equipamentos</h1>
-                <p style={{fontSize:'12px', color:'#7f8c8d', marginTop:'4px'}}>Registros capturados pelos t?cnicos em campo.</p>
+                <p style={{fontSize:'12px', color:'#7f8c8d', marginTop:'4px'}}>Registros capturados pelos técnicos em campo.</p>
               </div>
-              <input
-                className="search-input"
-                placeholder="Buscar cliente, tecnico, MAC, serial, modelo..."
-                value={equipamentoBusca}
-                onChange={(e) => setEquipamentoBusca(e.target.value)}
-                style={{width:'360px'}}
-              />
+              <div style={{display:'flex', gap:'10px', alignItems:'center', flexWrap:'wrap', justifyContent:'flex-end'}}>
+                <div style={{display:'flex', gap:'10px', alignItems:'center', background:'#fff', padding:'10px 12px', borderRadius:'8px'}}>
+                  <input type="date" value={equipamentoDataInicio} onChange={(e) => setEquipamentoDataInicio(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
+                  <span>até</span>
+                  <input type="date" value={equipamentoDataFim} onChange={(e) => setEquipamentoDataFim(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
+                </div>
+                <input
+                  className="search-input"
+                  placeholder="Buscar cliente, técnico, MAC, serial, modelo..."
+                  value={equipamentoBusca}
+                  onChange={(e) => setEquipamentoBusca(e.target.value)}
+                  style={{width:'360px'}}
+                />
+              </div>
             </div>
 
             <div style={{display:'grid', gap:'15px'}}>
@@ -804,15 +867,19 @@ export default function AdminDashboard() {
                       <h3 style={{fontSize:'18px', color:'#2c3e50', margin:0}}>{registro.clienteNome}</h3>
                       <div style={{marginTop:'6px', display:'flex', gap:'8px', flexWrap:'wrap'}}>
                         <span style={{background:'#eaf4ff', color:'#3498db', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{registro.tipoAtendimento}</span>
-                        <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>T?cnico: {registro.tecnico?.nome || 'Sem t?cnico'}</span>
+                        <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>Técnico: {registro.tecnico?.nome || 'Sem técnico'}</span>
                         <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{new Date(registro.criadoEm).toLocaleString('pt-BR')}</span>
                       </div>
                     </div>
-                    <span style={{background:'#dff5e8', color:'#1f8f55', padding:'6px 10px', borderRadius:'999px', fontSize:'12px', fontWeight:'bold'}}>{registro.itens.length} item(ns)</span>
+                    <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', justifyContent:'flex-end'}}>
+                      <span style={{background:'#dff5e8', color:'#1f8f55', padding:'6px 10px', borderRadius:'999px', fontSize:'12px', fontWeight:'bold'}}>{registro.itens.length} item(ns)</span>
+                      <button className="btn-new" style={{padding:'8px 12px'}} onClick={() => openEditRegistroEquipamento(registro)}>Editar</button>
+                      <button className="btn-new" style={{padding:'8px 12px', background:'#e74c3c'}} onClick={() => handleDeleteRegistroEquipamento(registro.id)}>Apagar</button>
+                    </div>
                   </div>
 
                   <table className="data-table">
-                    <thead><tr><th>TIPO</th><th>MARCA / MODELO</th><th>MAC</th><th>SERIAL</th><th>C?DIGO</th><th>FOTO</th></tr></thead>
+                    <thead><tr><th>TIPO</th><th>MARCA / MODELO</th><th>MAC</th><th>SERIAL</th><th>CÓDIGO</th><th>FOTO</th></tr></thead>
                     <tbody>
                       {registro.itens.map((item) => (
                         <tr key={item.id}>
@@ -866,6 +933,105 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {isEquipamentoModalOpen && editingRegistroEquipamento && (
+        <div className="modal-overlay" style={{zIndex: 950}}>
+          <div className="modal-box" style={{width:'900px'}}>
+            <button type="button" className="btn-close" onClick={() => { setIsEquipamentoModalOpen(false); setEditingRegistroEquipamento(null); }}>✖</button>
+            <h2>Editar Registro de Equipamento</h2>
+            <form onSubmit={handleSaveRegistroEquipamento}>
+              <div className="field-group">
+                <div className="field">
+                  <label>Cliente</label>
+                  <input
+                    value={editingRegistroEquipamento.clienteNome}
+                    onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, clienteNome: e.target.value } : current)}
+                    required
+                  />
+                </div>
+                <div className="field">
+                  <label>Tipo de Atendimento</label>
+                  <input
+                    value={editingRegistroEquipamento.tipoAtendimento}
+                    onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, tipoAtendimento: e.target.value } : current)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{display:'grid', gap:'15px', marginTop:'15px'}}>
+                {editingRegistroEquipamento.itens.map((item, index) => (
+                  <div key={item.id || `novo-${index}`} style={{border:'1px solid #e5e7eb', borderRadius:'8px', padding:'15px', background:'#f8fafc'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px'}}>
+                      <strong>Item {index + 1}</strong>
+                      <button
+                        type="button"
+                        onClick={() => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.filter((_, itemIndex) => itemIndex !== index) } : current)}
+                        style={{background:'none', border:'none', color:'#e74c3c', fontWeight:'bold', cursor:'pointer'}}
+                      >
+                        Remover item
+                      </button>
+                    </div>
+
+                    <div className="field-group">
+                      <div className="field">
+                        <label>Tipo</label>
+                        <input value={item.tipoEquipamento} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, tipoEquipamento: e.target.value } : currentItem) } : current)} required />
+                      </div>
+                      <div className="field">
+                        <label>Marca</label>
+                        <input value={item.marca || ''} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, marca: e.target.value } : currentItem) } : current)} />
+                      </div>
+                      <div className="field">
+                        <label>Modelo</label>
+                        <input value={item.modelo || ''} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, modelo: e.target.value } : currentItem) } : current)} />
+                      </div>
+                      <div className="field">
+                        <label>Código</label>
+                        <input value={item.codigoEquipamento || ''} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, codigoEquipamento: e.target.value } : currentItem) } : current)} />
+                      </div>
+                      <div className="field">
+                        <label>MAC</label>
+                        <input value={item.macAddress || ''} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, macAddress: e.target.value } : currentItem) } : current)} />
+                      </div>
+                      <div className="field">
+                        <label>Serial</label>
+                        <input value={item.serialNumber || ''} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, serialNumber: e.target.value } : currentItem) } : current)} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="btn-new"
+                style={{marginTop:'15px'}}
+                onClick={() => setEditingRegistroEquipamento((current) => current ? {
+                  ...current,
+                  itens: [
+                    ...current.itens,
+                    {
+                      id: `novo-${Date.now()}`,
+                      tipoEquipamento: '',
+                      marca: '',
+                      modelo: '',
+                      codigoEquipamento: '',
+                      macAddress: '',
+                      serialNumber: '',
+                      imagemUrl: null,
+                    },
+                  ],
+                } : current)}
+              >
+                + Adicionar item
+              </button>
+
+              <button type="submit" className="btn-new btn-green" style={{width:'100%', marginTop:'15px'}}>Salvar Alterações</button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* --- MODAL DE CHAMADO --- */}
       {isTicketModalOpen && (
@@ -1075,8 +1241,8 @@ export default function AdminDashboard() {
       {isUserModalOpen && (
         <div className="modal-overlay" style={{zIndex:5000}}>
           <div className="modal-box" style={{width:'400px'}}>
-            <button type="button" className="btn-close" onClick={() => setIsUserModalOpen(false)}>?</button>
-            <h2>{editingUsuario ? 'Editar Usu?rio' : 'Novo Usu?rio'}</h2>
+            <button type="button" className="btn-close" onClick={() => setIsUserModalOpen(false)}>✖</button>
+            <h2>{editingUsuario ? 'Editar Usuário' : 'Novo Usuário'}</h2>
             <form onSubmit={async (e) => { 
               e.preventDefault(); 
               const formData = new FormData(e.currentTarget); 
@@ -1087,7 +1253,7 @@ export default function AdminDashboard() {
               };
               const resposta = await upsertUsuario(editingUsuario?.id || null, data); 
               if (!resposta.sucesso) {
-                alert(resposta.erro || 'N?o foi poss?vel salvar o usu?rio.');
+                alert(resposta.erro || 'Não foi possível salvar o usuário.');
                 return;
               }
               loadData(); setIsUserModalOpen(false); 
@@ -1096,13 +1262,13 @@ export default function AdminDashboard() {
                 <div className="field"><label>Nome Completo *</label><input name="nome" required defaultValue={editingUsuario?.nome} /></div>
                 <div className="field"><label>Login de Acesso *</label><input name="login" required defaultValue={editingUsuario?.login} disabled={editingUsuario?.login === 'admin'} style={{textTransform:'lowercase'}} /></div>
                 <div className="field">
-                  <label>Senha {editingUsuario ? '(Deixe em branco para n?o alterar)' : '*'}</label>
+                  <label>Senha {editingUsuario ? '(Deixe em branco para não alterar)' : '*'}</label>
                   <input type="password" name="senha" required={!editingUsuario} minLength={4} />
                 </div>
                 <div className="field">
-                  <label>Permiss?o *</label>
+                  <label>Permissão *</label>
                   <select name="role" required defaultValue={editingUsuario?.role || 'TECNICO'} disabled={editingUsuario?.login === 'admin'}>
-                    <option value="TECNICO">T?cnico (Apenas Kanban, Clientes, Legado)</option>
+                    <option value="TECNICO">Técnico (Apenas Kanban, Clientes, Legado)</option>
                     <option value="ADMIN">Administrador (Acesso Total)</option>
                   </select>
                 </div>
@@ -1114,7 +1280,7 @@ export default function AdminDashboard() {
                   </select>
                 </div>
               </div>
-              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar Usu?rio</button>
+              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar Usuário</button>
             </form>
           </div>
         </div>
