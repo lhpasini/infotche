@@ -34,7 +34,7 @@ const OCR_NOISE_PATTERNS = [
 ];
 
 function cleanValue(value: string | undefined) {
-  return (value || '').replace(/[^\w:/.-]/g, '').trim();
+  return (value || '').replace(/[^\w:/().-]/g, '').trim();
 }
 
 function cleanHexLike(value: string | undefined) {
@@ -66,13 +66,15 @@ function normalizeInlineText(text: string) {
 
 function normalizeModel(value: string) {
   return value
-    .split(/POT[ÊE]NCIA|POWER|ANATEL|HUAWEI AI LIFE|SSID|ENDERE[CÇ]O WEB/i)[0]
+    .split(/POT[ÊE]NCIA|POWER|ANATEL|HUAWEI AI LIFE|SSID|ENDERE[CÇ]O WEB|VER(?:SION)?\b|V(?:ER)?[:.]?\s*\d/i)[0]
     .replace(/\bNO\b[:.]?/gi, '')
     .replace(/\bMODEL(?:O)?\b[:.]?/gi, '')
-    .replace(/\bWIFI\s+AX\d+\S*/gi, '')
+    .replace(/\bGPON\s+ONU\b/gi, '')
+    .replace(/\bGPON\s+TERMINAL\b/gi, '')
+    .replace(/\bROTEADOR\s+WIRELESS\s+GIGABIT\s+DUAL\s+BAND\s+AC1200\b/gi, '')
     .replace(/\bROTEADOR\s+SEM\s+FIO\s+\d+MBPS\b/gi, '')
     .replace(/\bDUAL-BAND\s+EDGE\s+ONT\b/gi, '')
-    .replace(/\bGPON\s+TERMINAL\b/gi, '')
+    .replace(/\bWIFI\s+AX\d+\S*/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
@@ -90,6 +92,10 @@ function formatMac(value: string) {
 function inferEquipmentType(text: string) {
   const upper = text.toUpperCase();
 
+  if (upper.includes('GPON ONU')) {
+    return 'ONU';
+  }
+
   if (upper.includes('EDGE ONT') || upper.includes('GPON TERMINAL') || /\bONT\b/.test(upper)) {
     return 'ONT';
   }
@@ -98,7 +104,13 @@ function inferEquipmentType(text: string) {
     return 'ONU';
   }
 
-  if (upper.includes('ROTEADOR') || upper.includes('WI-FI AX') || upper.includes('WIFI AX') || upper.includes('ROUTER')) {
+  if (
+    upper.includes('ROTEADOR') ||
+    upper.includes('ROUTER') ||
+    upper.includes('WIRELESS GIGABIT DUAL BAND AC1200') ||
+    upper.includes('WI-FI AX') ||
+    upper.includes('WIFI AX')
+  ) {
     return 'Roteador Wi-Fi';
   }
 
@@ -157,17 +169,20 @@ export function parseEquipmentText(rawText: string): ParsedEquipmentText {
   const upper = normalized.toUpperCase();
   const explicitWsModel = upper.match(/\bWS\s?7000\s?V?\s?2\b|\bWS7001\b|\bWS7000\b/i);
   const explicitHuaweiModel = upper.match(/\bK562E-10\b|\bEG8041X6-10\b|\bPSDN-AX30\b|\bSDN8601GR1B\s?V2\b/i);
+  const explicitTpLinkModel = upper.match(/\bEC220-G5(?:\(BR\))?\b/i);
+  const explicitFiberhomeModel = upper.match(/\bAN5506-01-A\b|\bAN5506-01-B\b|\bAN5506-02-B\b/i);
 
   const labeledMac = findByLabeledLine(
-    [/(?:MAC|MAC ADDRESS)\s*[:#-]?\s*([A-Z0-9 :.-]{10,22})/i],
+    [/(?:MAC|MAC ADDRESS)\s*[:#-]?\s*([A-Z0-9 :.-]{10,24})/i],
     normalized,
   );
   const macPattern = upper.match(
-    /(?:MAC|MAC ADDRESS)\s*[:#-]?\s*([A-F0-9OQI]{12,20})|(?:\b([A-F0-9OQI]{2}(?:[:-]?[A-F0-9OQI]{2}){5})\b)/i,
+    /(?:MAC|MAC ADDRESS)\s*[:#-]?\s*([A-F0-9OQI]{12,24})|(?:\b([A-F0-9OQI]{2}(?:[:-]?[A-F0-9OQI]{2}){5})\b)/i,
   );
   const serial = findBestMatch(
     [
-      /(?:GPON\s+S\/?N|S\/?N|SERIAL(?: NUMBER)?|SN)\s*[:#-]?\s*([A-Z0-9 -]{6,})/i,
+      /(?:GPON\s+S\/?N|S\/?N|SERIAL(?: NUMBER)?|SN)\s*[:#-]?\s*([A-Z0-9-]{6,})/i,
+      /\b(FHTT[A-Z0-9]{6,})\b/i,
       /\b([A-Z]{2,}\d[A-Z0-9]{6,})\b/,
     ],
     normalized,
@@ -177,16 +192,16 @@ export function parseEquipmentText(rawText: string): ParsedEquipmentText {
     normalized,
   );
   const password = findBestMatch(
-    [/(?:PASS(?:WORD)?|PWD|SENHA)\s*[:#/-]?\s*([A-Z0-9!@#$%^&*_=+?.:-]{3,})/i],
+    [/(?:PASS(?:WORD)?|PWD|SENHA(?:\s+WIRELESS)?\/?PIN)\s*[:#/-]?\s*([A-Z0-9!@#$%^&*_=+?.:-]{3,})/i],
     normalized,
   );
 
   const brand = KNOWN_BRANDS.find((item) => upper.includes(item)) || '';
   let model = findBestMatch(
     [
-      /(?:MODEL(?:O)?(?:\s+NO\.?)?)\s*[:#-]?\s*([A-Z0-9 -]{4,})/i,
+      /(?:MODEL(?:O)?(?:\s+NO\.?)?)\s*[:#-]?\s*([A-Z0-9() -]{4,})/i,
       /HUAWEI\s+OPTIXSTAR\s+([A-Z0-9- ]{4,})/i,
-      /\b((?:WS|SDN|K|EG|PSDN)\d?[A-Z0-9- ]{4,})\b/i,
+      /\b((?:WS|SDN|K|EG|PSDN|EC|AN)\d?[A-Z0-9() -]{4,})\b/i,
     ],
     normalized,
   );
@@ -194,7 +209,7 @@ export function parseEquipmentText(rawText: string): ParsedEquipmentText {
   if (!model) {
     model = findByLabeledLine(
       [
-        /(?:MODEL(?:O)?(?:\s+NO\.?)?)\s*[:#-]?\s*([A-Z0-9 -]{4,})/i,
+        /(?:MODEL(?:O)?(?:\s+NO\.?)?)\s*[:#-]?\s*([A-Z0-9() -]{4,})/i,
         /HUAWEI\s+WIFI\s+([A-Z0-9 -]{3,})/i,
       ],
       normalized,
@@ -207,6 +222,10 @@ export function parseEquipmentText(rawText: string): ParsedEquipmentText {
     model = explicitWsModel[0].replace(/\s+/g, ' ').toUpperCase();
   } else if (explicitHuaweiModel) {
     model = explicitHuaweiModel[0].replace(/\s+/g, ' ').toUpperCase();
+  } else if (explicitTpLinkModel) {
+    model = explicitTpLinkModel[0].replace(/\(BR\)/i, '').replace(/\s+/g, ' ').toUpperCase();
+  } else if (explicitFiberhomeModel) {
+    model = explicitFiberhomeModel[0].replace(/\s+/g, ' ').toUpperCase();
   }
 
   const productCode = findBestMatch(
@@ -216,6 +235,8 @@ export function parseEquipmentText(rawText: string): ParsedEquipmentText {
       /\b(EG\d[A-Z0-9-]{6,})\b/i,
       /\b(PSDN-[A-Z0-9]{3,})\b/i,
       /\b(WS\d{4}[A-Z0-9 ]{0,3})\b/i,
+      /\b(EC220-G5)\b/i,
+      /\b(AN5506-01-A|AN5506-01-B|AN5506-02-B)\b/i,
     ],
     normalized,
   );
