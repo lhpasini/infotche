@@ -44,7 +44,7 @@ export default async function TecnicoDashboardPage() {
               <p className="mt-2 text-sm font-black">{sessao.nome}</p>
             </div>
             <div className="rounded-2xl bg-white/10 px-4 py-4 ring-1 ring-white/10">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky-200">Atendimentos</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky-200">Movimento geral</p>
               <p className="mt-2 text-sm font-black">{recentes.length} recente(s)</p>
             </div>
           </div>
@@ -92,6 +92,14 @@ export default async function TecnicoDashboardPage() {
           </p>
         </Link>
 
+        <section className="rounded-[28px] border border-emerald-100 bg-[linear-gradient(180deg,#f0fdf4_0%,#ffffff_100%)] px-5 py-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Instalar no celular</p>
+          <h2 className="mt-2 text-lg font-black text-slate-900">Usar como aplicativo</h2>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            No Android, abra o menu do navegador e toque em instalar app ou adicionar a tela inicial para usar o tecnico como atalho.
+          </p>
+        </section>
+
         <section className="rounded-[30px] border border-white/70 bg-white/95 px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -124,6 +132,7 @@ export default async function TecnicoDashboardPage() {
                   </span>
                 </div>
                 <p className="mt-3 text-xs text-slate-500">{formatDate(registro.criadoEm)}</p>
+                <p className="mt-1 text-xs text-slate-500">Tecnico: {registro.tecnico?.nome || 'Nao identificado'}</p>
               </div>
             ))}
           </div>

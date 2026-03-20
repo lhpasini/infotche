@@ -319,8 +319,23 @@ Opções principais:
 
 - iniciar novo registro;
 - consultar histórico.
+- instalar o atalho/app na tela inicial do celular.
 
 Foi removido da home o card de conexão do Google Drive para não poluir a operação do técnico.
+
+### 8.2.1. Comportamento de aplicativo no celular
+
+O módulo `/tecnico` passou a contar com estrutura de **PWA** para uso em Android.
+
+Isso inclui:
+
+- `manifest.webmanifest`;
+- ícones de instalação;
+- `service worker` mínimo para permitir instalação;
+- abertura em modo `standalone`;
+- orientação visual na home técnica para adicionar o app à tela inicial.
+
+Na prática, o técnico pode abrir o módulo no navegador do celular e instalar como atalho/app sem necessidade de Play Store.
 
 ### 8.3. Novo registro
 
