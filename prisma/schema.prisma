@@ -211,3 +211,14 @@ model IntegracaoGoogleDrive {
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 }
+
+model TipoAtendimentoEquipamento {
+  id          String   @id @default(uuid())
+  nome        String   @unique
+  ativo       Boolean  @default(true)
+  ordem       Int      @default(0)
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([ativo, ordem])
+}

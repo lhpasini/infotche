@@ -3,6 +3,29 @@
 import { prisma } from '../../lib/prisma';
 import { getAuthSession } from '../../lib/auth-session';
 
+const DEFAULT_TIPOS_ATENDIMENTO_EQUIPAMENTO = [
+  'Nova instalacao',
+  'Troca de equipamento',
+  'Troca de endereco',
+  'Cancelamento / devolucao',
+];
+
+async function ensureTiposAtendimentoEquipamento() {
+  const total = await prisma.tipoAtendimentoEquipamento.count();
+
+  if (total > 0) {
+    return;
+  }
+
+  await prisma.tipoAtendimentoEquipamento.createMany({
+    data: DEFAULT_TIPOS_ATENDIMENTO_EQUIPAMENTO.map((nome, index) => ({
+      nome,
+      ordem: index,
+      ativo: true,
+    })),
+  });
+}
+
 export async function getResumoTecnico() {
   const sessao = await getAuthSession();
 
@@ -18,6 +41,110 @@ export async function getResumoTecnico() {
   });
 
   return { sessao, recentes };
+}
+
+export async function getTiposAtendimentoEquipamento() {
+  const sessao = await getAuthSession();
+
+  if (!sessao) {
+    return [];
+  }
+
+  await ensureTiposAtendimentoEquipamento();
+
+  return prisma.tipoAtendimentoEquipamento.findMany({
+    where: { ativo: true },
+    orderBy: [{ ordem: 'asc' }, { nome: 'asc' }],
+  });
+}
+
+export async function getTiposAtendimentoEquipamentoAdmin() {
+  const sessao = await getAuthSession();
+
+  if (!sessao || sessao.role !== 'ADMIN') {
+    return [];
+  }
+
+  await ensureTiposAtendimentoEquipamento();
+
+  return prisma.tipoAtendimentoEquipamento.findMany({
+    orderBy: [{ ordem: 'asc' }, { nome: 'asc' }],
+  });
+}
+
+export async function upsertTipoAtendimentoEquipamento(id: string | null, data: { nome: string; ativo: boolean; ordem: number }) {
+  const sessao = await getAuthSession();
+
+  if (!sessao || sessao.role !== 'ADMIN') {
+    return { sucesso: false, erro: 'Acesso negado.' };
+  }
+
+  const nome = data.nome.trim();
+
+  if (!nome) {
+    return { sucesso: false, erro: 'Informe o nome do tipo de atendimento.' };
+  }
+
+  try {
+    if (id) {
+      await prisma.tipoAtendimentoEquipamento.update({
+        where: { id },
+        data: {
+          nome,
+          ativo: data.ativo,
+          ordem: data.ordem,
+        },
+      });
+    } else {
+      await prisma.tipoAtendimentoEquipamento.create({
+        data: {
+          nome,
+          ativo: data.ativo,
+          ordem: data.ordem,
+        },
+      });
+    }
+
+    return { sucesso: true };
+  } catch (error) {
+    console.error('Erro ao salvar tipo de atendimento de equipamento:', error);
+    return { sucesso: false, erro: 'Não foi possível salvar o tipo de atendimento.' };
+  }
+}
+
+export async function deleteTipoAtendimentoEquipamento(id: string) {
+  const sessao = await getAuthSession();
+
+  if (!sessao || sessao.role !== 'ADMIN') {
+    return { sucesso: false, erro: 'Acesso negado.' };
+  }
+
+  try {
+    const tipo = await prisma.tipoAtendimentoEquipamento.findUnique({
+      where: { id },
+    });
+
+    if (!tipo) {
+      return { sucesso: false, erro: 'Tipo de atendimento não encontrado.' };
+    }
+
+    const emUso = await prisma.atendimentoEquipamento.count({
+      where: { tipoAtendimento: tipo.nome },
+    });
+
+    if (emUso > 0) {
+      return { sucesso: false, erro: 'Este tipo já foi usado em registros e não pode ser apagado. Edite ou desative em vez disso.' };
+    }
+
+    await prisma.tipoAtendimentoEquipamento.delete({
+      where: { id },
+    });
+
+    return { sucesso: true };
+  } catch (error) {
+    console.error('Erro ao apagar tipo de atendimento de equipamento:', error);
+    return { sucesso: false, erro: 'Não foi possível apagar o tipo de atendimento.' };
+  }
 }
 
 export async function buscarHistoricoEquipamentos(termo: string) {

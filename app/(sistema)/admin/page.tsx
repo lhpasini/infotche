@@ -9,7 +9,16 @@ import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteC
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
 import { fazerLogout, getSessao } from '../../actions/auth';
 import { getUsuarios, upsertUsuario, deleteUsuario, atualizarMeuPerfil, toggleUsuarioAtivo } from '../../actions/usuarios';
-import { deleteRegistroEquipamentoAdmin, getRegistrosEquipamentosAdmin, updateRegistroEquipamentoAdmin } from '../../actions/tecnico-registros';
+import {
+  buscarArquivoMortoWhatsapp,
+  deleteRegistroEquipamentoAdmin,
+  deleteTipoAtendimentoEquipamento,
+  getRegistrosEquipamentosAdmin,
+  getTiposAtendimentoEquipamentoAdmin,
+  getUltimosArquivoMortoWhatsapp,
+  upsertTipoAtendimentoEquipamento,
+  updateRegistroEquipamentoAdmin,
+} from '../../actions/tecnico-registros';
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -25,6 +34,7 @@ type Ticket = {
 export default function AdminDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'clientes' | 'categorias' | 'relatorios' | 'historico' | 'usuarios' | 'equipamentos'>('dashboard');
+  const [abaEquipamentos, setAbaEquipamentos] = useState<'registros' | 'arquivo-morto' | 'tipos'>('registros');
   
   const [usuarioLogado, setUsuarioLogado] = useState<{id: string, nome: string, role: string} | null>(null);
   const isAdmin = usuarioLogado?.role === 'ADMIN'; 
@@ -73,13 +83,20 @@ export default function AdminDashboard() {
   type RegistroEquipamentoItem = { id: string; tipoEquipamento: string; marca: string | null; modelo: string | null; codigoEquipamento: string | null; macAddress: string | null; serialNumber: string | null; usuarioAcesso?: string | null; senhaAcesso?: string | null; imagemUrl: string | null; driveFileId?: string | null; ocrTextoBruto?: string | null; observacao?: string | null; };
   type RegistroEquipamento = { id: string; clienteNome: string; tipoAtendimento: string; criadoEm: any; tecnico: { nome: string } | null; itens: RegistroEquipamentoItem[]; };
   type RegistroEquipamentoEditavel = { id: string; clienteNome: string; tipoAtendimento: string; itens: RegistroEquipamentoItem[]; };
+  type ArquivoMortoWhatsappAdmin = { id: string; dataTexto: string | null; dataMensagem: any; autor: string | null; conteudo: string | null; arquivoNome: string | null; arquivoUrl: string | null; mensagemBruta: string | null; importacao: { nomeArquivo: string; criadoEm: any } };
+  type TipoAtendimentoEquipamento = { id: string; nome: string; ativo: boolean; ordem: number; };
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [registrosEquipamentos, setRegistrosEquipamentos] = useState<RegistroEquipamento[]>([]);
+  const [arquivoMortoEquipamentos, setArquivoMortoEquipamentos] = useState<ArquivoMortoWhatsappAdmin[]>([]);
+  const [tiposAtendimentoEquipamento, setTiposAtendimentoEquipamento] = useState<TipoAtendimentoEquipamento[]>([]);
   const [equipamentoBusca, setEquipamentoBusca] = useState("");
   const [equipamentoDataInicio, setEquipamentoDataInicio] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split('T')[0]; });
   const [equipamentoDataFim, setEquipamentoDataFim] = useState(() => new Date().toISOString().split('T')[0]);
+  const [equipamentoLegadoBusca, setEquipamentoLegadoBusca] = useState("");
   const [editingRegistroEquipamento, setEditingRegistroEquipamento] = useState<RegistroEquipamentoEditavel | null>(null);
+  const [editingTipoAtendimentoEquipamento, setEditingTipoAtendimentoEquipamento] = useState<TipoAtendimentoEquipamento | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [isTipoAtendimentoModalOpen, setIsTipoAtendimentoModalOpen] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
   const [isPerfilModalOpen, setIsPerfilModalOpen] = useState(false);
 
@@ -102,6 +119,26 @@ export default function AdminDashboard() {
       carregarUltimosLegado(legadoLimit);
     }
   }, [activeTab, abaHistorico, legadoLimit]);
+
+  useEffect(() => {
+    async function loadEquipamentosContexto() {
+      if (activeTab !== 'equipamentos') return;
+
+      if (abaEquipamentos === 'arquivo-morto') {
+        const data = equipamentoLegadoBusca.trim()
+          ? await buscarArquivoMortoWhatsapp(equipamentoLegadoBusca)
+          : await getUltimosArquivoMortoWhatsapp(120);
+        setArquivoMortoEquipamentos(data as ArquivoMortoWhatsappAdmin[]);
+      }
+
+      if (abaEquipamentos === 'tipos') {
+        const data = await getTiposAtendimentoEquipamentoAdmin();
+        setTiposAtendimentoEquipamento(data as TipoAtendimentoEquipamento[]);
+      }
+    }
+
+    loadEquipamentosContexto();
+  }, [activeTab, abaEquipamentos, equipamentoLegadoBusca]);
 
   // INJEÇÃO DINÂMICA: Puxa a cidade direto do cadastro do cliente em tempo real!
   const ticketsComCidade = tickets.map(t => {
@@ -196,6 +233,41 @@ export default function AdminDashboard() {
     }
 
     await loadData();
+  };
+
+  const handleSaveTipoAtendimentoEquipamento = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const resposta = await upsertTipoAtendimentoEquipamento(editingTipoAtendimentoEquipamento?.id || null, {
+      nome: formData.get('nome') as string,
+      ativo: (formData.get('ativo') as string) === 'true',
+      ordem: Number(formData.get('ordem') || 0),
+    });
+
+    if (!resposta.sucesso) {
+      alert(resposta.erro || 'Não foi possível salvar o tipo de atendimento.');
+      return;
+    }
+
+    const tipos = await getTiposAtendimentoEquipamentoAdmin();
+    setTiposAtendimentoEquipamento(tipos as TipoAtendimentoEquipamento[]);
+    setEditingTipoAtendimentoEquipamento(null);
+    setIsTipoAtendimentoModalOpen(false);
+  };
+
+  const handleDeleteTipoAtendimentoEquipamento = async (id: string) => {
+    if (!confirm('Apagar este tipo de atendimento?')) {
+      return;
+    }
+
+    const resposta = await deleteTipoAtendimentoEquipamento(id);
+    if (!resposta.sucesso) {
+      alert(resposta.erro || 'Não foi possível apagar o tipo de atendimento.');
+      return;
+    }
+
+    const tipos = await getTiposAtendimentoEquipamentoAdmin();
+    setTiposAtendimentoEquipamento(tipos as TipoAtendimentoEquipamento[]);
   };
 
   const chamadosPorCategoria = ticketsRelatorio.reduce((acc, t) => { acc[t.categoria] = (acc[t.categoria] || 0) + 1; return acc; }, {} as Record<string, number>);
@@ -834,68 +906,146 @@ export default function AdminDashboard() {
 
         {activeTab === 'equipamentos' && (
           <div style={{padding:'30px', overflowY:'auto'}}>
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end', gap:'15px', marginBottom:'20px', flexWrap:'wrap'}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'15px', marginBottom:'20px', flexWrap:'wrap'}}>
               <div>
                 <h1>Controle de Equipamentos</h1>
-                <p style={{fontSize:'12px', color:'#7f8c8d', marginTop:'4px'}}>Registros capturados pelos técnicos em campo.</p>
+                <p style={{fontSize:'12px', color:'#7f8c8d', marginTop:'4px'}}>Registros novos, arquivo morto e tipos de atendimento do módulo técnico.</p>
               </div>
-              <div style={{display:'flex', gap:'10px', alignItems:'center', flexWrap:'wrap', justifyContent:'flex-end'}}>
-                <div style={{display:'flex', gap:'10px', alignItems:'center', background:'#fff', padding:'10px 12px', borderRadius:'8px'}}>
-                  <input type="date" value={equipamentoDataInicio} onChange={(e) => setEquipamentoDataInicio(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
-                  <span>até</span>
-                  <input type="date" value={equipamentoDataFim} onChange={(e) => setEquipamentoDataFim(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
-                </div>
-                <input
-                  className="search-input"
-                  placeholder="Buscar cliente, técnico, MAC, serial, modelo..."
-                  value={equipamentoBusca}
-                  onChange={(e) => setEquipamentoBusca(e.target.value)}
-                  style={{width:'360px'}}
-                />
+              <div style={{display:'flex', gap:'10px'}}>
+                <button className={`btn-tab ${abaEquipamentos === 'registros' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('registros')}>📦 Registros</button>
+                <button className={`btn-tab ${abaEquipamentos === 'arquivo-morto' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('arquivo-morto')}>🗄️ Arquivo Morto</button>
+                <button className={`btn-tab ${abaEquipamentos === 'tipos' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('tipos')}>🧩 Tipos de Atendimento</button>
               </div>
             </div>
 
-            <div style={{display:'grid', gap:'15px'}}>
-              {registrosEquipamentosFiltrados.length === 0 && (
-                <div className="chart-box" style={{color:'#7f8c8d'}}>Nenhum registro de equipamento encontrado.</div>
-              )}
-
-              {registrosEquipamentosFiltrados.map((registro) => (
-                <div key={registro.id} className="chart-box">
-                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'15px', marginBottom:'15px'}}>
-                    <div>
-                      <h3 style={{fontSize:'18px', color:'#2c3e50', margin:0}}>{registro.clienteNome}</h3>
-                      <div style={{marginTop:'6px', display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                        <span style={{background:'#eaf4ff', color:'#3498db', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{registro.tipoAtendimento}</span>
-                        <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>Técnico: {registro.tecnico?.nome || 'Sem técnico'}</span>
-                        <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{new Date(registro.criadoEm).toLocaleString('pt-BR')}</span>
-                      </div>
-                    </div>
-                    <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', justifyContent:'flex-end'}}>
-                      <span style={{background:'#dff5e8', color:'#1f8f55', padding:'6px 10px', borderRadius:'999px', fontSize:'12px', fontWeight:'bold'}}>{registro.itens.length} item(ns)</span>
-                      <button className="btn-new" style={{padding:'8px 12px'}} onClick={() => openEditRegistroEquipamento(registro)}>Editar</button>
-                      <button className="btn-new" style={{padding:'8px 12px', background:'#e74c3c'}} onClick={() => handleDeleteRegistroEquipamento(registro.id)}>Apagar</button>
-                    </div>
+            {abaEquipamentos === 'registros' && (
+              <>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end', gap:'15px', marginBottom:'20px', flexWrap:'wrap'}}>
+                  <div style={{display:'flex', gap:'10px', alignItems:'center', background:'#fff', padding:'10px 12px', borderRadius:'8px'}}>
+                    <input type="date" value={equipamentoDataInicio} onChange={(e) => setEquipamentoDataInicio(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
+                    <span>até</span>
+                    <input type="date" value={equipamentoDataFim} onChange={(e) => setEquipamentoDataFim(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
                   </div>
-
-                  <table className="data-table">
-                    <thead><tr><th>TIPO</th><th>MARCA / MODELO</th><th>MAC</th><th>SERIAL</th><th>CÓDIGO</th><th>FOTO</th></tr></thead>
-                    <tbody>
-                      {registro.itens.map((item) => (
-                        <tr key={item.id}>
-                          <td>{item.tipoEquipamento}</td>
-                          <td><strong>{[item.marca, item.modelo].filter(Boolean).join(' / ') || '-'}</strong></td>
-                          <td style={{fontFamily:'monospace'}}>{item.macAddress || '-'}</td>
-                          <td style={{fontFamily:'monospace'}}>{item.serialNumber || '-'}</td>
-                          <td style={{fontFamily:'monospace'}}>{item.codigoEquipamento || '-'}</td>
-                          <td>{item.imagemUrl ? <a href={item.imagemUrl} target="_blank" rel="noreferrer" style={{color:'#3498db', fontWeight:'bold'}}>Abrir</a> : '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <input
+                    className="search-input"
+                    placeholder="Buscar cliente, técnico, MAC, serial, modelo..."
+                    value={equipamentoBusca}
+                    onChange={(e) => setEquipamentoBusca(e.target.value)}
+                    style={{width:'360px'}}
+                  />
                 </div>
-              ))}
-            </div>
+
+                <div style={{display:'grid', gap:'15px'}}>
+                  {registrosEquipamentosFiltrados.length === 0 && (
+                    <div className="chart-box" style={{color:'#7f8c8d'}}>Nenhum registro de equipamento encontrado.</div>
+                  )}
+
+                  {registrosEquipamentosFiltrados.map((registro) => (
+                    <div key={registro.id} className="chart-box">
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'15px', marginBottom:'15px'}}>
+                        <div>
+                          <h3 style={{fontSize:'18px', color:'#2c3e50', margin:0}}>{registro.clienteNome}</h3>
+                          <div style={{marginTop:'6px', display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                            <span style={{background:'#eaf4ff', color:'#3498db', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{registro.tipoAtendimento}</span>
+                            <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>Técnico: {registro.tecnico?.nome || 'Sem técnico'}</span>
+                            <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{new Date(registro.criadoEm).toLocaleString('pt-BR')}</span>
+                          </div>
+                        </div>
+                        <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', justifyContent:'flex-end'}}>
+                          <span style={{background:'#dff5e8', color:'#1f8f55', padding:'6px 10px', borderRadius:'999px', fontSize:'12px', fontWeight:'bold'}}>{registro.itens.length} item(ns)</span>
+                          <button className="btn-new" style={{padding:'8px 12px'}} onClick={() => openEditRegistroEquipamento(registro)}>Editar</button>
+                          <button className="btn-new" style={{padding:'8px 12px', background:'#e74c3c'}} onClick={() => handleDeleteRegistroEquipamento(registro.id)}>Apagar</button>
+                        </div>
+                      </div>
+
+                      <table className="data-table">
+                        <thead><tr><th>TIPO</th><th>MARCA / MODELO</th><th>MAC</th><th>SERIAL</th><th>CÓDIGO</th><th>FOTO</th></tr></thead>
+                        <tbody>
+                          {registro.itens.map((item) => (
+                            <tr key={item.id}>
+                              <td>{item.tipoEquipamento}</td>
+                              <td><strong>{[item.marca, item.modelo].filter(Boolean).join(' / ') || '-'}</strong></td>
+                              <td style={{fontFamily:'monospace'}}>{item.macAddress || '-'}</td>
+                              <td style={{fontFamily:'monospace'}}>{item.serialNumber || '-'}</td>
+                              <td style={{fontFamily:'monospace'}}>{item.codigoEquipamento || '-'}</td>
+                              <td>{item.imagemUrl ? <a href={item.imagemUrl} target="_blank" rel="noreferrer" style={{color:'#3498db', fontWeight:'bold'}}>Abrir</a> : '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {abaEquipamentos === 'arquivo-morto' && (
+              <div className="chart-box">
+                <div style={{display:'flex', justifyContent:'space-between', gap:'15px', marginBottom:'20px', flexWrap:'wrap'}}>
+                  <input
+                    className="search-input"
+                    placeholder="Buscar no arquivo morto por cliente, trecho ou nome de anexo..."
+                    value={equipamentoLegadoBusca}
+                    onChange={(e) => setEquipamentoLegadoBusca(e.target.value)}
+                    style={{width:'420px'}}
+                  />
+                  <button className="btn-new" onClick={async () => { setEquipamentoLegadoBusca(''); const data = await getUltimosArquivoMortoWhatsapp(120); setArquivoMortoEquipamentos(data as ArquivoMortoWhatsappAdmin[]); }}>Carregar Recentes</button>
+                </div>
+
+                <div style={{display:'grid', gap:'12px'}}>
+                  {arquivoMortoEquipamentos.length === 0 && <div style={{color:'#7f8c8d'}}>Nenhum registro encontrado no arquivo morto.</div>}
+                  {arquivoMortoEquipamentos.map((registro) => (
+                    <div key={registro.id} style={{border:'1px solid #e5e7eb', borderRadius:'8px', padding:'16px', background:'#fff'}}>
+                      <div style={{display:'flex', justifyContent:'space-between', gap:'10px', flexWrap:'wrap'}}>
+                        <div>
+                          <strong style={{fontSize:'16px', color:'#2c3e50'}}>{registro.autor || 'Sem autor identificado'}</strong>
+                          <div style={{marginTop:'6px', display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                            <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{registro.dataTexto || new Date(registro.dataMensagem).toLocaleString('pt-BR')}</span>
+                            <span style={{background:'#fef3c7', color:'#a16207', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{registro.importacao.nomeArquivo}</span>
+                          </div>
+                        </div>
+                        {registro.arquivoUrl && <a href={registro.arquivoUrl} target="_blank" rel="noreferrer" style={{color:'#3498db', fontWeight:'bold'}}>Abrir anexo</a>}
+                      </div>
+                      <div style={{marginTop:'12px', padding:'12px', borderRadius:'8px', background:'#f8fafc', whiteSpace:'pre-line', color:'#4a5568'}}>{registro.conteudo || 'Sem conteúdo tratado.'}</div>
+                      <details style={{marginTop:'12px'}}>
+                        <summary style={{cursor:'pointer', fontWeight:'bold', color:'#64748b'}}>Ver linha bruta</summary>
+                        <pre style={{marginTop:'10px', whiteSpace:'pre-wrap', fontSize:'11px', color:'#475569'}}>{registro.mensagemBruta || 'Sem linha bruta.'}</pre>
+                      </details>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {abaEquipamentos === 'tipos' && (
+              <div className="chart-box">
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
+                  <div>
+                    <h3 style={{margin:'0 0 6px 0'}}>Tipos de Atendimento</h3>
+                    <p style={{fontSize:'12px', color:'#7f8c8d', margin:0}}>Esses tipos aparecem no formulário do técnico em `/tecnico/novo`.</p>
+                  </div>
+                  <button className="btn-new" onClick={() => { setEditingTipoAtendimentoEquipamento(null); setIsTipoAtendimentoModalOpen(true); }}>+ NOVO TIPO</button>
+                </div>
+
+                <table className="data-table">
+                  <thead><tr><th>ORDEM</th><th>NOME</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
+                  <tbody>
+                    {tiposAtendimentoEquipamento.map((tipo) => (
+                      <tr key={tipo.id}>
+                        <td>{tipo.ordem}</td>
+                        <td><strong>{tipo.nome}</strong></td>
+                        <td>{tipo.ativo ? 'Ativo' : 'Inativo'}</td>
+                        <td>
+                          <button onClick={() => { setEditingTipoAtendimentoEquipamento(tipo); setIsTipoAtendimentoModalOpen(true); }} style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}>✏️</button>
+                          <button onClick={() => handleDeleteTipoAtendimentoEquipamento(tipo.id)} style={{background:'none', border:'none', cursor:'pointer'}}>🗑️</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {tiposAtendimentoEquipamento.length === 0 && <tr><td colSpan={4} style={{textAlign:'center', color:'#999'}}>Nenhum tipo cadastrado.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
@@ -1028,6 +1178,35 @@ export default function AdminDashboard() {
               </button>
 
               <button type="submit" className="btn-new btn-green" style={{width:'100%', marginTop:'15px'}}>Salvar Alterações</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isTipoAtendimentoModalOpen && (
+        <div className="modal-overlay" style={{zIndex: 960}}>
+          <div className="modal-box" style={{width:'420px'}}>
+            <button type="button" className="btn-close" onClick={() => { setIsTipoAtendimentoModalOpen(false); setEditingTipoAtendimentoEquipamento(null); }}>✖</button>
+            <h2>{editingTipoAtendimentoEquipamento ? 'Editar Tipo de Atendimento' : 'Novo Tipo de Atendimento'}</h2>
+            <form onSubmit={handleSaveTipoAtendimentoEquipamento}>
+              <div className="field-group" style={{gridTemplateColumns:'1fr'}}>
+                <div className="field">
+                  <label>Nome</label>
+                  <input name="nome" required defaultValue={editingTipoAtendimentoEquipamento?.nome || ''} />
+                </div>
+                <div className="field">
+                  <label>Ordem</label>
+                  <input name="ordem" type="number" defaultValue={editingTipoAtendimentoEquipamento?.ordem ?? tiposAtendimentoEquipamento.length} />
+                </div>
+                <div className="field">
+                  <label>Status</label>
+                  <select name="ativo" defaultValue={String(editingTipoAtendimentoEquipamento?.ativo ?? true)}>
+                    <option value="true">Ativo</option>
+                    <option value="false">Inativo</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar Tipo</button>
             </form>
           </div>
         </div>

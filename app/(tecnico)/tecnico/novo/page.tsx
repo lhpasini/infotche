@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getTiposAtendimentoEquipamento } from '../../../actions/tecnico-registros';
 import { parseEquipmentText } from '../../../../lib/equipment-ocr';
 
 type DraftItem = {
@@ -123,6 +124,7 @@ function mergeOcrTexts(primaryText: string, secondaryText: string) {
 }
 
 export default function NovoRegistroTecnicoPage() {
+  const [serviceTypes, setServiceTypes] = useState<string[]>(SERVICE_TYPES);
   const [clienteNome, setClienteNome] = useState('');
   const [tipoAtendimento, setTipoAtendimento] = useState(SERVICE_TYPES[0]);
   const [draftItem, setDraftItem] = useState<DraftItem>(createEmptyItem);
@@ -156,6 +158,20 @@ export default function NovoRegistroTecnicoPage() {
     draftItem.usuarioAcesso,
     draftItem.senhaAcesso,
   ].filter((value) => value.trim()).length;
+
+  useEffect(() => {
+    async function loadTipos() {
+      const tipos = await getTiposAtendimentoEquipamento();
+      const nomes = (tipos as { nome: string }[]).map((item) => item.nome).filter(Boolean);
+
+      if (nomes.length > 0) {
+        setServiceTypes(nomes);
+        setTipoAtendimento((current) => (nomes.includes(current) ? current : nomes[0]));
+      }
+    }
+
+    loadTipos();
+  }, []);
 
   function updateDraft(field: keyof DraftItem, value: string | File | null) {
     setDraftItem((current) => ({ ...current, [field]: value }));
@@ -329,7 +345,7 @@ export default function NovoRegistroTecnicoPage() {
       const received = Number(data.upload?.imagesReceived || 0);
 
       setClienteNome('');
-      setTipoAtendimento(SERVICE_TYPES[0]);
+      setTipoAtendimento(serviceTypes[0] || SERVICE_TYPES[0]);
       setItens([]);
       resetDraft();
       setMensagem(
@@ -398,7 +414,7 @@ export default function NovoRegistroTecnicoPage() {
                 onChange={(event) => setTipoAtendimento(event.target.value)}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base outline-none transition focus:border-sky-500 focus:bg-white"
               >
-                {SERVICE_TYPES.map((type) => (
+                {serviceTypes.map((type) => (
                   <option key={type} value={type}>
                     {type}
                   </option>
