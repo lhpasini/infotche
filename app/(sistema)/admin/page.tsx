@@ -64,6 +64,7 @@ export default function AdminDashboard() {
   const [tempContrato, setTempContrato] = useState("");
 
   const [buscaGlobal, setBuscaGlobal] = useState("");
+  const [buscaHistoricoSistema, setBuscaHistoricoSistema] = useState("");
   const [dataInicio, setDataInicio] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split('T')[0]; });
   const [dataFim, setDataFim] = useState(() => new Date().toISOString().split('T')[0]);
 
@@ -163,13 +164,31 @@ export default function AdminDashboard() {
     return { ...t, cidadeCliente: clienteVinculado?.cidade || t.cidadeCliente || '' };
   });
 
-  const ticketsFiltrados = ticketsComCidade.filter(t => {
+  const ticketsDashboard = ticketsComCidade.filter(t => {
     if (buscaGlobal.trim() !== "") {
       const termo = buscaGlobal.toLowerCase();
       return (t.nomeCliente.toLowerCase().includes(termo) || t.pppoe?.toLowerCase().includes(termo) || t.enderecoCompleto?.toLowerCase().includes(termo) || t.protocolo.toLowerCase().includes(termo));
     }
+    return true;
+  });
+
+  const ticketsFiltrados = ticketsComCidade.filter(t => {
     const tDate = new Date(t.criadoEm);
-    return tDate >= new Date(dataInicio + "T00:00:00") && tDate <= new Date(dataFim + "T23:59:59");
+    const dentroDoPeriodo = tDate >= new Date(dataInicio + "T00:00:00") && tDate <= new Date(dataFim + "T23:59:59");
+    if (!dentroDoPeriodo) return false;
+
+    if (buscaHistoricoSistema.trim() !== "") {
+      const termo = buscaHistoricoSistema.toLowerCase();
+      return (
+        t.nomeCliente.toLowerCase().includes(termo) ||
+        t.pppoe?.toLowerCase().includes(termo) ||
+        t.enderecoCompleto?.toLowerCase().includes(termo) ||
+        t.protocolo.toLowerCase().includes(termo) ||
+        t.categoria.toLowerCase().includes(termo)
+      );
+    }
+
+    return true;
   });
 
   const todosTecnicos = Array.from(new Set(ticketsFiltrados.map(t => t.tecnico || 'Sem Técnico')));
@@ -189,8 +208,7 @@ export default function AdminDashboard() {
       registroData >= new Date(equipamentoDataInicio + "T00:00:00") &&
       registroData <= new Date(equipamentoDataFim + "T23:59:59");
 
-    if (!dentroDoPeriodo) return false;
-    if (!termo) return true;
+    if (!termo && !dentroDoPeriodo) return false;
 
     const tecnicoNome = registro.tecnico?.nome?.toLowerCase() || '';
     const itensTexto = registro.itens
@@ -199,12 +217,18 @@ export default function AdminDashboard() {
       .join(' ')
       .toLowerCase();
 
-    return (
+    const correspondeBusca = (
       registro.clienteNome.toLowerCase().includes(termo) ||
       registro.tipoAtendimento.toLowerCase().includes(termo) ||
       tecnicoNome.includes(termo) ||
       itensTexto.includes(termo)
     );
+
+    if (termo) {
+      return correspondeBusca;
+    }
+
+    return true;
   });
 
   const podeEditarRegistroEquipamento = (registro: RegistroEquipamento) =>
@@ -669,7 +693,11 @@ export default function AdminDashboard() {
 
       <div className="main">
         <header className="top-nav">
-          <input className="search-input" placeholder="🔍 Buscar cliente, pppoe, rua..." value={buscaGlobal} onChange={(e) => { setBuscaGlobal(e.target.value); if(e.target.value && activeTab !== 'historico') setActiveTab('historico'); }} />
+          {activeTab === 'dashboard' ? (
+            <input className="search-input" placeholder="🔍 Buscar cliente, pppoe, rua..." value={buscaGlobal} onChange={(e) => setBuscaGlobal(e.target.value)} />
+          ) : (
+            <div style={{width:'280px'}}></div>
+          )}
           <div style={{flex:1}}></div>
           {usuarioLogado && (
             <div 
@@ -696,7 +724,7 @@ export default function AdminDashboard() {
               <button className="btn-new" onClick={() => { setEditingTicket(null); setClientSearch(""); setTempClientId(""); setTempConexaoId(""); setTempPppoe(""); setTempSenha(""); setTempContrato(""); setTicketFechamento(""); setIsTicketModalOpen(true); }}>+ NOVO CHAMADO</button>
               <button className="btn-new btn-green" onClick={() => { setEditingCliente(null); setIsClientModalOpen(true); }}>+ NOVO CLIENTE</button>
             </div>
-            <KanbanBoard tickets={ticketsFiltrados} expandedId={expandedTicketId} setExpandedId={setExpandedTicketId} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnter={(e) => e.preventDefault()} onDrop={handleDrop} onEdit={openEditTicket} onDelete={async (id) => { if(confirm('Excluir chamado?')) { await deleteChamado(id); loadData(); } }} />
+            <KanbanBoard tickets={ticketsDashboard} expandedId={expandedTicketId} setExpandedId={setExpandedTicketId} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnter={(e) => e.preventDefault()} onDrop={handleDrop} onEdit={openEditTicket} onDelete={async (id) => { if(confirm('Excluir chamado?')) { await deleteChamado(id); loadData(); } }} />
           </>
         )}
 
@@ -896,6 +924,7 @@ export default function AdminDashboard() {
 
               {abaHistorico === 'sistema' ? (
                 <div style={{display:'flex', gap:'10px', alignItems:'center', background:'#fff', padding:'10px', borderRadius:'8px'}}>
+                  <input className="search-input" style={{width:'280px'}} placeholder="🔍 Buscar cliente, protocolo, categoria..." value={buscaHistoricoSistema} onChange={e => setBuscaHistoricoSistema(e.target.value)} />
                   <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
                   <span>até</span>
                   <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
