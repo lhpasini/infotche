@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { getCategorias, upsertCategoria, deleteCategoria } from '../../actions/categorias';
@@ -30,7 +30,7 @@ type Categoria = { id: string; nome: string; };
 type Ticket = { 
   id: string; protocolo: string; clienteId: string | null; conexaoId: string | null; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; cidadeCliente: string | null; 
   tecnico: string | null; categoria: string; motivo: string; pppoe: string | null; senhaPpoe: string | null; contratoMhnet: string | null;
-  obs: string | null; abertoPor: string | null; resolucao: string | null; prioridade: string; criadoEm: any; atualizadoEm?: any; status: string; 
+  obs: string | null; abertoPor: string | null; resolucao: string | null; prioridade: string; criadoEm: any; fechadoEm?: any; atualizadoEm?: any; status: string; 
 };
 
 export default function AdminDashboard() {
@@ -53,6 +53,8 @@ export default function AdminDashboard() {
   const [editingConexao, setEditingConexao] = useState<Conexao | null>(null);
   const [draggedTicketId, setDraggedTicketId] = useState<string | null>(null);
   const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
+  const [ticketFechamento, setTicketFechamento] = useState("");
+  const ticketFormRef = useRef<HTMLFormElement | null>(null);
 
   const [clientSearch, setClientSearch] = useState("");
   const [tempClientId, setTempClientId] = useState("");
@@ -294,7 +296,7 @@ export default function AdminDashboard() {
 
   ticketsRelatorio.filter(t => t.status === 'concluidos').forEach(t => {
     const dataCriacao = new Date(t.criadoEm).getTime();
-    const dataAtualizacao = t.atualizadoEm ? new Date(t.atualizadoEm).getTime() : new Date().getTime();
+    const dataAtualizacao = t.fechadoEm ? new Date(t.fechadoEm).getTime() : t.atualizadoEm ? new Date(t.atualizadoEm).getTime() : new Date().getTime();
     const horas = (dataAtualizacao - dataCriacao) / 3600000; 
     
     slaTotalHoras += horas;
@@ -328,50 +330,98 @@ export default function AdminDashboard() {
     else setter([...arr, val]);
   };
 
+  const formatDateTime = (value: any) => {
+    if (!value) return '';
+    return new Date(value).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const toDateTimeLocalValue = (value: any) => {
+    if (!value) return '';
+    const date = new Date(value);
+    const timezoneOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
+  };
+
   const handleDragStart = (e: React.DragEvent, id: string) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData('text/plain', id); setDraggedTicketId(id); };
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; };
   const handleDrop = async (e: React.DragEvent, newStatus: string) => {
     e.preventDefault();
     if (!draggedTicketId) return;
-    setTickets(prev => prev.map(t => t.id === draggedTicketId ? { ...t, status: newStatus } : t));
-    await updateChamadoStatus(draggedTicketId, newStatus);
+
+    const ticketAtual = tickets.find((ticket) => ticket.id === draggedTicketId);
+    if (!ticketAtual || ticketAtual.status === newStatus) {
+      setDraggedTicketId(null);
+      return;
+    }
+
+    if (ticketAtual.status === 'concluidos' && newStatus !== 'concluidos') {
+      const desejaReabrir = confirm('Este chamado ja esta concluido. Realmente deseja reabrir o chamado?');
+      if (!desejaReabrir) {
+        setDraggedTicketId(null);
+        return;
+      }
+    }
+
+    const fechadoEm = newStatus === 'concluidos' ? new Date().toISOString() : null;
+
+    setTickets(prev =>
+      prev.map(t =>
+        t.id === draggedTicketId ? { ...t, status: newStatus, fechadoEm } : t
+      )
+    );
+
+    await updateChamadoStatus(draggedTicketId, newStatus, { fechadoEm });
     setDraggedTicketId(null);
   };
 
   const openEditTicket = (t: Ticket) => {
     setEditingTicket(t); setClientSearch(t.nomeCliente); setTempClientId(t.clienteId || "");
     setTempConexaoId(t.conexaoId || ""); setTempPppoe(t.pppoe || ""); setTempSenha(t.senhaPpoe || "");
-    setTempContrato(t.contratoMhnet || ""); setIsTicketModalOpen(true);
+    setTempContrato(t.contratoMhnet || ""); setTicketFechamento(toDateTimeLocalValue(t.fechadoEm)); setIsTicketModalOpen(true);
+  };
+
+  const resetTicketModal = () => {
+    setIsTicketModalOpen(false);
+    setEditingTicket(null);
+    setTicketFechamento("");
+  };
+
+  const buildTicketPayload = (formData: FormData) => {
+    const isAvulso = !tempClientId;
+    const clienteEncontrado = isAvulso ? null : clientes.find(c => c.id === tempClientId);
+    const con = clienteEncontrado?.conexoes.find(c => c.id === tempConexaoId);
+
+    return {
+      protocolo: editingTicket ? editingTicket.protocolo : `#${Math.floor(1000 + Math.random() * 9000)}`,
+      clienteId: isAvulso ? null : tempClientId,
+      conexaoId: isAvulso ? null : tempConexaoId,
+      nomeCliente: isAvulso ? clientSearch : (clienteEncontrado?.nome || ''),
+      whatsCliente: isAvulso ? '' : (clienteEncontrado?.whatsapp || ''),
+      cidadeCliente: isAvulso ? '' : (clienteEncontrado?.cidade || ''),
+      enderecoCompleto: isAvulso ? '' : (con ? `${con.endereco} - ${con.bairro || ''}` : ''),
+      categoria: formData.get('categoria') as string,
+      motivo: formData.get('motivo') as string,
+      pppoe: formData.get('pppoe') as string,
+      senhaPpoe: formData.get('senhaPpoe') as string,
+      contratoMhnet: formData.get('contratoMhnet') as string,
+      obs: formData.get('obs') as string,
+      tecnico: formData.get('tecnico') as string,
+      abertoPor: formData.get('abertoPor') as string,
+      resolucao: formData.get('resolucao') as string,
+      prioridade: formData.get('prioridade') as string,
+    };
   };
 
   const handleSaveTicket = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const isAvulso = !tempClientId;
-    
-    // Buscamos o cliente atualizado da lista de clientes
-    const clienteEncontrado = isAvulso ? null : clientes.find(c => c.id === tempClientId);
-    const con = clienteEncontrado?.conexoes.find(c => c.id === tempConexaoId);
-
-    const ticketData = {
-      protocolo: editingTicket ? editingTicket.protocolo : `#${Math.floor(1000 + Math.random() * 9000)}`,
-      clienteId: isAvulso ? null : tempClientId, 
-      conexaoId: isAvulso ? null : tempConexaoId,
-      nomeCliente: isAvulso ? clientSearch : (clienteEncontrado?.nome || ''), 
-      whatsCliente: isAvulso ? '' : (clienteEncontrado?.whatsapp || ''),
-      cidadeCliente: isAvulso ? '' : (clienteEncontrado?.cidade || ''),
-      enderecoCompleto: isAvulso ? '' : (con ? `${con.endereco} - ${con.bairro || ''}` : ''),
-      categoria: formData.get('categoria') as string, 
-      motivo: formData.get('motivo') as string, 
-      pppoe: formData.get('pppoe') as string, 
-      senhaPpoe: formData.get('senhaPpoe') as string,
-      contratoMhnet: formData.get('contratoMhnet') as string, 
-      obs: formData.get('obs') as string,
-      tecnico: formData.get('tecnico') as string, 
-      abertoPor: formData.get('abertoPor') as string,
-      resolucao: formData.get('resolucao') as string, 
-      prioridade: formData.get('prioridade') as string
-    };
+    const ticketData = buildTicketPayload(formData);
 
     if (editingTicket) {
       await updateChamado(editingTicket.id, ticketData);
@@ -380,7 +430,24 @@ export default function AdminDashboard() {
     }
     
     await loadData(); 
-    setIsTicketModalOpen(false);
+    resetTicketModal();
+  };
+
+  const handleConcluirTicket = async () => {
+    if (!editingTicket || !ticketFormRef.current) return;
+
+    const formData = new FormData(ticketFormRef.current);
+    const ticketData = buildTicketPayload(formData);
+    const fechadoEm = ticketFechamento ? new Date(ticketFechamento).toISOString() : new Date().toISOString();
+
+    await updateChamado(editingTicket.id, {
+      ...ticketData,
+      status: 'concluidos',
+      fechadoEm,
+    });
+
+    await loadData();
+    resetTicketModal();
   };
 
   const handleSaveCliente = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -618,7 +685,7 @@ export default function AdminDashboard() {
           <>
             <div className="board-header">
               <h1>Gestão Atendimentos</h1>
-              <button className="btn-new" onClick={() => { setEditingTicket(null); setClientSearch(""); setTempClientId(""); setTempConexaoId(""); setTempPppoe(""); setTempSenha(""); setTempContrato(""); setIsTicketModalOpen(true); }}>+ NOVO CHAMADO</button>
+              <button className="btn-new" onClick={() => { setEditingTicket(null); setClientSearch(""); setTempClientId(""); setTempConexaoId(""); setTempPppoe(""); setTempSenha(""); setTempContrato(""); setTicketFechamento(""); setIsTicketModalOpen(true); }}>+ NOVO CHAMADO</button>
               <button className="btn-new btn-green" onClick={() => { setEditingCliente(null); setIsClientModalOpen(true); }}>+ NOVO CLIENTE</button>
             </div>
             <KanbanBoard tickets={ticketsFiltrados} expandedId={expandedTicketId} setExpandedId={setExpandedTicketId} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnter={(e) => e.preventDefault()} onDrop={handleDrop} onEdit={openEditTicket} onDelete={async (id) => { if(confirm('Excluir chamado?')) { await deleteChamado(id); loadData(); } }} />
@@ -1251,11 +1318,23 @@ export default function AdminDashboard() {
       {isTicketModalOpen && (
         <div className="modal-overlay" style={{zIndex: 1000}}>
           <div className="modal-box">
-            <button type="button" className="btn-close" onClick={() => setIsTicketModalOpen(false)}>✖</button>
+            <button type="button" className="btn-close" onClick={resetTicketModal}>✖</button>
             <h2>{editingTicket ? `Editar Chamado ${editingTicket.protocolo}` : 'Abertura de Chamado'}</h2>
-            <form onSubmit={handleSaveTicket}>
+            <form ref={ticketFormRef} onSubmit={handleSaveTicket}>
               <div className="field-group">
-                
+                {editingTicket && (
+                  <>
+                    <div className="field">
+                      <label>Data e hora de abertura</label>
+                      <input value={formatDateTime(editingTicket.criadoEm)} readOnly />
+                    </div>
+                    <div className="field">
+                      <label>Data e hora de fechamento</label>
+                      <input type="datetime-local" value={ticketFechamento} onChange={(e) => setTicketFechamento(e.target.value)} />
+                    </div>
+                  </>
+                )}
+
                 <div className="field" style={{ gridColumn: 'span 2', position: 'relative' }}>
                   <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                     <label>1. Buscar ou Novo Cliente *</label>
@@ -1362,7 +1441,12 @@ export default function AdminDashboard() {
                 <div className="field" style={{gridColumn:'span 2'}}><label>Observações</label><textarea name="obs" defaultValue={editingTicket?.obs || ""} style={{height:'40px'}} /></div>
                 <div className="field" style={{gridColumn:'span 2'}}><label>Fechamento da Ordem</label><textarea name="resolucao" defaultValue={editingTicket?.resolucao || ""} style={{height:'40px'}} placeholder="Preencher após a conclusão..." /></div>
               </div>
-              <button type="submit" className="btn-new btn-green" style={{width:'100%', marginTop:'10px'}}>{editingTicket ? 'Atualizar Chamado' : 'Salvar e Abrir Chamado'}</button>
+              <div style={{display:'flex', gap:'10px', marginTop:'10px'}}>
+                <button type="submit" className="btn-new btn-green" style={{width:'100%'}}>{editingTicket ? 'Atualizar Chamado' : 'Salvar e Abrir Chamado'}</button>
+                {editingTicket && (
+                  <button type="button" className="btn-new" style={{width:'100%', background:'#64748b'}} onClick={() => void handleConcluirTicket()}>Concluir Chamado</button>
+                )}
+              </div>
             </form>
           </div>
         </div>

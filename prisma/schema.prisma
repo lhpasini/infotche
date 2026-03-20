@@ -75,6 +75,7 @@ model Chamado {
   status           String   @default("novos") 
 
   criadoEm         DateTime @default(now())
+  fechadoEm        DateTime?
   atualizadoEm     DateTime @updatedAt
 }
 
