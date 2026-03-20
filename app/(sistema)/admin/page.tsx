@@ -8,7 +8,7 @@ import { getClientes, createCliente, updateCliente, deleteCliente, addConexao, u
 import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteChamado } from '../../actions/chamados';
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
 import { fazerLogout, getSessao } from '../../actions/auth';
-import { getUsuarios, upsertUsuario, deleteUsuario, atualizarMeuPerfil } from '../../actions/usuarios';
+import { getUsuarios, upsertUsuario, deleteUsuario, atualizarMeuPerfil, toggleUsuarioAtivo } from '../../actions/usuarios';
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  type Usuario = { id: string; nome: string; login: string; role: string; senha?: string; };
+  type Usuario = { id: string; nome: string; login: string; role: string; ativo: boolean; senha?: string; };
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
   async function loadData() {
     setLoading(true);
     const [cats, clis, tks, usrs, sessao] = await Promise.all([ getCategorias(), getClientes(), getChamados(), getUsuarios(), getSessao() ]);
-    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as Usuario[]); setUsuarioLogado(sessao);
+    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as unknown as Usuario[]); setUsuarioLogado(sessao);
     setLoading(false);
   }
 
@@ -464,10 +464,10 @@ export default function AdminDashboard() {
           <div style={{padding:'30px'}}>
             <div style={{display:'flex', justifyContent:'space-between', marginBottom:'20px'}}>
               <h1>Controle de Acesso</h1>
-              <button className="btn-new" onClick={() => { setEditingUsuario(null); setIsUserModalOpen(true); }}>+ NOVO USUÁRIO</button>
+              <button className="btn-new" onClick={() => { setEditingUsuario(null); setIsUserModalOpen(true); }}>+ NOVO USU?RIO</button>
             </div>
             <table className="data-table">
-              <thead><tr><th>NOME</th><th>LOGIN</th><th>PERMISSÃO</th><th>AÇÕES</th></tr></thead>
+              <thead><tr><th>NOME</th><th>LOGIN</th><th>PERMISS?O</th><th>STATUS</th><th>A??ES</th></tr></thead>
               <tbody>
                 {usuarios.map(usr => (
                   <tr key={usr.id}>
@@ -475,9 +475,27 @@ export default function AdminDashboard() {
                     <td>{usr.login}</td>
                     <td><span style={{padding:'4px 8px', borderRadius:'4px', color:'#fff', fontSize:'11px', fontWeight:'bold', background: usr.role === 'ADMIN' ? '#e74c3c' : '#3498db'}}>{usr.role}</span></td>
                     <td>
-                      <button onClick={() => { setEditingUsuario(usr); setIsUserModalOpen(true); }} style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}>✏️</button>
+                      <span style={{padding:'4px 8px', borderRadius:'999px', color:'#fff', fontSize:'11px', fontWeight:'bold', background: usr.ativo ? '#27ae60' : '#7f8c8d'}}>
+                        {usr.ativo ? 'ATIVO' : 'INATIVO'}
+                      </span>
+                    </td>
+                    <td>
+                      <button onClick={() => { setEditingUsuario(usr); setIsUserModalOpen(true); }} style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}>??</button>
                       {usr.login !== 'admin' && (
-                        <button onClick={async () => { if(confirm('Remover acesso?')) { await deleteUsuario(usr.id); loadData(); } }} style={{background:'none', border:'none', cursor:'pointer'}}>🗑️</button>
+                        <>
+                          <button
+                            onClick={async () => {
+                              const resposta = await toggleUsuarioAtivo(usr.id);
+                              if (!resposta.sucesso && resposta.erro) alert(resposta.erro);
+                              loadData();
+                            }}
+                            style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}
+                            title={usr.ativo ? 'Desativar acesso' : 'Reativar acesso'}
+                          >
+                            {usr.ativo ? '?' : '?'}
+                          </button>
+                          <button onClick={async () => { if(confirm('Remover acesso?')) { const resposta = await deleteUsuario(usr.id); if (!resposta.sucesso && resposta.erro) alert(resposta.erro); loadData(); } }} style={{background:'none', border:'none', cursor:'pointer'}}>???</button>
+                        </>
                       )}
                     </td>
                   </tr>
@@ -962,7 +980,7 @@ export default function AdminDashboard() {
       {isCatModalOpen && (
         <div className="modal-overlay" style={{zIndex:4000}}>
           <div className="modal-box" style={{width:'400px'}}>
-            <button type="button" className="btn-close" onClick={() => setIsCatModalOpen(false)}>✖</button>
+            <button type="button" className="btn-close" onClick={() => setIsCatModalOpen(false)}>?</button>
             <h2>Nova Categoria</h2>
             <form onSubmit={async (e) => { e.preventDefault(); const formData = new FormData(e.currentTarget); await upsertCategoria(editingCat?.id || null, formData.get('nomeCat') as string); loadData(); setIsCatModalOpen(false); }}>
               <div className="field" style={{margin:'20px 0'}}><label>Nome Categoria *</label><input name="nomeCat" required defaultValue={editingCat?.nome} /></div>
@@ -971,38 +989,49 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-      {/* --- MODAL USUÁRIO (Z-INDEX 5000) --- */}
       {isUserModalOpen && (
         <div className="modal-overlay" style={{zIndex:5000}}>
           <div className="modal-box" style={{width:'400px'}}>
-            <button type="button" className="btn-close" onClick={() => setIsUserModalOpen(false)}>✖</button>
-            <h2>{editingUsuario ? 'Editar Usuário' : 'Novo Usuário'}</h2>
+            <button type="button" className="btn-close" onClick={() => setIsUserModalOpen(false)}>?</button>
+            <h2>{editingUsuario ? 'Editar Usu?rio' : 'Novo Usu?rio'}</h2>
             <form onSubmit={async (e) => { 
               e.preventDefault(); 
               const formData = new FormData(e.currentTarget); 
               const data = {
                 nome: formData.get('nome') as string, login: formData.get('login') as string,
-                senha: formData.get('senha') as string, role: formData.get('role') as string
+                senha: formData.get('senha') as string, role: formData.get('role') as string,
+                ativo: (formData.get('ativo') as string) === 'true'
               };
-              await upsertUsuario(editingUsuario?.id || null, data); 
+              const resposta = await upsertUsuario(editingUsuario?.id || null, data); 
+              if (!resposta.sucesso) {
+                alert(resposta.erro || 'N?o foi poss?vel salvar o usu?rio.');
+                return;
+              }
               loadData(); setIsUserModalOpen(false); 
             }}>
               <div className="field-group" style={{gridTemplateColumns: '1fr'}}>
                 <div className="field"><label>Nome Completo *</label><input name="nome" required defaultValue={editingUsuario?.nome} /></div>
-                <div className="field"><label>Login de Acesso *</label><input name="login" required defaultValue={editingUsuario?.login} disabled={editingUsuario?.login === 'admin'} /></div>
+                <div className="field"><label>Login de Acesso *</label><input name="login" required defaultValue={editingUsuario?.login} disabled={editingUsuario?.login === 'admin'} style={{textTransform:'lowercase'}} /></div>
                 <div className="field">
-                  <label>Senha {editingUsuario ? '(Deixe em branco para não alterar)' : '*'}</label>
-                  <input type="password" name="senha" required={!editingUsuario} />
+                  <label>Senha {editingUsuario ? '(Deixe em branco para n?o alterar)' : '*'}</label>
+                  <input type="password" name="senha" required={!editingUsuario} minLength={4} />
                 </div>
                 <div className="field">
-                  <label>Permissão *</label>
+                  <label>Permiss?o *</label>
                   <select name="role" required defaultValue={editingUsuario?.role || 'TECNICO'} disabled={editingUsuario?.login === 'admin'}>
-                    <option value="TECNICO">Técnico (Apenas Kanban, Clientes, Legado)</option>
+                    <option value="TECNICO">T?cnico (Apenas Kanban, Clientes, Legado)</option>
                     <option value="ADMIN">Administrador (Acesso Total)</option>
                   </select>
                 </div>
+                <div className="field">
+                  <label>Status do acesso *</label>
+                  <select name="ativo" required defaultValue={editingUsuario ? String(editingUsuario.ativo) : 'true'} disabled={editingUsuario?.login === 'admin'}>
+                    <option value="true">Ativo</option>
+                    <option value="false">Inativo</option>
+                  </select>
+                </div>
               </div>
-              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar Usuário</button>
+              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar Usu?rio</button>
             </form>
           </div>
         </div>
@@ -1016,7 +1045,11 @@ export default function AdminDashboard() {
             <form onSubmit={async (e) => { 
               e.preventDefault(); 
               const formData = new FormData(e.currentTarget); 
-              await atualizarMeuPerfil(usuarioLogado.id, formData.get('nome') as string, formData.get('senha') as string);
+              const resposta = await atualizarMeuPerfil(usuarioLogado.id, formData.get('nome') as string, formData.get('senha') as string);
+              if (!resposta.sucesso) {
+                alert(resposta.erro || 'N?o foi poss?vel atualizar o perfil.');
+                return;
+              }
               loadData(); 
               setIsPerfilModalOpen(false); 
               alert('Perfil atualizado com sucesso!');

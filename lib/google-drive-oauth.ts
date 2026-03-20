@@ -65,7 +65,6 @@ export async function saveGoogleDriveTokens(code: string) {
     tokenType: tokens.token_type || existing?.tokenType || null,
     expiryDate,
     pastaId: folderId,
-    ativo: true,
   };
 
   if (existing) {
@@ -80,7 +79,6 @@ export async function saveGoogleDriveTokens(code: string) {
 
 export async function getGoogleDriveConnection() {
   return prisma.integracaoGoogleDrive.findFirst({
-    where: { ativo: true },
     orderBy: { atualizadoEm: 'desc' },
   });
 }

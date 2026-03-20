@@ -100,6 +100,7 @@ model Usuario {
   login    String   @unique
   senha    String   
   role     String   @default("TECNICO") 
+  ativo    Boolean  @default(true)
   criadoEm DateTime @default(now())
 
   // Relação com as capturas feitas pelo técnico
@@ -174,7 +175,6 @@ model IntegracaoGoogleDrive {
   tokenType    String?
   expiryDate   DateTime?
   pastaId      String
-  ativo        Boolean  @default(true)
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 }
