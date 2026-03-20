@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '../../lib/prisma';
-import { cookies } from 'next/headers';
+import { clearAuthSession, getAuthSession, setAuthSession } from '../../lib/auth-session';
 
 export async function fazerLogin(loginStr: string, senhaStr: string) {
   try {
@@ -21,13 +21,7 @@ export async function fazerLogin(loginStr: string, senhaStr: string) {
     }
 
     // 3. Cria o "Crachá" (Cookie) de autorização
-    const cookieStore = await cookies();
-    cookieStore.set('auth_infotche', JSON.stringify({ id: user.id, nome: user.nome, role: user.role }), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7, // Dura 7 dias
-      path: '/',
-    });
+    await setAuthSession({ id: user.id, nome: user.nome, role: user.role });
 
     return { sucesso: true };
   } catch (error) {
@@ -36,13 +30,9 @@ export async function fazerLogin(loginStr: string, senhaStr: string) {
   }
 }
 export async function fazerLogout() {
-  const cookieStore = await cookies();
-  cookieStore.delete('auth_infotche');
+  await clearAuthSession();
   return { sucesso: true };
 }
 export async function getSessao() {
-  const cookieStore = await cookies();
-  const auth = cookieStore.get('auth_infotche');
-  if (!auth) return null;
-  return JSON.parse(auth.value);
+  return getAuthSession();
 }

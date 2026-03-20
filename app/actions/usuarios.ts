@@ -2,7 +2,7 @@
 
 import { prisma } from '../../lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
+import { getAuthSession, setAuthSession } from '../../lib/auth-session';
 
 export async function getUsuarios() {
   try {
@@ -57,14 +57,11 @@ export async function atualizarMeuPerfil(id: string, nome: string, senha?: strin
     await prisma.usuario.update({ where: { id }, data: updateData });
 
     // Atualiza o "Crachá" para o nome novo aparecer na hora
-    const cookieStore = await cookies();
-    const auth = cookieStore.get('auth_infotche');
+    const auth = await getAuthSession();
     if (auth) {
-      const sessao = JSON.parse(auth.value);
+      const sessao = { ...auth };
       sessao.nome = nome;
-      cookieStore.set('auth_infotche', JSON.stringify(sessao), {
-        httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 7, path: '/'
-      });
+      await setAuthSession(sessao);
     }
 
     revalidatePath('/admin');

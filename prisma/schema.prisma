@@ -103,7 +103,8 @@ model Usuario {
   criadoEm DateTime @default(now())
 
   // Relação com as capturas feitas pelo técnico
-  capturas CapturaEquipamento[] 
+  capturas                CapturaEquipamento[]
+  atendimentosEquipamento AtendimentoEquipamento[]
 }
 
 // -------------------------------------------------
@@ -125,4 +126,55 @@ model CapturaEquipamento {
 
   criadoEm        DateTime @default(now())
   atualizadoEm    DateTime @updatedAt
+}
+
+model AtendimentoEquipamento {
+  id              String                      @id @default(uuid())
+  tecnicoId       String
+  tecnico         Usuario                     @relation(fields: [tecnicoId], references: [id])
+  clienteNome     String
+  tipoAtendimento String
+  itens           AtendimentoEquipamentoItem[]
+  criadoEm        DateTime                    @default(now())
+  atualizadoEm    DateTime                    @updatedAt
+
+  @@index([clienteNome])
+  @@index([tecnicoId, criadoEm])
+}
+
+model AtendimentoEquipamentoItem {
+  id                String                 @id @default(uuid())
+  atendimentoId     String
+  atendimento       AtendimentoEquipamento @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  tipoEquipamento   String
+  marca             String?
+  modelo            String?
+  codigoEquipamento String?
+  macAddress        String?
+  serialNumber      String?
+  usuarioAcesso     String?
+  senhaAcesso       String?
+  imagemUrl         String?
+  driveFileId       String?
+  ocrTextoBruto     String?
+  observacao        String?
+  criadoEm          DateTime               @default(now())
+
+  @@index([macAddress])
+  @@index([serialNumber])
+  @@index([codigoEquipamento])
+}
+
+model IntegracaoGoogleDrive {
+  id           String   @id @default(uuid())
+  email        String
+  refreshToken String
+  accessToken  String?
+  scope        String?
+  tokenType    String?
+  expiryDate   DateTime?
+  pastaId      String
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
 }
