@@ -75,9 +75,20 @@ export default async function TecnicoDashboardPage() {
           className="rounded-[30px] border border-white/70 bg-white/95 px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition hover:translate-y-[-1px]"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Consulta</p>
-          <h2 className="mt-2 text-2xl font-black text-slate-900">Consultar historico</h2>
+          <h2 className="mt-2 text-2xl font-black text-slate-900">Consultar historico completo</h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            Busque por cliente, MAC, serial, modelo ou codigo para enxergar o ciclo de vida do equipamento.
+            Busque por cliente, MAC, serial, modelo, codigo ou conversas antigas para enxergar o ciclo de vida do equipamento.
+          </p>
+        </Link>
+
+        <Link
+          href="/tecnico/arquivo-morto"
+          className="rounded-[30px] border border-amber-100 bg-[linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)] px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition hover:translate-y-[-1px]"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-700">Legado</p>
+          <h2 className="mt-2 text-2xl font-black text-slate-900">Arquivo morto do WhatsApp</h2>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Consulte o acervo antigo preservado com texto tratado, linha bruta e referencia dos anexos originais.
           </p>
         </Link>
 

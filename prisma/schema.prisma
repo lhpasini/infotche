@@ -91,6 +91,39 @@ model HistoricoLegado {
   criadoEm        DateTime @default(now())
 }
 
+model ImportacaoArquivoMortoWhatsapp {
+  id             String                         @id @default(uuid())
+  nomeArquivo    String
+  origem         String                         @default("WHATSAPP")
+  totalMensagens Int                            @default(0)
+  totalMidias    Int                            @default(0)
+  criadoEm       DateTime                       @default(now())
+  mensagens      ArquivoMortoWhatsappMensagem[]
+
+  @@index([criadoEm])
+}
+
+model ArquivoMortoWhatsappMensagem {
+  id            String                         @id @default(uuid())
+  importacaoId  String
+  importacao    ImportacaoArquivoMortoWhatsapp @relation(fields: [importacaoId], references: [id], onDelete: Cascade)
+  dataMensagem  DateTime?
+  dataTexto     String?
+  autor         String?
+  conteudo      String?
+  tipoConteudo  String                         @default("TEXTO")
+  arquivoNome   String?
+  arquivoMime   String?
+  arquivoUrl    String?
+  driveFileId   String?
+  mensagemBruta String?
+  criadoEm      DateTime                       @default(now())
+
+  @@index([dataMensagem])
+  @@index([autor])
+  @@index([arquivoNome])
+}
+
 // -------------------------------------------------
 // USUÁRIOS DO SISTEMA (LOGIN)
 // -------------------------------------------------
