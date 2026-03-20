@@ -312,6 +312,97 @@ export async function buscarArquivoMortoWhatsapp(termo: string, limit = 120) {
   });
 }
 
+type ArquivoMortoWhatsappFiltroInput = {
+  termo?: string;
+  dataInicio?: string;
+  dataFim?: string;
+  autor?: string;
+  limit?: number;
+};
+
+export async function filtrarArquivoMortoWhatsappAdmin(filtros: ArquivoMortoWhatsappFiltroInput) {
+  const sessao = await getAuthSession();
+
+  if (!sessao || sessao.role !== 'ADMIN') {
+    return [];
+  }
+
+  const termo = filtros.termo?.trim();
+  const autor = filtros.autor?.trim();
+  const limit = filtros.limit && filtros.limit > 0 ? filtros.limit : 300;
+  const andConditions: Array<Record<string, unknown>> = [];
+
+  if (filtros.dataInicio) {
+    andConditions.push({
+      dataMensagem: {
+        gte: new Date(`${filtros.dataInicio}T00:00:00`),
+      },
+    });
+  }
+
+  if (filtros.dataFim) {
+    andConditions.push({
+      dataMensagem: {
+        lte: new Date(`${filtros.dataFim}T23:59:59`),
+      },
+    });
+  }
+
+  if (autor) {
+    andConditions.push({
+      autor: {
+        equals: autor,
+        mode: 'insensitive',
+      },
+    });
+  }
+
+  if (termo) {
+    andConditions.push({
+      OR: [
+        { autor: { contains: termo, mode: 'insensitive' } },
+        { conteudo: { contains: termo, mode: 'insensitive' } },
+        { arquivoNome: { contains: termo, mode: 'insensitive' } },
+        { mensagemBruta: { contains: termo, mode: 'insensitive' } },
+      ],
+    });
+  }
+
+  return prisma.arquivoMortoWhatsappMensagem.findMany({
+    where: andConditions.length > 0 ? { AND: andConditions } : undefined,
+    include: {
+      importacao: true,
+    },
+    orderBy: [{ dataMensagem: 'desc' }, { criadoEm: 'desc' }],
+    take: limit,
+  });
+}
+
+export async function getAutoresArquivoMortoWhatsappAdmin() {
+  const sessao = await getAuthSession();
+
+  if (!sessao || sessao.role !== 'ADMIN') {
+    return [];
+  }
+
+  const autores = await prisma.arquivoMortoWhatsappMensagem.findMany({
+    where: {
+      autor: {
+        not: null,
+      },
+    },
+    select: {
+      autor: true,
+    },
+    distinct: ['autor'],
+    orderBy: {
+      autor: 'asc',
+    },
+  });
+
+  return autores.map((item) => item.autor).filter(Boolean);
+}
+
 export async function getRegistrosEquipamentosAdmin() {
   const sessao = await getAuthSession();
 

@@ -13,6 +13,8 @@ import {
   buscarArquivoMortoWhatsapp,
   deleteRegistroEquipamentoAdmin,
   deleteTipoAtendimentoEquipamento,
+  filtrarArquivoMortoWhatsappAdmin,
+  getAutoresArquivoMortoWhatsappAdmin,
   getRegistrosEquipamentosAdmin,
   getTiposAtendimentoEquipamentoAdmin,
   getUltimosArquivoMortoWhatsapp,
@@ -93,6 +95,10 @@ export default function AdminDashboard() {
   const [equipamentoDataInicio, setEquipamentoDataInicio] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split('T')[0]; });
   const [equipamentoDataFim, setEquipamentoDataFim] = useState(() => new Date().toISOString().split('T')[0]);
   const [equipamentoLegadoBusca, setEquipamentoLegadoBusca] = useState("");
+  const [equipamentoLegadoAutor, setEquipamentoLegadoAutor] = useState("");
+  const [equipamentoLegadoDataInicio, setEquipamentoLegadoDataInicio] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split('T')[0]; });
+  const [equipamentoLegadoDataFim, setEquipamentoLegadoDataFim] = useState(() => new Date().toISOString().split('T')[0]);
+  const [autoresArquivoMortoEquipamentos, setAutoresArquivoMortoEquipamentos] = useState<string[]>([]);
   const [editingRegistroEquipamento, setEditingRegistroEquipamento] = useState<RegistroEquipamentoEditavel | null>(null);
   const [editingTipoAtendimentoEquipamento, setEditingTipoAtendimentoEquipamento] = useState<TipoAtendimentoEquipamento | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -125,10 +131,18 @@ export default function AdminDashboard() {
       if (activeTab !== 'equipamentos') return;
 
       if (abaEquipamentos === 'arquivo-morto') {
-        const data = equipamentoLegadoBusca.trim()
-          ? await buscarArquivoMortoWhatsapp(equipamentoLegadoBusca)
-          : await getUltimosArquivoMortoWhatsapp(120);
+        const [data, autores] = await Promise.all([
+          filtrarArquivoMortoWhatsappAdmin({
+            termo: equipamentoLegadoBusca,
+            autor: equipamentoLegadoAutor,
+            dataInicio: equipamentoLegadoDataInicio,
+            dataFim: equipamentoLegadoDataFim,
+            limit: 300,
+          }),
+          getAutoresArquivoMortoWhatsappAdmin(),
+        ]);
         setArquivoMortoEquipamentos(data as ArquivoMortoWhatsappAdmin[]);
+        setAutoresArquivoMortoEquipamentos(autores as string[]);
       }
 
       if (abaEquipamentos === 'tipos') {
@@ -138,7 +152,7 @@ export default function AdminDashboard() {
     }
 
     loadEquipamentosContexto();
-  }, [activeTab, abaEquipamentos, equipamentoLegadoBusca]);
+  }, [activeTab, abaEquipamentos, equipamentoLegadoBusca, equipamentoLegadoAutor, equipamentoLegadoDataInicio, equipamentoLegadoDataFim]);
 
   // INJEÇÃO DINÂMICA: Puxa a cidade direto do cadastro do cliente em tempo real!
   const ticketsComCidade = tickets.map(t => {
@@ -981,15 +995,36 @@ export default function AdminDashboard() {
 
             {abaEquipamentos === 'arquivo-morto' && (
               <div className="chart-box">
-                <div style={{display:'flex', justifyContent:'space-between', gap:'15px', marginBottom:'20px', flexWrap:'wrap'}}>
+                <div style={{display:'flex', gap:'12px', marginBottom:'20px', flexWrap:'wrap', alignItems:'center'}}>
                   <input
                     className="search-input"
                     placeholder="Buscar no arquivo morto por cliente, trecho ou nome de anexo..."
                     value={equipamentoLegadoBusca}
                     onChange={(e) => setEquipamentoLegadoBusca(e.target.value)}
-                    style={{width:'420px'}}
+                    style={{width:'360px'}}
                   />
-                  <button className="btn-new" onClick={async () => { setEquipamentoLegadoBusca(''); const data = await getUltimosArquivoMortoWhatsapp(120); setArquivoMortoEquipamentos(data as ArquivoMortoWhatsappAdmin[]); }}>Carregar Recentes</button>
+                  <select value={equipamentoLegadoAutor} onChange={(e) => setEquipamentoLegadoAutor(e.target.value)} style={{padding:'12px 14px', border:'1px solid #dce3e8', borderRadius:'8px', fontSize:'12px', minWidth:'220px'}}>
+                    <option value="">Todos os técnicos/autores</option>
+                    {autoresArquivoMortoEquipamentos.map((autor) => (
+                      <option key={autor} value={autor}>{autor}</option>
+                    ))}
+                  </select>
+                  <div style={{display:'flex', gap:'10px', alignItems:'center', background:'#fff', padding:'10px 12px', borderRadius:'8px', border:'1px solid #eef2f5'}}>
+                    <input type="date" value={equipamentoLegadoDataInicio} onChange={(e) => setEquipamentoLegadoDataInicio(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
+                    <span>até</span>
+                    <input type="date" value={equipamentoLegadoDataFim} onChange={(e) => setEquipamentoLegadoDataFim(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
+                  </div>
+                  <button className="btn-new" onClick={async () => {
+                    const hoje = new Date().toISOString().split('T')[0];
+                    const inicio = new Date();
+                    inicio.setDate(inicio.getDate() - 30);
+                    setEquipamentoLegadoBusca('');
+                    setEquipamentoLegadoAutor('');
+                    setEquipamentoLegadoDataInicio(inicio.toISOString().split('T')[0]);
+                    setEquipamentoLegadoDataFim(hoje);
+                  }}>
+                    Limpar Filtros
+                  </button>
                 </div>
 
                 <div style={{display:'grid', gap:'12px'}}>
