@@ -169,6 +169,8 @@ model AtendimentoEquipamento {
   tecnico         Usuario                     @relation(fields: [tecnicoId], references: [id])
   clienteNome     String
   tipoAtendimento String
+  alteradoPor     String?
+  alteradoEm      DateTime?
   itens           AtendimentoEquipamentoItem[]
   criadoEm        DateTime                    @default(now())
   atualizadoEm    DateTime                    @updatedAt

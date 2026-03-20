@@ -491,6 +491,30 @@ Essa aba permite listar:
 - serial;
 - disponibilidade de foto.
 
+### 11.2.1. Estado atual da area de Equipamentos no admin
+
+A area `Equipamentos` no `/admin` evoluiu e hoje possui:
+
+- subabas para `Registros`, `Arquivo Morto` e `Tipos de Atendimento`;
+- filtros por periodo nos registros novos;
+- filtros por data, autor e busca no arquivo morto;
+- edicao e exclusao de registros novos;
+- visualizacao do arquivo morto importado do WhatsApp;
+- gestao dos tipos de atendimento usados no formulario tecnico.
+
+Regras atuais de permissao:
+
+- usuario `ADMIN` pode ver, editar e apagar registros de equipamentos;
+- usuario `TECNICO` pode ver todos os registros;
+- usuario `TECNICO` pode editar apenas registros criados por ele mesmo;
+- usuario `TECNICO` nao pode apagar historico;
+- a subaba `Tipos de Atendimento` permanece restrita a admin.
+
+Auditoria atual dos registros:
+
+- o cabecalho `AtendimentoEquipamento` passou a registrar `alteradoPor` e `alteradoEm`;
+- quando um registro eh alterado, o admin exibe essa informacao no card do registro.
+
 ### 11.3. Ajustes feitos no menu
 
 Durante a implantação dessa aba, foram realizados ajustes para:

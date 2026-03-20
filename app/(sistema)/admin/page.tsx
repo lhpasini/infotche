@@ -85,8 +85,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   type Usuario = { id: string; nome: string; login: string; role: string; ativo: boolean; senha?: string; };
   type RegistroEquipamentoItem = { id: string; tipoEquipamento: string; marca: string | null; modelo: string | null; codigoEquipamento: string | null; macAddress: string | null; serialNumber: string | null; usuarioAcesso?: string | null; senhaAcesso?: string | null; imagemUrl: string | null; driveFileId?: string | null; ocrTextoBruto?: string | null; observacao?: string | null; };
-  type RegistroEquipamento = { id: string; clienteNome: string; tipoAtendimento: string; criadoEm: any; tecnico: { nome: string } | null; itens: RegistroEquipamentoItem[]; };
-  type RegistroEquipamentoEditavel = { id: string; clienteNome: string; tipoAtendimento: string; itens: RegistroEquipamentoItem[]; };
+  type RegistroEquipamento = { id: string; clienteNome: string; tipoAtendimento: string; criadoEm: any; alteradoPor?: string | null; alteradoEm?: any; tecnico: { id: string; nome: string } | null; itens: RegistroEquipamentoItem[]; };
+  type RegistroEquipamentoEditavel = { id: string; clienteNome: string; tipoAtendimento: string; alteradoPor?: string | null; alteradoEm?: any; tecnicoId?: string | null; itens: RegistroEquipamentoItem[]; };
   type ArquivoMortoWhatsappAdmin = { id: string; dataTexto: string | null; dataMensagem: any; autor: string | null; conteudo: string | null; arquivoNome: string | null; arquivoUrl: string | null; mensagemBruta: string | null; importacao: { nomeArquivo: string; criadoEm: any } };
   type TipoAtendimentoEquipamento = { id: string; nome: string; ativo: boolean; ordem: number; };
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -207,11 +207,19 @@ export default function AdminDashboard() {
     );
   });
 
+  const podeEditarRegistroEquipamento = (registro: RegistroEquipamento) =>
+    isAdmin || registro.tecnico?.id === usuarioLogado?.id;
+
+  const podeApagarRegistroEquipamento = isAdmin;
+
   const openEditRegistroEquipamento = (registro: RegistroEquipamento) => {
     setEditingRegistroEquipamento({
       id: registro.id,
       clienteNome: registro.clienteNome,
       tipoAtendimento: registro.tipoAtendimento,
+      alteradoPor: registro.alteradoPor || null,
+      alteradoEm: registro.alteradoEm,
+      tecnicoId: registro.tecnico?.id || null,
       itens: registro.itens.map((item) => ({ ...item })),
     });
     setIsEquipamentoModalOpen(true);
@@ -995,7 +1003,7 @@ export default function AdminDashboard() {
               <div style={{display:'flex', gap:'10px'}}>
                 <button className={`btn-tab ${abaEquipamentos === 'registros' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('registros')}>📦 Registros</button>
                 <button className={`btn-tab ${abaEquipamentos === 'arquivo-morto' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('arquivo-morto')}>🗄️ Arquivo Morto</button>
-                <button className={`btn-tab ${abaEquipamentos === 'tipos' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('tipos')}>🧩 Tipos de Atendimento</button>
+                {isAdmin && <button className={`btn-tab ${abaEquipamentos === 'tipos' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('tipos')}>🧩 Tipos de Atendimento</button>}
               </div>
             </div>
 
@@ -1030,12 +1038,21 @@ export default function AdminDashboard() {
                             <span style={{background:'#eaf4ff', color:'#3498db', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{registro.tipoAtendimento}</span>
                             <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>Técnico: {registro.tecnico?.nome || 'Sem técnico'}</span>
                             <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{new Date(registro.criadoEm).toLocaleString('pt-BR')}</span>
+                            {registro.alteradoPor && registro.alteradoEm && (
+                              <span style={{background:'#f8f1ff', color:'#7c3aed', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>
+                                Alterado por: {registro.alteradoPor} em {new Date(registro.alteradoEm).toLocaleString('pt-BR')}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', justifyContent:'flex-end'}}>
                           <span style={{background:'#dff5e8', color:'#1f8f55', padding:'6px 10px', borderRadius:'999px', fontSize:'12px', fontWeight:'bold'}}>{registro.itens.length} item(ns)</span>
-                          <button className="btn-new" style={{padding:'8px 12px'}} onClick={() => openEditRegistroEquipamento(registro)}>Editar</button>
-                          <button className="btn-new" style={{padding:'8px 12px', background:'#e74c3c'}} onClick={() => handleDeleteRegistroEquipamento(registro.id)}>Apagar</button>
+                          {podeEditarRegistroEquipamento(registro) && (
+                            <button className="btn-new" style={{padding:'8px 12px'}} onClick={() => openEditRegistroEquipamento(registro)}>Editar</button>
+                          )}
+                          {podeApagarRegistroEquipamento && (
+                            <button className="btn-new" style={{padding:'8px 12px', background:'#e74c3c'}} onClick={() => handleDeleteRegistroEquipamento(registro.id)}>Apagar</button>
+                          )}
                         </div>
                       </div>
 
@@ -1119,7 +1136,7 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {abaEquipamentos === 'tipos' && (
+            {abaEquipamentos === 'tipos' && isAdmin && (
               <div className="chart-box">
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
                   <div>

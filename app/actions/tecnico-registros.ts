@@ -34,8 +34,10 @@ export async function getResumoTecnico() {
   }
 
   const recentes = await prisma.atendimentoEquipamento.findMany({
-    where: { tecnicoId: sessao.id },
-    include: { itens: true },
+    include: {
+      itens: true,
+      tecnico: true,
+    },
     orderBy: { criadoEm: 'desc' },
     take: 5,
   });
@@ -323,7 +325,7 @@ type ArquivoMortoWhatsappFiltroInput = {
 export async function filtrarArquivoMortoWhatsappAdmin(filtros: ArquivoMortoWhatsappFiltroInput) {
   const sessao = await getAuthSession();
 
-  if (!sessao || sessao.role !== 'ADMIN') {
+  if (!sessao) {
     return [];
   }
 
@@ -381,7 +383,7 @@ export async function filtrarArquivoMortoWhatsappAdmin(filtros: ArquivoMortoWhat
 export async function getAutoresArquivoMortoWhatsappAdmin() {
   const sessao = await getAuthSession();
 
-  if (!sessao || sessao.role !== 'ADMIN') {
+  if (!sessao) {
     return [];
   }
 
@@ -406,7 +408,7 @@ export async function getAutoresArquivoMortoWhatsappAdmin() {
 export async function getRegistrosEquipamentosAdmin() {
   const sessao = await getAuthSession();
 
-  if (!sessao || sessao.role !== 'ADMIN') {
+  if (!sessao) {
     return [];
   }
 
@@ -444,7 +446,7 @@ type EquipamentoAdminUpdateInput = {
 export async function updateRegistroEquipamentoAdmin(id: string, data: EquipamentoAdminUpdateInput) {
   const sessao = await getAuthSession();
 
-  if (!sessao || sessao.role !== 'ADMIN') {
+  if (!sessao) {
     return { sucesso: false, erro: 'Acesso negado.' };
   }
 
@@ -473,11 +475,28 @@ export async function updateRegistroEquipamentoAdmin(id: string, data: Equipamen
 
   try {
     await prisma.$transaction(async (tx) => {
+      const registro = await tx.atendimentoEquipamento.findUnique({
+        where: { id },
+        select: { tecnicoId: true },
+      });
+
+      if (!registro) {
+        throw new Error('REGISTRO_NAO_ENCONTRADO');
+      }
+
+      const podeEditar = sessao.role === 'ADMIN' || registro.tecnicoId === sessao.id;
+
+      if (!podeEditar) {
+        throw new Error('ACESSO_NEGADO');
+      }
+
       await tx.atendimentoEquipamento.update({
         where: { id },
         data: {
           clienteNome,
           tipoAtendimento,
+          alteradoPor: sessao.nome,
+          alteradoEm: new Date(),
         },
       });
 
@@ -496,7 +515,13 @@ export async function updateRegistroEquipamentoAdmin(id: string, data: Equipamen
     return { sucesso: true };
   } catch (error) {
     console.error('Erro ao atualizar registro de equipamento:', error);
-    return { sucesso: false, erro: 'Não foi possível atualizar o registro.' };
+    if (error instanceof Error && error.message === 'ACESSO_NEGADO') {
+      return { sucesso: false, erro: 'Voce so pode editar registros criados por voce.' };
+    }
+    if (error instanceof Error && error.message === 'REGISTRO_NAO_ENCONTRADO') {
+      return { sucesso: false, erro: 'Registro de equipamento nao encontrado.' };
+    }
+    return { sucesso: false, erro: 'Nao foi possivel atualizar o registro.' };
   }
 }
 
