@@ -62,6 +62,13 @@ const ICONS = {
   warning: '\u{26A0}\u{FE0F}',
 };
 
+type AgendamentoGroup = {
+  key: string;
+  label: string;
+  sortWeight: number;
+  tickets: Ticket[];
+};
+
 export function KanbanBoard({
   tickets,
   expandedId,
@@ -76,6 +83,14 @@ export function KanbanBoard({
   const colunas = ['novos', 'agendados', 'andamento', 'concluidos'];
   const [ordemFila, setOrdemFila] = useState('prioridade');
 
+  const normalizeDate = (value: any) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
   const formatDateTime = (value: any) => {
     if (!value) return '';
     return new Date(value).toLocaleString('pt-BR', {
@@ -85,6 +100,45 @@ export function KanbanBoard({
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const getAgendamentoGroupLabel = (value: any) => {
+    const date = normalizeDate(value);
+    if (!date) return 'Sem data';
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const amanha = new Date(hoje);
+    amanha.setDate(amanha.getDate() + 1);
+
+    if (date.getTime() === hoje.getTime()) return 'Hoje';
+    if (date.getTime() === amanha.getTime()) return 'Amanha';
+
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  };
+
+  const getAgendamentoGroupKey = (value: any) => {
+    const date = normalizeDate(value);
+    if (!date) return 'sem-data';
+    return date.toISOString().slice(0, 10);
+  };
+
+  const getAgendamentoSortWeight = (value: any) => {
+    const date = normalizeDate(value);
+    if (!date) return Number.MAX_SAFE_INTEGER;
+    return date.getTime();
+  };
+
+  const getHoraSortWeight = (hora: string | null | undefined) => {
+    if (!hora) return Number.MAX_SAFE_INTEGER;
+    const [hours, minutes] = hora.split(':').map(Number);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return Number.MAX_SAFE_INTEGER;
+    return hours * 60 + minutes;
   };
 
   const handleCopy = (e: React.MouseEvent, t: Ticket) => {
@@ -98,8 +152,8 @@ export function KanbanBoard({
   const getPesoPrioridade = (pri: string) => {
     if (pri === 'Urgente') return 4;
     if (pri === 'Alta') return 3;
-    if (pri === 'Média' || pri === 'MÃ©dia') return 2;
-    if (pri === 'Baixa (Orçamento)' || pri === 'Baixa (OrÃ§amento)') return 1;
+    if (pri === 'MÃ©dia' || pri === 'MÃƒÂ©dia') return 2;
+    if (pri === 'Baixa (OrÃ§amento)' || pri === 'Baixa (OrÃƒÂ§amento)') return 1;
     return 0;
   };
 
@@ -112,7 +166,7 @@ export function KanbanBoard({
       return { label: `${ICONS.high} ALTA`, color: '#e67e22' };
     }
 
-    if (prioridade === 'Baixa (Orçamento)' || prioridade === 'Baixa (OrÃ§amento)') {
+    if (prioridade === 'Baixa (OrÃ§amento)' || prioridade === 'Baixa (OrÃƒÂ§amento)') {
       return { label: `${ICONS.low} BAIXA`, color: '#c59a00' };
     }
 
@@ -121,11 +175,151 @@ export function KanbanBoard({
 
   const getCityBackground = (ticket: Ticket) => {
     if (ticket.status === 'concluidos') return '#eef1f4';
-    if (ticket.cidadeCliente === 'Santa Bárbara do Sul' || ticket.cidadeCliente === 'Santa BÃ¡rbara do Sul') return '#e8f5e9';
+    if (ticket.cidadeCliente === 'Santa BÃ¡rbara do Sul' || ticket.cidadeCliente === 'Santa BÃƒÂ¡rbara do Sul') return '#e8f5e9';
     if (ticket.cidadeCliente === 'Saldanha Marinho') return '#fffde7';
     if (ticket.cidadeCliente === 'Panambi') return '#e3f2fd';
     return 'white';
   };
+
+  const renderTicketCard = (ticket: Ticket) => {
+    const priorityMeta = getPriorityMeta(ticket.prioridade);
+
+    return (
+      <div
+        key={ticket.id}
+        className="kanban-card"
+        draggable
+        onDragStart={(e) => onDragStart(e, ticket.id)}
+        onClick={() => onEdit(ticket)}
+        style={{
+          background: getCityBackground(ticket),
+          borderLeft: ticket.categoria === 'Mhnet / Link Loss' ? '8px solid #e74c3c' : '4px solid transparent',
+          marginBottom: '10px',
+          transition: '0.3s',
+        }}
+      >
+        <div className="card-top">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span className="prot-badge">{ticket.protocolo}</span>
+              <span style={{ fontSize: '10px', color: '#5f6c7b', fontWeight: 700 }}>
+                {formatDateTime(ticket.criadoEm)}
+              </span>
+            </div>
+            {ticket.status === 'concluidos' && ticket.fechadoEm && (
+              <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: 700 }}>
+                Encerrado em {formatDateTime(ticket.fechadoEm)}
+              </span>
+            )}
+            {ticket.status === 'agendados' && ticket.agendamentoData && (
+              <span style={{ fontSize: '10px', color: '#b45309', fontWeight: 700 }}>
+                Agendado para {new Date(ticket.agendamentoData).toLocaleDateString('pt-BR')}
+                {ticket.agendamentoHora ? ` as ${ticket.agendamentoHora}` : ''}
+              </span>
+            )}
+          </div>
+
+          <div className="card-actions">
+            <button onClick={(e) => handleCopy(e, ticket)} title="Copiar resumo tecnico">{ICONS.copy}</button>
+            <button onClick={(e) => { e.stopPropagation(); onEdit(ticket); }} title="Editar chamado">{ICONS.edit}</button>
+            <button onClick={(e) => { e.stopPropagation(); onDelete(ticket.id); }} title="Excluir">{ICONS.delete}</button>
+          </div>
+        </div>
+
+        <div className="card-client" style={{ marginBottom: '2px' }}>{ticket.nomeCliente}</div>
+
+        {ticket.cidadeCliente && (
+          <div style={{ fontSize: '10px', color: '#2c3e50', fontWeight: 'bold', marginBottom: '6px', textTransform: 'uppercase' }}>
+            {ICONS.location} {ticket.cidadeCliente}
+          </div>
+        )}
+
+        <span className="card-whats">{ICONS.phone} {ticket.whatsCliente || 'Sem Whats'}</span>
+
+        <span
+          className="card-cat"
+          style={{ color: ticket.categoria === 'Mhnet / Link Loss' ? '#e74c3c' : '#3498db', fontWeight: ticket.categoria === 'Mhnet / Link Loss' ? 'bold' : 'normal' }}
+        >
+          {ICONS.category} {ticket.categoria}
+        </span>
+
+        <div className="card-desc">{ICONS.note} {ticket.motivo}</div>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpandedId(expandedId === ticket.id ? null : ticket.id);
+          }}
+          style={{
+            marginTop: '8px',
+            padding: 0,
+            background: 'none',
+            border: 'none',
+            color: '#2563eb',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          {expandedId === ticket.id ? 'Fechar resumo' : 'Abrir resumo'}
+        </button>
+
+        <div className="card-footer" style={{ marginTop: '8px', borderTop: '1px solid #eee', paddingTop: '4px' }}>
+          <span>{ICONS.technician} {ticket.tecnico || 'S/ Tec'}</span>
+          <span style={{ color: priorityMeta.color, fontWeight: 'bold' }}>
+            {priorityMeta.label}
+          </span>
+        </div>
+
+        {expandedId === ticket.id && (
+          <div className="card-details">
+            <div className="detail-line"><strong>{ICONS.location} End.:</strong> <span>{ticket.enderecoCompleto}</span></div>
+            <div className="detail-line"><strong>{ICONS.lock} PPPoE:</strong> <span>{ticket.pppoe}</span> / <span>{ticket.senhaPpoe}</span></div>
+            <div className="detail-line"><strong>{ICONS.document} Cod.:</strong> <span>{ticket.contratoMhnet}</span></div>
+            {ticket.obs && <div style={{ color: '#e67e22', marginTop: '8px', fontWeight: 'bold' }}>{ICONS.warning} Obs: {ticket.obs}</div>}
+            <button
+              style={{ marginTop: '10px', width: '100%', padding: '8px', cursor: 'pointer', fontWeight: 'bold', background: '#e2e8f0', border: 'none', borderRadius: '4px', color: '#2c3e50' }}
+              onClick={(e) => handleCopy(e, ticket)}
+            >
+              {ICONS.copy} COPIAR RESUMO TECNICO
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const buildAgendamentoGroups = (ticketsDaColuna: Ticket[]): AgendamentoGroup[] =>
+    Array.from(
+      ticketsDaColuna.reduce((acc, ticket) => {
+        const key = getAgendamentoGroupKey(ticket.agendamentoData);
+
+        if (!acc.has(key)) {
+          acc.set(key, {
+            key,
+            label: getAgendamentoGroupLabel(ticket.agendamentoData),
+            sortWeight: getAgendamentoSortWeight(ticket.agendamentoData),
+            tickets: [],
+          });
+        }
+
+        acc.get(key)!.tickets.push(ticket);
+        return acc;
+      }, new Map<string, AgendamentoGroup>())
+    )
+      .map(([, grupo]) => ({
+        ...grupo,
+        tickets: grupo.tickets.sort((a, b) => {
+          const horaA = getHoraSortWeight(a.agendamentoHora);
+          const horaB = getHoraSortWeight(b.agendamentoHora);
+
+          if (horaA !== horaB) return horaA - horaB;
+          return new Date(a.criadoEm).getTime() - new Date(b.criadoEm).getTime();
+        }),
+      }))
+      .sort((a, b) => a.sortWeight - b.sortWeight);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -169,18 +363,20 @@ export function KanbanBoard({
                 new Date(a.fechadoEm || a.atualizadoEm || a.criadoEm).getTime()
             );
             ticketsDaColuna = ticketsDaColuna.slice(0, 5);
-          } else if (ordemFila === 'prioridade') {
+          } else if (status !== 'agendados' && ordemFila === 'prioridade') {
             ticketsDaColuna.sort((a, b) => {
               const pesoA = getPesoPrioridade(a.prioridade);
               const pesoB = getPesoPrioridade(b.prioridade);
               if (pesoA !== pesoB) return pesoB - pesoA;
               return new Date(a.criadoEm).getTime() - new Date(b.criadoEm).getTime();
             });
-          } else if (ordemFila === 'velhos') {
+          } else if (status !== 'agendados' && ordemFila === 'velhos') {
             ticketsDaColuna.sort((a, b) => new Date(a.criadoEm).getTime() - new Date(b.criadoEm).getTime());
-          } else {
+          } else if (status !== 'agendados') {
             ticketsDaColuna.sort((a, b) => new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime());
           }
+
+          const gruposAgendados = status === 'agendados' ? buildAgendamentoGroups(ticketsDaColuna) : [];
 
           return (
             <div key={status} className="column" onDragOver={onDragOver} onDragEnter={onDragEnter} onDrop={(e) => onDrop(e, status)}>
@@ -190,115 +386,29 @@ export function KanbanBoard({
               </div>
 
               <div style={{ overflowY: 'auto', flex: 1 }}>
-                {ticketsDaColuna.map((ticket) => {
-                  const priorityMeta = getPriorityMeta(ticket.prioridade);
-
-                  return (
-                    <div
-                      key={ticket.id}
-                      className="kanban-card"
-                      draggable
-                      onDragStart={(e) => onDragStart(e, ticket.id)}
-                      onClick={() => onEdit(ticket)}
-                      style={{
-                        background: getCityBackground(ticket),
-                        borderLeft: ticket.categoria === 'Mhnet / Link Loss' ? '8px solid #e74c3c' : '4px solid transparent',
-                        marginBottom: '10px',
-                        transition: '0.3s',
-                      }}
-                    >
-                      <div className="card-top">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span className="prot-badge">{ticket.protocolo}</span>
-                            <span style={{ fontSize: '10px', color: '#5f6c7b', fontWeight: 700 }}>
-                              {formatDateTime(ticket.criadoEm)}
-                            </span>
-                          </div>
-                      {ticket.status === 'concluidos' && ticket.fechadoEm && (
-                        <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: 700 }}>
-                          Encerrado em {formatDateTime(ticket.fechadoEm)}
-                        </span>
-                      )}
-                      {ticket.status === 'agendados' && ticket.agendamentoData && (
-                        <span style={{ fontSize: '10px', color: '#b45309', fontWeight: 700 }}>
-                          Agendado para {new Date(ticket.agendamentoData).toLocaleDateString('pt-BR')}
-                          {ticket.agendamentoHora ? ` Ã s ${ticket.agendamentoHora}` : ''}
-                        </span>
-                      )}
-                    </div>
-
-                        <div className="card-actions">
-                          <button onClick={(e) => handleCopy(e, ticket)} title="Copiar resumo tecnico">{ICONS.copy}</button>
-                          <button onClick={(e) => { e.stopPropagation(); onEdit(ticket); }} title="Editar chamado">{ICONS.edit}</button>
-                          <button onClick={(e) => { e.stopPropagation(); onDelete(ticket.id); }} title="Excluir">{ICONS.delete}</button>
+                {status === 'agendados'
+                  ? gruposAgendados.map((grupo) => (
+                      <div key={grupo.key}>
+                        <div
+                          style={{
+                            margin: '0 10px 10px',
+                            padding: '8px 10px',
+                            background: '#fff7ed',
+                            border: '1px solid #fdba74',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            color: '#9a3412',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                          }}
+                        >
+                          {grupo.label} ({grupo.tickets.length})
                         </div>
+                        {grupo.tickets.map((ticket) => renderTicketCard(ticket))}
                       </div>
-
-                      <div className="card-client" style={{ marginBottom: '2px' }}>{ticket.nomeCliente}</div>
-
-                      {ticket.cidadeCliente && (
-                        <div style={{ fontSize: '10px', color: '#2c3e50', fontWeight: 'bold', marginBottom: '6px', textTransform: 'uppercase' }}>
-                          {ICONS.location} {ticket.cidadeCliente}
-                        </div>
-                      )}
-
-                      <span className="card-whats">{ICONS.phone} {ticket.whatsCliente || 'Sem Whats'}</span>
-
-                      <span
-                        className="card-cat"
-                        style={{ color: ticket.categoria === 'Mhnet / Link Loss' ? '#e74c3c' : '#3498db', fontWeight: ticket.categoria === 'Mhnet / Link Loss' ? 'bold' : 'normal' }}
-                      >
-                        {ICONS.category} {ticket.categoria}
-                      </span>
-
-                      <div className="card-desc">{ICONS.note} {ticket.motivo}</div>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedId(expandedId === ticket.id ? null : ticket.id);
-                        }}
-                        style={{
-                          marginTop: '8px',
-                          padding: 0,
-                          background: 'none',
-                          border: 'none',
-                          color: '#2563eb',
-                          fontSize: '11px',
-                          fontWeight: 'bold',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                        }}
-                      >
-                        {expandedId === ticket.id ? 'Fechar resumo' : 'Abrir resumo'}
-                      </button>
-
-                      <div className="card-footer" style={{ marginTop: '8px', borderTop: '1px solid #eee', paddingTop: '4px' }}>
-                        <span>{ICONS.technician} {ticket.tecnico || 'S/ Tec'}</span>
-                        <span style={{ color: priorityMeta.color, fontWeight: 'bold' }}>
-                          {priorityMeta.label}
-                        </span>
-                      </div>
-
-                      {expandedId === ticket.id && (
-                        <div className="card-details">
-                          <div className="detail-line"><strong>{ICONS.location} End.:</strong> <span>{ticket.enderecoCompleto}</span></div>
-                          <div className="detail-line"><strong>{ICONS.lock} PPPoE:</strong> <span>{ticket.pppoe}</span> / <span>{ticket.senhaPpoe}</span></div>
-                          <div className="detail-line"><strong>{ICONS.document} Cod.:</strong> <span>{ticket.contratoMhnet}</span></div>
-                          {ticket.obs && <div style={{ color: '#e67e22', marginTop: '8px', fontWeight: 'bold' }}>{ICONS.warning} Obs: {ticket.obs}</div>}
-                          <button
-                            style={{ marginTop: '10px', width: '100%', padding: '8px', cursor: 'pointer', fontWeight: 'bold', background: '#e2e8f0', border: 'none', borderRadius: '4px', color: '#2c3e50' }}
-                            onClick={(e) => handleCopy(e, ticket)}
-                          >
-                            {ICONS.copy} COPIAR RESUMO TECNICO
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                    ))
+                  : ticketsDaColuna.map((ticket) => renderTicketCard(ticket))}
               </div>
             </div>
           );
