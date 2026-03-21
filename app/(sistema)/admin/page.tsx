@@ -64,6 +64,7 @@ export default function AdminDashboard() {
   const [tempContrato, setTempContrato] = useState("");
 
   const [buscaGlobal, setBuscaGlobal] = useState("");
+  const [buscaClientes, setBuscaClientes] = useState("");
   const [buscaHistoricoSistema, setBuscaHistoricoSistema] = useState("");
   const [dataInicio, setDataInicio] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split('T')[0]; });
   const [dataFim, setDataFim] = useState(() => new Date().toISOString().split('T')[0]);
@@ -229,6 +230,37 @@ export default function AdminDashboard() {
     }
 
     return true;
+  });
+
+  const clientesFiltrados = clientes.filter((cliente) => {
+    const termo = buscaClientes.trim().toLowerCase();
+
+    if (!termo) return true;
+
+    const dadosCliente = [
+      cliente.nome,
+      cliente.cidade,
+      cliente.whatsapp,
+      cliente.cpfCnpj,
+      cliente.email,
+      cliente.status,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    const dadosConexoes = cliente.conexoes
+      .flatMap((conexao) => [
+        conexao.endereco,
+        conexao.bairro,
+        conexao.pppoe,
+        conexao.contratoMhnet,
+      ])
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    return dadosCliente.includes(termo) || dadosConexoes.includes(termo);
   });
 
   const podeEditarRegistroEquipamento = (registro: RegistroEquipamento) =>
@@ -497,19 +529,29 @@ export default function AdminDashboard() {
       cidade: cidadeFinal 
     };
 
+    const dadosConexao = { 
+      endereco: formData.get('endereco') as string, 
+      bairro: formData.get('bairro') as string, 
+      contratoMhnet: formData.get('contratoMhnet') as string, 
+      pppoe: formData.get('pppoe') as string, 
+      senhaPpoe: formData.get('senhaPpoe') as string 
+    };
+
     if (editingCliente) {
       await updateCliente(editingCliente.id, dadosCliente);
-      alert('✅ Cliente atualizado com sucesso!'); 
+      const conexaoPrincipal = editingCliente.conexoes?.[0];
+
+      if (dadosConexao.endereco?.trim()) {
+        if (conexaoPrincipal) {
+          await updateConexao(conexaoPrincipal.id, dadosConexao);
+        } else {
+          await addConexao(editingCliente.id, dadosConexao);
+        }
+      }
+      alert('âœ… Cliente atualizado com sucesso!'); 
     } else {
-      const dadosConexao = { 
-        endereco: formData.get('endereco') as string, 
-        bairro: formData.get('bairro') as string, 
-        contratoMhnet: formData.get('contratoMhnet') as string, 
-        pppoe: formData.get('pppoe') as string, 
-        senhaPpoe: formData.get('senhaPpoe') as string 
-      };
       await createCliente(dadosCliente, dadosConexao); 
-      alert('✅ Novo cliente cadastrado com sucesso!');
+      alert('âœ… Novo cliente cadastrado com sucesso!');
       setIsClientModalOpen(false); 
     }
     
@@ -687,6 +729,7 @@ export default function AdminDashboard() {
           <div className={`nav-item ${activeTab === 'categorias' ? 'active' : ''}`} onClick={() => setActiveTab('categorias')}><span className="nav-icon">{'\u{1F3F7}\uFE0F'}</span>Categorias</div>
           {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">{'\u{1F4C8}'}</span>Relatórios</div>}
           {isAdmin && <div className={`nav-item ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}><span className="nav-icon">{'\u{1F510}'}</span>Usuários</div>}
+          {isAdmin && <div className="nav-item" onClick={() => router.push('/admin/orcamentos')}><span className="nav-icon">{'\u{1F4C4}'}</span>Orcamentos</div>}
           <div className={`nav-item ${activeTab === 'equipamentos' ? 'active' : ''}`} onClick={() => setActiveTab('equipamentos')}><span className="nav-icon">{'\u{1F4E6}'}</span>Equipamentos</div>
         </div>
       </aside>
@@ -1201,10 +1244,19 @@ export default function AdminDashboard() {
         {activeTab === 'clientes' && (
           <div style={{padding:'30px', overflowY:'auto'}}>
              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'20px'}}>
-              <h1>Carteira de Clientes</h1>
-              <button className="btn-new btn-green" onClick={() => { setEditingCliente(null); setIsClientModalOpen(true); }}>+ NOVO CLIENTE</button>
+                <h1>Carteira de Clientes</h1>
+                <button className="btn-new btn-green" onClick={() => { setEditingCliente(null); setIsClientModalOpen(true); }}>+ NOVO CLIENTE</button>
+              </div>
+            <div style={{marginBottom:'18px'}}>
+              <input
+                className="search-input"
+                style={{width:'100%', maxWidth:'520px'}}
+                placeholder="Buscar cliente, cidade, telefone, CPF, endereÃ§o, bairro, PPPoE ou cÃ³digo Mhnet..."
+                value={buscaClientes}
+                onChange={(e) => setBuscaClientes(e.target.value)}
+              />
             </div>
-            <TabelaClientes clientes={clientes} onEdit={(cli) => { setEditingCliente(cli); setIsClientModalOpen(true); }} onDelete={async (id) => { if(confirm('Apagar cliente?')) { await deleteCliente(id); loadData(); } }} />
+            <TabelaClientes clientes={clientesFiltrados} onEdit={(cli) => { setEditingCliente(cli); setIsClientModalOpen(true); }} onDelete={async (id) => { if(confirm('Apagar cliente?')) { await deleteCliente(id); loadData(); } }} />
           </div>
         )}
 
@@ -1505,46 +1557,49 @@ export default function AdminDashboard() {
             <button type="button" className="btn-close" onClick={() => setIsClientModalOpen(false)}>✖</button>
             <h2>{editingCliente ? 'Atualizar Cliente' : 'Cadastro Completo de Cliente'}</h2>
             <form onSubmit={handleSaveCliente}>
-              <h3 style={{fontSize:'13px', color:'#3498db', borderBottom:'1px solid #eee', paddingBottom:'5px', marginTop:'15px'}}>Dados Pessoais</h3>
-              <div className="field-group">
-                <div className="field" style={{gridColumn:'span 2'}}><label>Nome Completo *</label><input name="nome" required defaultValue={editingCliente?.nome || clientSearch} /></div>
-                <div className="field"><label>WhatsApp</label><input name="whatsapp" defaultValue={editingCliente?.whatsapp || ''} /></div>
-                <div className="field"><label>CPF/CNPJ</label><input name="cpfCnpj" defaultValue={editingCliente?.cpfCnpj || ''} /></div>
-                <div className="field"><label>Email</label><input type="email" name="email" defaultValue={editingCliente?.email || ''} /></div>
-                <div className="field">
-                  <label>Cidade</label>
-                  <select name="cidade" defaultValue={editingCliente?.cidade || ''} style={{padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px'}}>
-                    <option value="">-- Selecione ou digite abaixo --</option>
-                    <option value="Santa Bárbara do Sul">Santa Bárbara do Sul</option>
-                    <option value="Saldanha Marinho">Saldanha Marinho</option>
-                    <option value="Panambi">Panambi</option>
-                  </select>
-                  <input 
-                    name="cidade_manual" 
-                    placeholder="Ou digite outra cidade aqui..." 
-                    style={{marginTop: '5px', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px'}}
-                    onChange={(e) => {
-                      if(e.target.value) {
-                        const sel = e.target.previousSibling as HTMLSelectElement;
-                        sel.value = ""; // Desmarca o select se estiver digitando
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-              {!editingCliente && (
-                <>
-                  <h3 style={{fontSize:'13px', color:'#3498db', borderBottom:'1px solid #eee', paddingBottom:'5px', marginTop:'15px'}}>Dados da Conexão</h3>
-                  <div className="field-group">
-                    <div className="field" style={{gridColumn:'span 2'}}><label>Endereço Completo *</label><input name="endereco" required /></div>
-                    <div className="field"><label>Bairro</label><input name="bairro" /></div>
-                    <div className="field"><label>Código Mhnet</label><input name="contratoMhnet" /></div>
-                    <div className="field"><label>PPPoE</label><input name="pppoe" /></div>
-                    <div className="field"><label>Senha PPPoE</label><input name="senhaPpoe" /></div>
-                  </div>
-                </>
-              )}
-              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'10px'}}>{editingCliente ? 'Atualizar Cliente' : 'Salvar Novo Cliente'}</button>
+              {(() => {
+                const conexaoPrincipal = editingCliente?.conexoes?.[0];
+                return (
+                  <>
+                    <h3 style={{fontSize:'13px', color:'#3498db', borderBottom:'1px solid #eee', paddingBottom:'5px', marginTop:'15px'}}>Dados Pessoais</h3>
+                    <div className="field-group">
+                      <div className="field" style={{gridColumn:'span 2'}}><label>Nome Completo *</label><input name="nome" required defaultValue={editingCliente?.nome || clientSearch} /></div>
+                      <div className="field"><label>WhatsApp</label><input name="whatsapp" defaultValue={editingCliente?.whatsapp || ''} /></div>
+                      <div className="field"><label>CPF/CNPJ</label><input name="cpfCnpj" defaultValue={editingCliente?.cpfCnpj || ''} /></div>
+                      <div className="field"><label>Email</label><input type="email" name="email" defaultValue={editingCliente?.email || ''} /></div>
+                      <div className="field">
+                        <label>Cidade</label>
+                        <select name="cidade" defaultValue={editingCliente?.cidade || ''} style={{padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px'}}>
+                          <option value="">-- Selecione ou digite abaixo --</option>
+                          <option value="Santa BÃ¡rbara do Sul">Santa BÃ¡rbara do Sul</option>
+                          <option value="Saldanha Marinho">Saldanha Marinho</option>
+                          <option value="Panambi">Panambi</option>
+                        </select>
+                        <input 
+                          name="cidade_manual" 
+                          placeholder="Ou digite outra cidade aqui..." 
+                          style={{marginTop: '5px', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px'}}
+                          onChange={(e) => {
+                            if(e.target.value) {
+                              const sel = e.target.previousSibling as HTMLSelectElement;
+                              sel.value = ""; // Desmarca o select se estiver digitando
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <h3 style={{fontSize:'13px', color:'#3498db', borderBottom:'1px solid #eee', paddingBottom:'5px', marginTop:'15px'}}>Dados da ConexÃ£o</h3>
+                    <div className="field-group">
+                      <div className="field" style={{gridColumn:'span 2'}}><label>EndereÃ§o Completo {!editingCliente && '*'}</label><input name="endereco" required={!editingCliente} defaultValue={conexaoPrincipal?.endereco || ''} /></div>
+                      <div className="field"><label>Bairro</label><input name="bairro" defaultValue={conexaoPrincipal?.bairro || ''} /></div>
+                      <div className="field"><label>CÃ³digo Mhnet</label><input name="contratoMhnet" defaultValue={conexaoPrincipal?.contratoMhnet || ''} /></div>
+                      <div className="field"><label>PPPoE</label><input name="pppoe" defaultValue={conexaoPrincipal?.pppoe || ''} /></div>
+                      <div className="field"><label>Senha PPPoE</label><input name="senhaPpoe" defaultValue={conexaoPrincipal?.senhaPpoe || ''} /></div>
+                    </div>
+                    <button type="submit" className="btn-new" style={{width:'100%', marginTop:'10px'}}>{editingCliente ? 'Atualizar Cliente' : 'Salvar Novo Cliente'}</button>
+                  </>
+                );
+              })()}
             </form>
           </div>
         </div>
