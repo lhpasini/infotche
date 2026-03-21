@@ -30,7 +30,7 @@ type Categoria = { id: string; nome: string; };
 type Ticket = { 
   id: string; protocolo: string; clienteId: string | null; conexaoId: string | null; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; cidadeCliente: string | null; 
   tecnico: string | null; categoria: string; motivo: string; pppoe: string | null; senhaPpoe: string | null; contratoMhnet: string | null;
-  obs: string | null; abertoPor: string | null; resolucao: string | null; prioridade: string; criadoEm: any; fechadoEm?: any; atualizadoEm?: any; status: string; 
+  obs: string | null; abertoPor: string | null; agendamentoData?: any; agendamentoHora?: string | null; resolucao: string | null; prioridade: string; criadoEm: any; fechadoEm?: any; atualizadoEm?: any; status: string; 
 };
 
 export default function AdminDashboard() {
@@ -54,6 +54,10 @@ export default function AdminDashboard() {
   const [draggedTicketId, setDraggedTicketId] = useState<string | null>(null);
   const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
   const [ticketFechamento, setTicketFechamento] = useState("");
+  const [ticketAgendamentoData, setTicketAgendamentoData] = useState("");
+  const [ticketAgendamentoHora, setTicketAgendamentoHora] = useState("");
+  const [isAgendamentoModalOpen, setIsAgendamentoModalOpen] = useState(false);
+  const [ticketPendenteAgendamento, setTicketPendenteAgendamento] = useState<Ticket | null>(null);
   const ticketFormRef = useRef<HTMLFormElement | null>(null);
 
   const [clientSearch, setClientSearch] = useState("");
@@ -412,6 +416,18 @@ export default function AdminDashboard() {
     return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
   };
 
+  const toDateInputValue = (value: any) => {
+    if (!value) return '';
+    return new Date(value).toISOString().slice(0, 10);
+  };
+
+  const resetAgendamentoState = () => {
+    setTicketAgendamentoData('');
+    setTicketAgendamentoHora('');
+    setTicketPendenteAgendamento(null);
+    setIsAgendamentoModalOpen(false);
+  };
+
   const handleDragStart = (e: React.DragEvent, id: string) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData('text/plain', id); setDraggedTicketId(id); };
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; };
   const handleDrop = async (e: React.DragEvent, newStatus: string) => {
@@ -432,11 +448,20 @@ export default function AdminDashboard() {
       }
     }
 
+    if (newStatus === 'agendados') {
+      setTicketPendenteAgendamento(ticketAtual);
+      setTicketAgendamentoData(toDateInputValue(ticketAtual.agendamentoData));
+      setTicketAgendamentoHora(ticketAtual.agendamentoHora || '');
+      setIsAgendamentoModalOpen(true);
+      setDraggedTicketId(null);
+      return;
+    }
+
     const fechadoEm = newStatus === 'concluidos' ? new Date().toISOString() : null;
 
     setTickets(prev =>
       prev.map(t =>
-        t.id === draggedTicketId ? { ...t, status: newStatus, fechadoEm } : t
+        t.id === draggedTicketId ? { ...t, status: newStatus, fechadoEm, agendamentoData: null, agendamentoHora: null } : t
       )
     );
 
@@ -447,13 +472,15 @@ export default function AdminDashboard() {
   const openEditTicket = (t: Ticket) => {
     setEditingTicket(t); setClientSearch(t.nomeCliente); setTempClientId(t.clienteId || "");
     setTempConexaoId(t.conexaoId || ""); setTempPppoe(t.pppoe || ""); setTempSenha(t.senhaPpoe || "");
-    setTempContrato(t.contratoMhnet || ""); setTicketFechamento(toDateTimeLocalValue(t.fechadoEm)); setIsTicketModalOpen(true);
+    setTempContrato(t.contratoMhnet || ""); setTicketFechamento(toDateTimeLocalValue(t.fechadoEm)); setTicketAgendamentoData(toDateInputValue(t.agendamentoData)); setTicketAgendamentoHora(t.agendamentoHora || ''); setIsTicketModalOpen(true);
   };
 
   const resetTicketModal = () => {
     setIsTicketModalOpen(false);
     setEditingTicket(null);
     setTicketFechamento("");
+    setTicketAgendamentoData("");
+    setTicketAgendamentoHora("");
   };
 
   const buildTicketPayload = (formData: FormData) => {
@@ -476,9 +503,12 @@ export default function AdminDashboard() {
       contratoMhnet: formData.get('contratoMhnet') as string,
       obs: formData.get('obs') as string,
       tecnico: formData.get('tecnico') as string,
-      abertoPor: formData.get('abertoPor') as string,
+      abertoPor: editingTicket?.abertoPor || usuarioLogado?.nome || 'Admin',
+      agendamentoData: ticketAgendamentoData || null,
+      agendamentoHora: ticketAgendamentoHora || null,
       resolucao: formData.get('resolucao') as string,
       prioridade: formData.get('prioridade') as string,
+      status: editingTicket?.status || 'novos',
     };
   };
 
@@ -512,6 +542,33 @@ export default function AdminDashboard() {
 
     await loadData();
     resetTicketModal();
+  };
+
+  const handleConfirmarAgendamento = async () => {
+    if (!ticketPendenteAgendamento || !ticketAgendamentoData) {
+      alert('Informe a data do agendamento.');
+      return;
+    }
+
+    setTickets(prev =>
+      prev.map((ticket) =>
+        ticket.id === ticketPendenteAgendamento.id
+          ? {
+              ...ticket,
+              status: 'agendados',
+              agendamentoData: ticketAgendamentoData,
+              agendamentoHora: ticketAgendamentoHora || null,
+            }
+          : ticket,
+      ),
+    );
+
+    await updateChamadoStatus(ticketPendenteAgendamento.id, 'agendados', {
+      agendamentoData: ticketAgendamentoData,
+      agendamentoHora: ticketAgendamentoHora || null,
+    });
+
+    resetAgendamentoState();
   };
 
   const handleSaveCliente = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -764,7 +821,7 @@ export default function AdminDashboard() {
           <>
             <div className="board-header">
               <h1>Gestão Atendimentos</h1>
-              <button className="btn-new" onClick={() => { setEditingTicket(null); setClientSearch(""); setTempClientId(""); setTempConexaoId(""); setTempPppoe(""); setTempSenha(""); setTempContrato(""); setTicketFechamento(""); setIsTicketModalOpen(true); }}>+ NOVO CHAMADO</button>
+              <button className="btn-new" onClick={() => { setEditingTicket(null); setClientSearch(""); setTempClientId(""); setTempConexaoId(""); setTempPppoe(""); setTempSenha(""); setTempContrato(""); setTicketFechamento(""); setTicketAgendamentoData(""); setTicketAgendamentoHora(""); setIsTicketModalOpen(true); }}>+ NOVO CHAMADO</button>
               <button className="btn-new btn-green" onClick={() => { setEditingCliente(null); setIsClientModalOpen(true); }}>+ NOVO CLIENTE</button>
             </div>
             <KanbanBoard tickets={ticketsDashboard} expandedId={expandedTicketId} setExpandedId={setExpandedTicketId} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnter={(e) => e.preventDefault()} onDrop={handleDrop} onEdit={openEditTicket} onDelete={async (id) => { if(confirm('Excluir chamado?')) { await deleteChamado(id); loadData(); } }} />
@@ -1433,6 +1490,24 @@ export default function AdminDashboard() {
                   </>
                 )}
 
+                <div className="field">
+                  <label>Data do agendamento</label>
+                  <input
+                    type="date"
+                    value={ticketAgendamentoData}
+                    onChange={(e) => setTicketAgendamentoData(e.target.value)}
+                    required={editingTicket?.status === 'agendados'}
+                  />
+                </div>
+                <div className="field">
+                  <label>Hora do agendamento</label>
+                  <input
+                    type="time"
+                    value={ticketAgendamentoHora}
+                    onChange={(e) => setTicketAgendamentoHora(e.target.value)}
+                  />
+                </div>
+
                 <div className="field" style={{ gridColumn: 'span 2', position: 'relative' }}>
                   <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                     <label>1. Buscar ou Novo Cliente *</label>
@@ -1517,7 +1592,7 @@ export default function AdminDashboard() {
                 <div className="field"><label>Senha PPPoE</label><input name="senhaPpoe" value={tempSenha} onChange={e => setTempSenha(e.target.value)} /></div>
                 <div className="field" style={{gridColumn:'span 2'}}><label>Código da Conexão (Mhnet)</label><input name="contratoMhnet" value={tempContrato} onChange={e => setTempContrato(e.target.value)} /></div>
                 
-                <div className="field"><label>Aberto por</label><input name="abertoPor" defaultValue={editingTicket?.abertoPor || "Admin"} /></div>
+                <div className="field"><label>Aberto por</label><input name="abertoPor" value={editingTicket?.abertoPor || usuarioLogado?.nome || "Admin"} readOnly /></div>
                 <div className="field">
                   <label>Técnico Responsável</label>
                   <input 
@@ -1546,6 +1621,33 @@ export default function AdminDashboard() {
                 )}
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isAgendamentoModalOpen && (
+        <div className="modal-overlay" style={{zIndex: 1100}}>
+          <div className="modal-box" style={{width:'460px'}}>
+            <button type="button" className="btn-close" onClick={resetAgendamentoState}>âœ–</button>
+            <h2>Agendar atendimento</h2>
+            <div className="field-group" style={{gridTemplateColumns:'1fr'}}>
+              <div className="field">
+                <label>Cliente</label>
+                <input value={ticketPendenteAgendamento?.nomeCliente || ''} readOnly />
+              </div>
+              <div className="field">
+                <label>Data do agendamento *</label>
+                <input type="date" value={ticketAgendamentoData} onChange={(e) => setTicketAgendamentoData(e.target.value)} required />
+              </div>
+              <div className="field">
+                <label>Hora do agendamento</label>
+                <input type="time" value={ticketAgendamentoHora} onChange={(e) => setTicketAgendamentoHora(e.target.value)} />
+              </div>
+            </div>
+            <div style={{display:'flex', gap:'10px', marginTop:'15px'}}>
+              <button type="button" className="btn-new" style={{width:'100%', background:'#94a3b8'}} onClick={resetAgendamentoState}>Cancelar</button>
+              <button type="button" className="btn-new btn-green" style={{width:'100%'}} onClick={() => void handleConfirmarAgendamento()}>Salvar agendamento</button>
+            </div>
           </div>
         </div>
       )}

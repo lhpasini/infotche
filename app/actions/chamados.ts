@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { prisma } from '../../lib/prisma';
+import { getAuthSession } from '../../lib/auth-session';
 
 export async function getChamados() {
   try {
@@ -17,6 +18,8 @@ export async function getChamados() {
 
 export async function createChamado(data: any) {
   try {
+    const sessao = await getAuthSession();
+
     await prisma.chamado.create({
       data: {
         protocolo: data.protocolo,
@@ -32,7 +35,9 @@ export async function createChamado(data: any) {
         contratoMhnet: data.contratoMhnet,
         obs: data.obs,
         tecnico: data.tecnico,
-        abertoPor: data.abertoPor,
+        abertoPor: sessao?.nome || data.abertoPor || 'Admin',
+        agendamentoData: data.agendamentoData ? new Date(data.agendamentoData) : null,
+        agendamentoHora: data.agendamentoHora || null,
         resolucao: data.resolucao,
         prioridade: data.prioridade,
         status: data.status || 'novos',
@@ -62,7 +67,17 @@ export async function updateChamado(id: string, data: any) {
         contratoMhnet: data.contratoMhnet,
         obs: data.obs,
         tecnico: data.tecnico,
-        abertoPor: data.abertoPor,
+        abertoPor: typeof data.abertoPor === 'undefined' ? undefined : data.abertoPor,
+        agendamentoData:
+          typeof data.agendamentoData === 'undefined'
+            ? undefined
+            : data.agendamentoData
+              ? new Date(data.agendamentoData)
+              : null,
+        agendamentoHora:
+          typeof data.agendamentoHora === 'undefined'
+            ? undefined
+            : data.agendamentoHora || null,
         resolucao: data.resolucao,
         prioridade: data.prioridade,
         status: data.status,
@@ -83,7 +98,7 @@ export async function updateChamado(id: string, data: any) {
 export async function updateChamadoStatus(
   id: string,
   novoStatus: string,
-  options?: { fechadoEm?: string | null }
+  options?: { fechadoEm?: string | null; agendamentoData?: string | null; agendamentoHora?: string | null }
 ) {
   try {
     const chamadoAtual = await prisma.chamado.findUnique({
@@ -102,6 +117,16 @@ export async function updateChamadoStatus(
       where: { id },
       data: {
         status: novoStatus,
+        agendamentoData:
+          novoStatus === 'agendados'
+            ? options?.agendamentoData
+              ? new Date(options.agendamentoData)
+              : undefined
+            : null,
+        agendamentoHora:
+          novoStatus === 'agendados'
+            ? options?.agendamentoHora || null
+            : null,
         fechadoEm: saindoDeConcluido
           ? null
           : entrandoEmConcluido

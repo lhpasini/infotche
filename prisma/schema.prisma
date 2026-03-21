@@ -70,6 +70,8 @@ model Chamado {
   tecnico          String?
   
   abertoPor        String?  @default("Admin")
+  agendamentoData  DateTime?
+  agendamentoHora  String?
   resolucao        String?  
   prioridade       String   @default("Média")
   status           String   @default("novos") 

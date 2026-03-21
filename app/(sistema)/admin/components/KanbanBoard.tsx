@@ -19,6 +19,8 @@ type Ticket = {
   contratoMhnet: string | null;
   obs: string | null;
   abertoPor: string | null;
+  agendamentoData?: any;
+  agendamentoHora?: string | null;
   resolucao: string | null;
   prioridade: string;
   criadoEm: any;
@@ -213,12 +215,18 @@ export function KanbanBoard({
                               {formatDateTime(ticket.criadoEm)}
                             </span>
                           </div>
-                          {ticket.status === 'concluidos' && ticket.fechadoEm && (
-                            <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: 700 }}>
-                              Encerrado em {formatDateTime(ticket.fechadoEm)}
-                            </span>
-                          )}
-                        </div>
+                      {ticket.status === 'concluidos' && ticket.fechadoEm && (
+                        <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: 700 }}>
+                          Encerrado em {formatDateTime(ticket.fechadoEm)}
+                        </span>
+                      )}
+                      {ticket.status === 'agendados' && ticket.agendamentoData && (
+                        <span style={{ fontSize: '10px', color: '#b45309', fontWeight: 700 }}>
+                          Agendado para {new Date(ticket.agendamentoData).toLocaleDateString('pt-BR')}
+                          {ticket.agendamentoHora ? ` Ã s ${ticket.agendamentoHora}` : ''}
+                        </span>
+                      )}
+                    </div>
 
                         <div className="card-actions">
                           <button onClick={(e) => handleCopy(e, ticket)} title="Copiar resumo tecnico">{ICONS.copy}</button>
