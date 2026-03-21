@@ -5,6 +5,20 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '../../lib/prisma';
 import { getAuthSession } from '../../lib/auth-session';
 
+function parseDateOnlyAsLocalDate(value: string | null | undefined) {
+  if (!value) return null;
+
+  const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch;
+    return new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0, 0);
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
+}
+
 export async function getChamados() {
   try {
     return await prisma.chamado.findMany({
@@ -36,7 +50,7 @@ export async function createChamado(data: any) {
         obs: data.obs,
         tecnico: data.tecnico,
         abertoPor: sessao?.nome || data.abertoPor || 'Admin',
-        agendamentoData: data.agendamentoData ? new Date(data.agendamentoData) : null,
+        agendamentoData: parseDateOnlyAsLocalDate(data.agendamentoData),
         agendamentoHora: data.agendamentoHora || null,
         resolucao: data.resolucao,
         prioridade: data.prioridade,
@@ -72,7 +86,7 @@ export async function updateChamado(id: string, data: any) {
           typeof data.agendamentoData === 'undefined'
             ? undefined
             : data.agendamentoData
-              ? new Date(data.agendamentoData)
+              ? parseDateOnlyAsLocalDate(data.agendamentoData)
               : null,
         agendamentoHora:
           typeof data.agendamentoHora === 'undefined'
@@ -120,7 +134,7 @@ export async function updateChamadoStatus(
         agendamentoData:
           novoStatus === 'agendados'
             ? options?.agendamentoData
-              ? new Date(options.agendamentoData)
+              ? parseDateOnlyAsLocalDate(options.agendamentoData)
               : undefined
             : null,
         agendamentoHora:
