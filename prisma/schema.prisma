@@ -140,6 +140,7 @@ model Usuario {
   // Relação com as capturas feitas pelo técnico
   capturas                CapturaEquipamento[]
   atendimentosEquipamento AtendimentoEquipamento[]
+  orcamentosCriados       Orcamento[]
 }
 
 // -------------------------------------------------
@@ -224,4 +225,72 @@ model TipoAtendimentoEquipamento {
   atualizadoEm DateTime @updatedAt
 
   @@index([ativo, ordem])
+}
+
+model Orcamento {
+  id                      String         @id @default(uuid())
+  numero                  Int            @default(autoincrement())
+  titulo                  String
+  clienteNome             String
+  clienteDocumento        String?
+  clienteContato          String?
+  clienteEmail            String?
+  clienteEndereco         String?
+  clienteCidade           String?
+  status                  String         @default("RASCUNHO")
+  fonteTitulo             String         @default("Georgia")
+  fonteCorpo              String         @default("Arial")
+  corDestaque             String         @default("#1d4ed8")
+  validadeDias            Int            @default(15)
+  descontoVistaPercentual Decimal        @default(0) @db.Decimal(10, 2)
+  descontoVistaObservacao String?
+  parcelamentoObservacao  String?
+  parcelaMinima           Decimal        @default(150) @db.Decimal(10, 2)
+  maxParcelas             Int            @default(12)
+  observacoes             String?
+  notaInterna             String?
+  subtotal                Decimal        @default(0) @db.Decimal(12, 2)
+  descontoVistaValor      Decimal        @default(0) @db.Decimal(12, 2)
+  totalFinal              Decimal        @default(0) @db.Decimal(12, 2)
+  criadoPorId             String
+  criadoPor               Usuario        @relation(fields: [criadoPorId], references: [id])
+  itens                   OrcamentoItem[]
+  criadoEm                DateTime       @default(now())
+  atualizadoEm            DateTime       @updatedAt
+
+  @@index([clienteNome])
+  @@index([criadoEm])
+  @@index([status])
+  @@index([criadoPorId])
+}
+
+model OrcamentoItem {
+  id            String    @id @default(uuid())
+  orcamentoId   String
+  orcamento     Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+  ordem         Int       @default(0)
+  quantidade    Decimal   @default(0) @db.Decimal(10, 2)
+  descricao     String
+  descricaoDetalhada String?
+  valorUnitario Decimal   @default(0) @db.Decimal(12, 2)
+  total         Decimal   @default(0) @db.Decimal(12, 2)
+
+  @@index([orcamentoId, ordem])
+}
+
+model ProdutoCatalogo {
+  id                 String   @id @default(uuid())
+  categoria          String
+  nome               String
+  descricaoCurta     String
+  descricaoDetalhada String?
+  precoBase          Decimal  @default(0) @db.Decimal(12, 2)
+  ativo              Boolean  @default(true)
+  recorrente         Boolean  @default(true)
+  ordem              Int      @default(0)
+  criadoEm           DateTime @default(now())
+  atualizadoEm       DateTime @updatedAt
+
+  @@index([categoria, ativo, ordem])
+  @@index([recorrente, ativo])
 }
