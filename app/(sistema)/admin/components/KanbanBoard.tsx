@@ -83,10 +83,31 @@ export function KanbanBoard({
   const colunas = ['novos', 'agendados', 'andamento', 'concluidos'];
   const [ordemFila, setOrdemFila] = useState('prioridade');
 
-  const normalizeDate = (value: any) => {
+  const parseLocalDate = (value: any) => {
     if (!value) return null;
+
+    if (value instanceof Date) {
+      const clonedDate = new Date(value);
+      if (Number.isNaN(clonedDate.getTime())) return null;
+      return clonedDate;
+    }
+
+    if (typeof value === 'string') {
+      const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (dateOnlyMatch) {
+        const [, year, month, day] = dateOnlyMatch;
+        return new Date(Number(year), Number(month) - 1, Number(day));
+      }
+    }
+
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return null;
+    return date;
+  };
+
+  const normalizeDate = (value: any) => {
+    const date = parseLocalDate(value);
+    if (!date) return null;
     date.setHours(0, 0, 0, 0);
     return date;
   };
@@ -115,11 +136,16 @@ export function KanbanBoard({
     if (date.getTime() === hoje.getTime()) return 'Hoje';
     if (date.getTime() === amanha.getTime()) return 'Amanha';
 
-    return date.toLocaleDateString('pt-BR', {
+    const diaSemana = date.toLocaleDateString('pt-BR', {
+      weekday: 'long',
+    });
+    const dataFormatada = date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     });
+
+    return `${dataFormatada} - ${diaSemana}`;
   };
 
   const getAgendamentoGroupKey = (value: any) => {
@@ -213,7 +239,7 @@ export function KanbanBoard({
             )}
             {ticket.status === 'agendados' && ticket.agendamentoData && (
               <span style={{ fontSize: '10px', color: '#b45309', fontWeight: 700 }}>
-                Agendado para {new Date(ticket.agendamentoData).toLocaleDateString('pt-BR')}
+                Agendado para {normalizeDate(ticket.agendamentoData)?.toLocaleDateString('pt-BR') || ''}
                 {ticket.agendamentoHora ? ` as ${ticket.agendamentoHora}` : ''}
               </span>
             )}
