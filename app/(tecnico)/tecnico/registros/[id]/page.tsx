@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
+import DriveMediaPreview from '../../../../../components/DriveMediaPreview';
 import { getRegistroEquipamentoTecnicoById } from '../../../../actions/tecnico-registros';
 
 function formatDate(value: Date | string) {
@@ -70,23 +71,22 @@ export default async function RegistroTecnicoDetailPage(
                   </h2>
                 </div>
                 {item.imagemUrl && (
-                  <a
-                    href={item.imagemUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full bg-sky-50 px-3 py-2 text-xs font-black text-sky-700"
-                  >
-                    Abrir foto
-                  </a>
+                  <span className="rounded-full bg-sky-50 px-3 py-2 text-xs font-black text-sky-700">
+                    Foto do item
+                  </span>
                 )}
               </div>
 
               {item.imagemUrl && (
-                <img
-                  src={item.imagemUrl}
-                  alt={`Imagem do item ${index + 1}`}
-                  className="mt-4 h-44 w-full rounded-[24px] object-cover"
-                />
+                <div className="mt-4">
+                  <DriveMediaPreview
+                    fileId={item.driveFileId}
+                    url={item.imagemUrl}
+                    tipo="IMAGEM"
+                    nomeArquivo={`Imagem do item ${index + 1}`}
+                    heightClassName="h-44"
+                  />
+                </div>
               )}
 
               <div className="mt-4 space-y-2 text-sm text-slate-600">

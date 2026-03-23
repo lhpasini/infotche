@@ -2,12 +2,15 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import DriveMediaPreview from '../../../../../components/DriveMediaPreview';
 
 type MidiaResumo = {
   id: string;
   tipo: string;
   arquivoUrl: string;
   nomeArquivo: string | null;
+  driveFileId?: string | null;
+  mimeType?: string | null;
 };
 
 type Props = {
@@ -67,6 +70,7 @@ export default function FechamentoChamadoTecnicoCard(props: Props) {
   const [starting, setStarting] = useState(false);
   const [recording, setRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [transcribingPendingId, setTranscribingPendingId] = useState<string | null>(null);
 
   useEffect(() => {
     const ctor =
@@ -109,6 +113,42 @@ export default function FechamentoChamadoTecnicoCard(props: Props) {
       }
       return current.filter((item) => item.id !== id);
     });
+  }
+
+  async function transcreverArquivoPendente(id: string) {
+    const target = pendingFiles.find((item) => item.id === id && item.tipo === 'audio');
+
+    if (!target) {
+      setErro('Selecione um audio valido para transcrever.');
+      return;
+    }
+
+    setTranscribingPendingId(id);
+    setErro('');
+    setMensagem('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', target.file);
+
+      const response = await fetch('/api/tecnico/transcricao-audio', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Nao foi possivel transcrever o audio.');
+      }
+
+      const texto = (data.text || '').trim();
+      setTranscricaoAudio((current) => (current ? `${current}\n\n${texto}`.trim() : texto));
+      setMensagem('Audio transcrito e preenchido no fechamento.');
+    } catch (cause) {
+      setErro(cause instanceof Error ? cause.message : 'Falha ao transcrever o audio.');
+    } finally {
+      setTranscribingPendingId(null);
+    }
   }
 
   async function iniciarAtendimento() {
@@ -394,13 +434,25 @@ export default function FechamentoChamadoTecnicoCard(props: Props) {
                   {pendingFiles.map((item) => (
                     <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-3 text-sm text-slate-700">
                       <span>{item.file.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removePendingFile(item.id)}
-                        className="rounded-full bg-rose-50 px-3 py-1 text-xs font-black text-rose-700"
-                      >
-                        Remover
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {item.tipo === 'audio' && (
+                          <button
+                            type="button"
+                            onClick={() => transcreverArquivoPendente(item.id)}
+                            disabled={transcribingPendingId === item.id}
+                            className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-700 disabled:opacity-60"
+                          >
+                            {transcribingPendingId === item.id ? 'Transcrevendo...' : 'Transcrever'}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removePendingFile(item.id)}
+                          className="rounded-full bg-rose-50 px-3 py-1 text-xs font-black text-rose-700"
+                        >
+                          Remover
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -412,18 +464,23 @@ export default function FechamentoChamadoTecnicoCard(props: Props) {
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Arquivos ja salvos</p>
                 <div className="mt-3 space-y-2">
                   {props.midias.map((item) => (
-                    <a
-                      key={item.id}
-                      href={item.arquivoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-3 text-sm text-slate-700"
-                    >
-                      <span>{item.nomeArquivo || formatTipo(item.tipo)}</span>
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-600">
-                        {formatTipo(item.tipo)}
-                      </span>
-                    </a>
+                    <div key={item.id} className="rounded-2xl bg-white px-3 py-3 text-sm text-slate-700">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <span>{item.nomeArquivo || formatTipo(item.tipo)}</span>
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-600">
+                          {formatTipo(item.tipo)}
+                        </span>
+                      </div>
+                      <DriveMediaPreview
+                        fileId={item.driveFileId}
+                        url={item.arquivoUrl}
+                        mimeType={item.mimeType}
+                        tipo={item.tipo}
+                        nomeArquivo={item.nomeArquivo}
+                        heightClassName="h-40"
+                        compact
+                      />
+                    </div>
                   ))}
                 </div>
               </div>

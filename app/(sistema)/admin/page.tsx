@@ -2,10 +2,11 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import DriveMediaPreview from '../../../components/DriveMediaPreview';
 
 import { getCategorias, upsertCategoria, deleteCategoria } from '../../actions/categorias';
 import { getClientes, createCliente, updateCliente, deleteCliente, addConexao, updateConexao, deleteConexao } from '../../actions/clientes';
-import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteChamado } from '../../actions/chamados';
+import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteChamado, transcreverMidiaAudioChamado } from '../../actions/chamados';
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
 import { fazerLogout, getSessao } from '../../actions/auth';
 import { getUsuarios, upsertUsuario, deleteUsuario, atualizarMeuPerfil, toggleUsuarioAtivo } from '../../actions/usuarios';
@@ -58,6 +59,8 @@ export default function AdminDashboard() {
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [viewingTicket, setViewingTicket] = useState<Ticket | null>(null);
   const [isEquipamentoModalOpen, setIsEquipamentoModalOpen] = useState(false);
+  const [transcrevendoMidiaId, setTranscrevendoMidiaId] = useState<string | null>(null);
+  const [expandedOcrItemId, setExpandedOcrItemId] = useState<string | null>(null);
 
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<Categoria | null>(null); 
@@ -338,6 +341,30 @@ export default function AdminDashboard() {
       itens: registro.itens.map((item) => ({ ...item })),
     });
     setIsEquipamentoModalOpen(true);
+  };
+
+  const handleTranscreverMidiaChamado = async (midiaId: string) => {
+    if (!viewingTicket) return;
+
+    setTranscrevendoMidiaId(midiaId);
+    const resposta = await transcreverMidiaAudioChamado(viewingTicket.id, midiaId);
+    setTranscrevendoMidiaId(null);
+
+    if (!resposta.sucesso) {
+      alert(resposta.erro || 'Nao foi possivel transcrever o audio.');
+      return;
+    }
+
+    setViewingTicket((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        fechamentoTecnicoTranscricao: resposta.transcricaoCompleta,
+        midiasFechamento: current.midiasFechamento?.map((item) =>
+          item.id === midiaId ? { ...item, transcricao: resposta.texto } : item
+        ),
+      };
+    });
   };
 
   const handleSaveRegistroEquipamento = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -893,7 +920,7 @@ export default function AdminDashboard() {
               <button className="btn-new" onClick={() => { setEditingTicket(null); setClientSearch(""); setTempClientId(""); setTempConexaoId(""); setTempPppoe(""); setTempSenha(""); setTempContrato(""); setTicketFechamento(""); setTicketAgendamentoData(""); setTicketAgendamentoHora(""); setIsTicketModalOpen(true); }}>+ NOVO CHAMADO</button>
               <button className="btn-new btn-green" onClick={() => { setEditingCliente(null); setIsClientModalOpen(true); }}>+ NOVO CLIENTE</button>
             </div>
-            <KanbanBoard tickets={ticketsDashboard} expandedId={expandedTicketId} setExpandedId={setExpandedTicketId} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnter={(e) => e.preventDefault()} onDrop={handleDrop} onEdit={openEditTicket} onDelete={async (id) => { if(confirm('Excluir chamado?')) { await deleteChamado(id); loadData(); } }} />
+            <KanbanBoard tickets={ticketsDashboard} expandedId={expandedTicketId} setExpandedId={setExpandedTicketId} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnter={(e) => e.preventDefault()} onDrop={handleDrop} onEdit={openEditTicket} onView={(ticket) => setViewingTicket(ticket)} onDelete={async (id) => { if(confirm('Excluir chamado?')) { await deleteChamado(id); loadData(); } }} />
           </>
         )}
 
@@ -1289,8 +1316,48 @@ export default function AdminDashboard() {
                               <td style={{fontFamily:'monospace'}}>{item.serialNumber || '-'}</td>
                               <td style={{fontFamily:'monospace'}}>{item.codigoEquipamento || '-'}</td>
                               <td style={{maxWidth:'180px', whiteSpace:'pre-wrap', color:'#475569'}}>{item.observacao || '-'}</td>
-                              <td style={{maxWidth:'260px', whiteSpace:'pre-wrap', fontSize:'11px', color:'#475569'}}>{item.ocrTextoBruto || '-'}</td>
-                              <td>{item.imagemUrl ? <a href={item.imagemUrl} target="_blank" rel="noreferrer" style={{color:'#3498db', fontWeight:'bold'}}>Abrir</a> : '-'}</td>
+                              <td style={{maxWidth:'260px'}}>
+                                {item.ocrTextoBruto ? (
+                                  <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedOcrItemId((current) => current === item.id ? null : item.id)}
+                                      style={{
+                                        alignSelf:'flex-start',
+                                        border:'none',
+                                        borderRadius:'999px',
+                                        background:'#eff6ff',
+                                        color:'#1d4ed8',
+                                        padding:'6px 10px',
+                                        fontSize:'11px',
+                                        fontWeight:'bold',
+                                        cursor:'pointer'
+                                      }}
+                                    >
+                                      {expandedOcrItemId === item.id ? 'Ocultar OCR' : 'Exibir OCR'}
+                                    </button>
+                                    {expandedOcrItemId === item.id && (
+                                      <div style={{maxWidth:'260px', whiteSpace:'pre-wrap', fontSize:'11px', color:'#475569', background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:'8px', padding:'10px'}}>
+                                        {item.ocrTextoBruto}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : '-'}
+                              </td>
+                              <td>
+                                {item.imagemUrl ? (
+                                  <div style={{width:'160px'}}>
+                                    <DriveMediaPreview
+                                      fileId={item.driveFileId}
+                                      url={item.imagemUrl}
+                                      tipo="IMAGEM"
+                                      nomeArquivo={item.modelo || item.tipoEquipamento}
+                                      heightClassName="h-24"
+                                      compact
+                                    />
+                                  </div>
+                                ) : '-'}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1654,27 +1721,54 @@ export default function AdminDashboard() {
                         <strong>Arquivos enviados:</strong>
                         <div style={{display:'flex', flexWrap:'wrap', gap:'8px', marginTop:'10px'}}>
                           {viewingTicket.midiasFechamento.map((midia) => (
-                            <a
+                            <div
                               key={midia.id}
-                              href={midia.arquivoUrl}
-                              target="_blank"
-                              rel="noreferrer"
                               style={{
-                                display:'inline-flex',
-                                alignItems:'center',
-                                gap:'6px',
-                                padding:'8px 10px',
-                                borderRadius:'999px',
+                                width:'100%',
+                                border:'1px solid #dcfce7',
+                                borderRadius:'14px',
                                 background:'#f0fdf4',
-                                color:'#166534',
-                                fontSize:'12px',
-                                fontWeight:'bold',
-                                textDecoration:'none'
+                                padding:'12px'
                               }}
                             >
-                              <span>{midia.tipo === 'AUDIO' ? 'Áudio' : midia.tipo === 'VIDEO' ? 'Vídeo' : 'Imagem'}</span>
-                              <span style={{opacity:0.7}}>{midia.nomeArquivo || 'Abrir arquivo'}</span>
-                            </a>
+                              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', marginBottom:'10px'}}>
+                                <span style={{fontSize:'12px', fontWeight:'bold', color:'#166534'}}>
+                                  {midia.tipo === 'AUDIO' ? 'Áudio' : midia.tipo === 'VIDEO' ? 'Vídeo' : 'Imagem'}
+                                </span>
+                                <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                                  {midia.tipo === 'AUDIO' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleTranscreverMidiaChamado(midia.id)}
+                                      disabled={transcrevendoMidiaId === midia.id}
+                                      style={{
+                                        border:'none',
+                                        borderRadius:'999px',
+                                        background:'#dbeafe',
+                                        color:'#1d4ed8',
+                                        padding:'6px 10px',
+                                        fontSize:'11px',
+                                        fontWeight:'bold',
+                                        cursor:'pointer',
+                                        opacity: transcrevendoMidiaId === midia.id ? 0.6 : 1
+                                      }}
+                                    >
+                                      {transcrevendoMidiaId === midia.id ? 'Transcrevendo...' : 'Transcrever'}
+                                    </button>
+                                  )}
+                                  <span style={{fontSize:'12px', opacity:0.8}}>{midia.nomeArquivo || 'Arquivo enviado'}</span>
+                                </div>
+                              </div>
+                              <DriveMediaPreview
+                                fileId={midia.driveFileId}
+                                url={midia.arquivoUrl}
+                                mimeType={midia.mimeType}
+                                tipo={midia.tipo}
+                                nomeArquivo={midia.nomeArquivo}
+                                heightClassName="h-56"
+                                compact
+                              />
+                            </div>
                           ))}
                         </div>
                       </div>

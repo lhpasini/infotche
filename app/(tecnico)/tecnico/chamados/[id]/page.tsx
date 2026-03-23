@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
+import DriveMediaPreview from '../../../../../components/DriveMediaPreview';
 import { getChamadoTecnicoById } from '../../../../actions/tecnico-chamados';
 import FechamentoChamadoTecnicoCard from './FechamentoChamadoTecnicoCard';
 
@@ -99,8 +100,33 @@ export default async function ChamadoTecnicoDetailPage(
             tipo: item.tipo,
             arquivoUrl: item.arquivoUrl,
             nomeArquivo: item.nomeArquivo,
+            driveFileId: item.driveFileId,
+            mimeType: item.mimeType,
           }))}
         />
+
+        {chamado.midiasFechamento.length > 0 && (
+          <section className="rounded-[28px] border border-white/70 bg-white/95 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Arquivos do fechamento</p>
+            <div className="mt-4 space-y-4">
+              {chamado.midiasFechamento.map((item) => (
+                <div key={item.id} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-sm font-black text-slate-900">{item.nomeArquivo || 'Arquivo enviado'}</p>
+                  <div className="mt-3">
+                    <DriveMediaPreview
+                      fileId={item.driveFileId}
+                      url={item.arquivoUrl}
+                      mimeType={item.mimeType}
+                      tipo={item.tipo}
+                      nomeArquivo={item.nomeArquivo}
+                      heightClassName="h-52"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );

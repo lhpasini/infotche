@@ -38,3 +38,31 @@ export async function uploadBufferToDrive({
     url: response.data.webViewLink || `https://drive.google.com/file/d/${fileId}/view`,
   };
 }
+
+export async function downloadDriveFileBuffer(fileId: string) {
+  const oauth = await getAuthorizedGoogleDriveClient();
+  const drive = google.drive({ version: 'v3', auth: oauth.client });
+
+  const metadata = await drive.files.get({
+    fileId,
+    fields: 'id,name,mimeType',
+    supportsAllDrives: true,
+  });
+
+  const media = await drive.files.get(
+    {
+      fileId,
+      alt: 'media',
+      supportsAllDrives: true,
+    },
+    {
+      responseType: 'arraybuffer',
+    }
+  );
+
+  return {
+    buffer: Buffer.from(media.data as ArrayBuffer),
+    name: metadata.data.name || 'arquivo',
+    mimeType: metadata.data.mimeType || 'application/octet-stream',
+  };
+}

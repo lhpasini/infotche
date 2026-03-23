@@ -38,6 +38,7 @@ interface Props {
   onDragEnter: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, status: string) => void;
   onEdit: (ticket: Ticket) => void;
+  onView?: (ticket: Ticket) => void;
   onDelete: (id: string) => void;
 }
 
@@ -78,6 +79,7 @@ export function KanbanBoard({
   onDragEnter,
   onDrop,
   onEdit,
+  onView,
   onDelete,
 }: Props) {
   const colunas = ['novos', 'agendados', 'andamento', 'concluidos'];
@@ -309,6 +311,30 @@ export function KanbanBoard({
             {priorityMeta.label}
           </span>
         </div>
+
+        {ticket.status === 'concluidos' && onView && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onView(ticket);
+            }}
+            style={{
+              marginTop: '8px',
+              width: '100%',
+              padding: '8px 10px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '8px',
+              color: '#1e3a8a',
+              fontSize: '11px',
+            }}
+          >
+            Visualizar atendimento
+          </button>
+        )}
 
         {expandedId === ticket.id && (
           <div className="card-details">
