@@ -18,6 +18,53 @@ function normalizarNome(nome: string) {
     .toLowerCase();
 }
 
+function primeiroToken(nome: string) {
+  return normalizarNome(nome).split(/\s+/).filter(Boolean)[0] || '';
+}
+
+function distanciaLevenshtein(a: string, b: string) {
+  const matrix = Array.from({ length: b.length + 1 }, (_, rowIndex) =>
+    Array.from({ length: a.length + 1 }, (_, colIndex) => (rowIndex === 0 ? colIndex : colIndex === 0 ? rowIndex : 0))
+  );
+
+  for (let row = 1; row <= b.length; row += 1) {
+    for (let col = 1; col <= a.length; col += 1) {
+      const cost = a[col - 1] === b[row - 1] ? 0 : 1;
+      matrix[row][col] = Math.min(
+        matrix[row - 1][col] + 1,
+        matrix[row][col - 1] + 1,
+        matrix[row - 1][col - 1] + cost
+      );
+    }
+  }
+
+  return matrix[b.length][a.length];
+}
+
+function tecnicoCorresponde(tecnicoChamado: string | null | undefined, nomeSessao: string) {
+  if (!tecnicoChamado) return false;
+
+  const tecnicoNormalizado = normalizarNome(tecnicoChamado);
+  const nomeNormalizado = normalizarNome(nomeSessao);
+
+  if (
+    tecnicoNormalizado === nomeNormalizado ||
+    tecnicoNormalizado.includes(nomeNormalizado) ||
+    nomeNormalizado.includes(tecnicoNormalizado)
+  ) {
+    return true;
+  }
+
+  const tokenTecnico = primeiroToken(tecnicoChamado);
+  const tokenSessao = primeiroToken(nomeSessao);
+
+  if (!tokenTecnico || !tokenSessao) {
+    return false;
+  }
+
+  return distanciaLevenshtein(tokenTecnico, tokenSessao) <= 1;
+}
+
 function inferirTipoMidia(mimeType: string) {
   if (mimeType.startsWith('audio/')) return 'AUDIO';
   if (mimeType.startsWith('video/')) return 'VIDEO';
@@ -58,8 +105,7 @@ export async function POST(
     }
 
     const acessoAdmin = sessao.role === 'ADMIN';
-    const mesmoTecnico =
-      chamado.tecnico && normalizarNome(chamado.tecnico) === normalizarNome(sessao.nome);
+    const mesmoTecnico = tecnicoCorresponde(chamado.tecnico, sessao.nome);
 
     if (!acessoAdmin && !mesmoTecnico) {
       return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });

@@ -1713,11 +1713,11 @@ export default function AdminDashboard() {
                     autoComplete="off"
                   />
                   <datalist id="lista-tecnicos">
-                    <option value="Renan Vargas" />
-                    <option value="GILSON DA COSTA" />
-                    <option value="João Maia" />
-                    <option value="Luiz Pasini" />
-                    <option value="Pedro Zenatti" />
+                    {usuarios
+                      .filter((usuario) => usuario.ativo)
+                      .map((usuario) => (
+                        <option key={usuario.id} value={usuario.nome} />
+                      ))}
                   </datalist>
                 </div>
 
