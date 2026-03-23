@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 
@@ -178,8 +178,8 @@ export function KanbanBoard({
   const getPesoPrioridade = (pri: string) => {
     if (pri === 'Urgente') return 4;
     if (pri === 'Alta') return 3;
-    if (pri === 'MÃ©dia' || pri === 'MÃƒÂ©dia') return 2;
-    if (pri === 'Baixa (OrÃ§amento)' || pri === 'Baixa (OrÃƒÂ§amento)') return 1;
+    if (pri === 'MÃƒÂ©dia' || pri === 'MÃƒÆ’Ã‚Â©dia') return 2;
+    if (pri === 'Baixa (OrÃƒÂ§amento)' || pri === 'Baixa (OrÃƒÆ’Ã‚Â§amento)') return 1;
     return 0;
   };
 
@@ -192,18 +192,29 @@ export function KanbanBoard({
       return { label: `${ICONS.high} ALTA`, color: '#e67e22' };
     }
 
-    if (prioridade === 'Baixa (OrÃ§amento)' || prioridade === 'Baixa (OrÃƒÂ§amento)') {
+    if (prioridade === 'Baixa (OrÃƒÂ§amento)' || prioridade === 'Baixa (OrÃƒÆ’Ã‚Â§amento)') {
       return { label: `${ICONS.low} BAIXA`, color: '#c59a00' };
     }
 
     return { label: `${ICONS.medium} MEDIA`, color: '#16a34a' };
   };
+  const normalizeText = (value: string | null | undefined) =>
+    (value || '')
+      .normalize('NFD')
+      .replace(/[\\u0300-\\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+
 
   const getCityBackground = (ticket: Ticket) => {
     if (ticket.status === 'concluidos') return '#eef1f4';
-    if (ticket.cidadeCliente === 'Santa BÃ¡rbara do Sul' || ticket.cidadeCliente === 'Santa BÃƒÂ¡rbara do Sul') return '#e8f5e9';
-    if (ticket.cidadeCliente === 'Saldanha Marinho') return '#fffde7';
-    if (ticket.cidadeCliente === 'Panambi') return '#e3f2fd';
+
+    const cidade = normalizeText(ticket.cidadeCliente);
+
+    if (cidade === 'santa barbara do sul') return '#e8f5e9';
+    if (cidade === 'saldanha marinho') return '#fffde7';
+    if (cidade === 'panambi') return '#e3f2fd';
+
     return 'white';
   };
 
