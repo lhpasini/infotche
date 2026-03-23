@@ -201,7 +201,7 @@ export function KanbanBoard({
   const normalizeText = (value: string | null | undefined) =>
     (value || '')
       .normalize('NFD')
-      .replace(/[\\u0300-\\u036f]/g, '')
+      .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .trim();
 
