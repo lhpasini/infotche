@@ -261,6 +261,17 @@ export function KanbanBoard({
 
           <div className="card-actions">
             <button onClick={(e) => handleCopy(e, ticket)} title="Copiar resumo tecnico">{ICONS.copy}</button>
+            {ticket.status === 'concluidos' && onView && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onView(ticket);
+                }}
+                title="Ver atendimento"
+              >
+                {ICONS.view}
+              </button>
+            )}
             <button onClick={(e) => { e.stopPropagation(); onEdit(ticket); }} title="Editar chamado">{ICONS.edit}</button>
             <button onClick={(e) => { e.stopPropagation(); onDelete(ticket.id); }} title="Excluir">{ICONS.delete}</button>
           </div>
@@ -325,18 +336,6 @@ export function KanbanBoard({
             >
               {ICONS.copy} COPIAR RESUMO TECNICO
             </button>
-            {ticket.status === 'concluidos' && onView && (
-              <button
-                type="button"
-                style={{ marginTop: '8px', width: '100%', padding: '8px', cursor: 'pointer', fontWeight: 'bold', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '4px', color: '#1d4ed8' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onView(ticket);
-                }}
-              >
-                {ICONS.view} VER ATENDIMENTO
-              </button>
-            )}
           </div>
         )}
       </div>
