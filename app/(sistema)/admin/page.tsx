@@ -1719,8 +1719,8 @@ export default function AdminDashboard() {
                   </datalist>
                 </div>
 
-                <div className="field" style={{gridColumn:'span 2'}}><label>ObservaÃ§Ãµes</label><textarea name="obs" defaultValue={editingTicket?.obs || ""} style={{height:'40px'}} /></div>
-                <div className="field" style={{gridColumn:'span 2'}}><label>Fechamento da Ordem</label><textarea name="resolucao" defaultValue={editingTicket?.resolucao || ""} style={{height:'40px'}} placeholder="Preencher apÃ³s a conclusão..." /></div>
+                <div className="field" style={{gridColumn:'span 2'}}><label>Observações</label><textarea name="obs" defaultValue={editingTicket?.obs || ""} style={{height:'40px'}} /></div>
+                <div className="field" style={{gridColumn:'span 2'}}><label>Fechamento da Ordem</label><textarea name="resolucao" defaultValue={editingTicket?.resolucao || ""} style={{height:'40px'}} placeholder="Preencher após a conclusão..." /></div>
               </div>
               <div style={{display:'flex', gap:'10px', marginTop:'10px'}}>
                 <button type="submit" className="btn-new btn-green" style={{width:'100%'}}>{editingTicket ? 'Atualizar Chamado' : 'Salvar e Abrir Chamado'}</button>
