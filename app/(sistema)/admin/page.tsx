@@ -45,6 +45,7 @@ export default function AdminDashboard() {
 
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [viewingTicket, setViewingTicket] = useState<Ticket | null>(null);
   const [isEquipamentoModalOpen, setIsEquipamentoModalOpen] = useState(false);
 
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
@@ -1491,6 +1492,81 @@ export default function AdminDashboard() {
               </div>
               <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar Tipo</button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {viewingTicket && (
+        <div className="modal-overlay" style={{zIndex: 1400}}>
+          <div className="modal-box" style={{width:'860px', maxWidth:'94vw'}}>
+            <button type="button" className="btn-close" onClick={() => setViewingTicket(null)}>✖</button>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'20px', paddingRight:'30px'}}>
+              <div>
+                <h2 style={{margin:'0 0 6px'}}>Atendimento {viewingTicket.protocolo}</h2>
+                <div style={{fontSize:'12px', color:'#7f8c8d'}}>
+                  Aberto em {formatDateTime(viewingTicket.criadoEm)}
+                  {viewingTicket.fechadoEm ? ` • Encerrado em ${formatDateTime(viewingTicket.fechadoEm)}` : ''}
+                </div>
+              </div>
+              <span style={{padding:'6px 10px', borderRadius:'999px', color:'#fff', fontSize:'11px', fontWeight:'bold', background: viewingTicket.status === 'novos' ? '#3498db' : viewingTicket.status === 'agendados' ? '#f39c12' : viewingTicket.status === 'andamento' ? '#1abc9c' : '#2ecc71'}}>
+                {viewingTicket.status.toUpperCase()}
+              </span>
+            </div>
+
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'20px'}}>
+              <div style={{background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
+                <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'6px'}}>Cliente</div>
+                <div style={{fontSize:'18px', fontWeight:'800', color:'#2c3e50'}}>{viewingTicket.nomeCliente}</div>
+                <div style={{fontSize:'12px', color:'#64748b', marginTop:'6px'}}>{viewingTicket.cidadeCliente || 'Cidade não informada'}</div>
+              </div>
+              <div style={{background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
+                <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'6px'}}>Categoria e prioridade</div>
+                <div style={{fontSize:'15px', fontWeight:'700', color:'#2c3e50'}}>{viewingTicket.categoria}</div>
+                <div style={{fontSize:'12px', color:'#64748b', marginTop:'6px'}}>Prioridade: {viewingTicket.prioridade || 'Média'}</div>
+              </div>
+            </div>
+
+            <div style={{display:'grid', gap:'12px'}}>
+              <div style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
+                <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>Detalhes do chamado</div>
+                <div style={{fontSize:'14px', color:'#334155', lineHeight:1.6, whiteSpace:'pre-wrap'}}>{viewingTicket.motivo || 'Sem detalhes informados.'}</div>
+              </div>
+
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+                <div style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
+                  <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>Local e conexão</div>
+                  <div style={{fontSize:'13px', color:'#334155', lineHeight:1.7}}>
+                    <div><strong>Endereço:</strong> {viewingTicket.enderecoCompleto || '-'}</div>
+                    <div><strong>WhatsApp:</strong> {viewingTicket.whatsCliente || '-'}</div>
+                    <div><strong>PPPoE:</strong> {viewingTicket.pppoe || '-'}</div>
+                    <div><strong>Senha PPPoE:</strong> {viewingTicket.senhaPpoe || '-'}</div>
+                    <div><strong>Código MHNet:</strong> {viewingTicket.contratoMhnet || '-'}</div>
+                  </div>
+                </div>
+
+                <div style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
+                  <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>Responsáveis</div>
+                  <div style={{fontSize:'13px', color:'#334155', lineHeight:1.7}}>
+                    <div><strong>Aberto por:</strong> {viewingTicket.abertoPor || '-'}</div>
+                    <div><strong>Técnico:</strong> {viewingTicket.tecnico || '-'}</div>
+                    <div><strong>Agendamento:</strong> {viewingTicket.agendamentoData ? `${new Date(viewingTicket.agendamentoData).toLocaleDateString('pt-BR')}${viewingTicket.agendamentoHora ? ` às ${viewingTicket.agendamentoHora}` : ''}` : '-'}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
+                <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>Observações e fechamento</div>
+                <div style={{fontSize:'13px', color:'#334155', lineHeight:1.7}}>
+                  <div style={{marginBottom:'10px'}}><strong>Observações:</strong><br />{viewingTicket.obs || 'Nenhuma observação.'}</div>
+                  <div><strong>Fechamento:</strong><br />{viewingTicket.resolucao || 'Chamado ainda sem fechamento registrado.'}</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{display:'flex', justifyContent:'flex-end', gap:'10px', marginTop:'20px'}}>
+              <button className="btn-new" style={{background:'#64748b'}} onClick={() => setViewingTicket(null)}>Fechar</button>
+              <button className="btn-new btn-green" onClick={() => { setViewingTicket(null); openEditTicket(viewingTicket); }}>Editar atendimento</button>
+            </div>
           </div>
         </div>
       )}
