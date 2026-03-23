@@ -795,16 +795,16 @@ export default function AdminDashboard() {
       `}} />
 
       <aside className="sidebar">
-        <div className="logo-container"><img src="/logo-admin.png" className="logo-img" alt="InfotchÃª" /><span className="logo-subtext">InfotchÃª</span></div>
+        <div className="logo-container"><img src="/logo-admin.png" className="logo-img" alt="Infotche" /><span className="logo-subtext">INFOTCHÊ</span></div>
         <div className="nav-links">
           <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}><span className="nav-icon">{'\u{1F4CA}'}</span>Dashboard</div>
           <div className={`nav-item ${activeTab === 'historico' ? 'active' : ''}`} onClick={() => setActiveTab('historico')}><span className="nav-icon">{'\u{1F5C2}\uFE0F'}</span>Atendimentos</div>
           <div className={`nav-item ${activeTab === 'massivo' ? 'active' : ''}`} onClick={() => setActiveTab('massivo')}><span className="nav-icon">{'\u{1F4E1}'}</span>Atendimento Massivo</div>
           <div className={`nav-item ${activeTab === 'clientes' ? 'active' : ''}`} onClick={() => setActiveTab('clientes')}><span className="nav-icon">{'\u{1F465}'}</span>Clientes</div>
           <div className={`nav-item ${activeTab === 'categorias' ? 'active' : ''}`} onClick={() => setActiveTab('categorias')}><span className="nav-icon">{'\u{1F3F7}\uFE0F'}</span>Categorias</div>
-          {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">{'\u{1F4C8}'}</span>RelatÃ³rios</div>}
-          {isAdmin && <div className={`nav-item ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}><span className="nav-icon">{'\u{1F510}'}</span>UsuÃ¡rios</div>}
-          {isAdmin && <div className="nav-item" onClick={() => router.push('/admin/orcamentos')}><span className="nav-icon">{'\u{1F4C4}'}</span>Orcamentos</div>}
+          {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">{'\u{1F4C8}'}</span>Relatórios</div>}
+          {isAdmin && <div className={`nav-item ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}><span className="nav-icon">{'\u{1F510}'}</span>Usuários</div>}
+          {isAdmin && <div className="nav-item" onClick={() => router.push('/admin/orcamentos')}><span className="nav-icon">{'\u{1F4C4}'}</span>Orçamentos</div>}
           <div className={`nav-item ${activeTab === 'equipamentos' ? 'active' : ''}`} onClick={() => setActiveTab('equipamentos')}><span className="nav-icon">{'\u{1F4E6}'}</span>Equipamentos</div>
         </div>
       </aside>
@@ -812,7 +812,7 @@ export default function AdminDashboard() {
       <div className="main">
         <header className="top-nav">
           {activeTab === 'dashboard' ? (
-            <input className="search-input" placeholder="ðŸ” Buscar cliente, pppoe, rua..." value={buscaGlobal} onChange={(e) => setBuscaGlobal(e.target.value)} />
+            <input className="search-input" placeholder="Buscar cliente, pppoe, rua..." value={buscaGlobal} onChange={(e) => setBuscaGlobal(e.target.value)} />
           ) : (
             <div style={{width:'280px'}}></div>
           )}
@@ -828,7 +828,7 @@ export default function AdminDashboard() {
               </div>
               <div style={{display:'flex', flexDirection:'column'}}>
                 <span style={{fontSize:'12px', fontWeight:'bold', color:'#2c3e50'}}>{usuarioLogado.nome}</span>
-                <span style={{fontSize:'10px', color:'#3498db', fontWeight:'bold'}}>âœï¸ Editar Perfil</span>
+                <span style={{fontSize:'10px', color:'#3498db', fontWeight:'bold'}}>Editar Perfil</span>
               </div>
             </div>
           )}
@@ -838,7 +838,7 @@ export default function AdminDashboard() {
         {activeTab === 'dashboard' && (
           <>
             <div className="board-header">
-              <h1>GestÃ£o Atendimentos</h1>
+              <h1>Gestão Atendimentos</h1>
               <button className="btn-new" onClick={() => { setEditingTicket(null); setClientSearch(""); setTempClientId(""); setTempConexaoId(""); setTempPppoe(""); setTempSenha(""); setTempContrato(""); setTicketFechamento(""); setTicketAgendamentoData(""); setTicketAgendamentoHora(""); setIsTicketModalOpen(true); }}>+ NOVO CHAMADO</button>
               <button className="btn-new btn-green" onClick={() => { setEditingCliente(null); setIsClientModalOpen(true); }}>+ NOVO CLIENTE</button>
             </div>
