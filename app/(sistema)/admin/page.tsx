@@ -29,10 +29,21 @@ import { KanbanBoard } from './components/KanbanBoard';
 type Conexao = { id: string; contratoMhnet: string | null; endereco: string; bairro: string | null; pppoe: string | null; senhaPpoe: string | null; };
 type Cliente = { id: string; nome: string; cpfCnpj: string | null; email: string | null; whatsapp: string | null; status: string; conexoes: Conexao[]; cidade: string | null; };
 type Categoria = { id: string; nome: string; };
+type TicketFechamentoMidia = {
+  id: string;
+  tipo: string;
+  nomeArquivo: string | null;
+  mimeType?: string | null;
+  arquivoUrl: string;
+  driveFileId?: string | null;
+  transcricao?: string | null;
+  criadoEm?: any;
+};
 type Ticket = { 
   id: string; protocolo: string; clienteId: string | null; conexaoId: string | null; nomeCliente: string; whatsCliente: string | null; enderecoCompleto: string; cidadeCliente: string | null; 
   tecnico: string | null; categoria: string; motivo: string; pppoe: string | null; senhaPpoe: string | null; contratoMhnet: string | null;
-  obs: string | null; abertoPor: string | null; agendamentoData?: any; agendamentoHora?: string | null; resolucao: string | null; prioridade: string; criadoEm: any; fechadoEm?: any; atualizadoEm?: any; status: string; 
+  obs: string | null; abertoPor: string | null; agendamentoData?: any; agendamentoHora?: string | null; resolucao: string | null; prioridade: string; criadoEm: any; fechadoEm?: any; atualizadoEm?: any; status: string;
+  fechamentoTecnicoTexto?: string | null; fechamentoTecnicoTranscricao?: string | null; fechamentoTecnicoPor?: string | null; fechamentoTecnicoEm?: any; midiasFechamento?: TicketFechamentoMidia[];
 };
 
 export default function AdminDashboard() {
@@ -1027,7 +1038,16 @@ export default function AdminDashboard() {
                   {ticketsRelatorio.map(t => (
                     <tr key={t.id}>
                       <td style={{fontWeight:'bold', color:'#3498db'}}>{t.protocolo}</td>
-                      <td><strong>{t.nomeCliente}</strong></td>
+                      <td>
+                        <strong>{t.nomeCliente}</strong>
+                        {t.fechamentoTecnicoEm && (
+                          <div style={{marginTop:'6px'}}>
+                            <span style={{display:'inline-flex', alignItems:'center', gap:'4px', padding:'4px 8px', borderRadius:'999px', background:'#e8fff2', color:'#1f8f55', fontSize:'10px', fontWeight:'bold'}}>
+                              Técnico finalizou
+                            </span>
+                          </div>
+                        )}
+                      </td>
                       <td>{t.categoria}</td>
                       <td><span style={{fontSize:'10px', background: t.prioridade === 'Baixa (Orçamento)' ? '#f39c12' : '#eee', color: t.prioridade === 'Baixa (Orçamento)' ? '#fff' : '#333', padding:'2px 6px', borderRadius:'4px'}}>{t.prioridade || 'Média'}</span></td>
                       <td>{t.status.toUpperCase()}</td>
@@ -1569,6 +1589,59 @@ export default function AdminDashboard() {
                   <div><strong>Fechamento:</strong><br />{viewingTicket.resolucao || 'Chamado ainda sem fechamento registrado.'}</div>
                 </div>
               </div>
+
+              {(viewingTicket.fechamentoTecnicoTexto || viewingTicket.fechamentoTecnicoTranscricao || (viewingTicket.midiasFechamento?.length || 0) > 0) && (
+                <div style={{background:'#fff', border:'1px solid #cde7d7', borderRadius:'10px', padding:'14px'}}>
+                  <div style={{fontSize:'11px', textTransform:'uppercase', color:'#1f8f55', fontWeight:'bold', marginBottom:'8px'}}>Fechamento pelo técnico</div>
+                  <div style={{fontSize:'13px', color:'#334155', lineHeight:1.7}}>
+                    <div style={{marginBottom:'10px'}}>
+                      <strong>Finalizado por:</strong> {viewingTicket.fechamentoTecnicoPor || '-'}
+                      {viewingTicket.fechamentoTecnicoEm ? ` em ${formatDateTime(viewingTicket.fechamentoTecnicoEm)}` : ''}
+                    </div>
+
+                    <div style={{marginBottom:'10px'}}>
+                      <strong>Relato do técnico:</strong><br />
+                      {viewingTicket.fechamentoTecnicoTexto || 'Sem relato digitado.'}
+                    </div>
+
+                    <div style={{marginBottom:'10px'}}>
+                      <strong>Transcrição do áudio:</strong><br />
+                      {viewingTicket.fechamentoTecnicoTranscricao || 'Sem transcrição disponível.'}
+                    </div>
+
+                    {viewingTicket.midiasFechamento && viewingTicket.midiasFechamento.length > 0 && (
+                      <div>
+                        <strong>Arquivos enviados:</strong>
+                        <div style={{display:'flex', flexWrap:'wrap', gap:'8px', marginTop:'10px'}}>
+                          {viewingTicket.midiasFechamento.map((midia) => (
+                            <a
+                              key={midia.id}
+                              href={midia.arquivoUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                display:'inline-flex',
+                                alignItems:'center',
+                                gap:'6px',
+                                padding:'8px 10px',
+                                borderRadius:'999px',
+                                background:'#f0fdf4',
+                                color:'#166534',
+                                fontSize:'12px',
+                                fontWeight:'bold',
+                                textDecoration:'none'
+                              }}
+                            >
+                              <span>{midia.tipo === 'AUDIO' ? 'Áudio' : midia.tipo === 'VIDEO' ? 'Vídeo' : 'Imagem'}</span>
+                              <span style={{opacity:0.7}}>{midia.nomeArquivo || 'Abrir arquivo'}</span>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{display:'flex', justifyContent:'flex-end', gap:'10px', marginTop:'20px'}}>

@@ -56,6 +56,7 @@ export default function FechamentoChamadoTecnicoCard(props: Props) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
   const speechRecognitionRef = useRef<any>(null);
+  const transcricaoBufferRef = useRef('');
 
   const [relatoTexto, setRelatoTexto] = useState(props.fechamentoTecnicoTexto || '');
   const [transcricaoAudio, setTranscricaoAudio] = useState(props.fechamentoTecnicoTranscricao || '');
@@ -155,20 +156,28 @@ export default function FechamentoChamadoTecnicoCard(props: Props) {
       };
       recorder.start();
       mediaRecorderRef.current = recorder;
+      transcricaoBufferRef.current = '';
       setRecording(true);
 
       const SpeechRecognition = ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) as SpeechRecognitionCtor | undefined;
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.lang = 'pt-BR';
-        recognition.interimResults = true;
+        recognition.interimResults = false;
         recognition.continuous = true;
         recognition.onresult = (event) => {
-          let transcript = '';
           for (let index = event.resultIndex; index < event.results.length; index += 1) {
-            transcript += event.results[index][0].transcript;
+            const result = event.results[index];
+            if (!result.isFinal) {
+              continue;
+            }
+            const transcript = result[0]?.transcript?.trim();
+            if (!transcript) {
+              continue;
+            }
+            transcricaoBufferRef.current = `${transcricaoBufferRef.current} ${transcript}`.trim();
           }
-          setTranscricaoAudio((current) => `${current} ${transcript}`.trim());
+          setTranscricaoAudio(transcricaoBufferRef.current);
         };
         recognition.onerror = () => {};
         recognition.onend = () => {
@@ -195,9 +204,17 @@ export default function FechamentoChamadoTecnicoCard(props: Props) {
     setMensagem('');
 
     try {
+      const temMidia = pendingFiles.length > 0;
+      const textoNormalizado = relatoTexto.trim();
+      const transcricaoNormalizada = transcricaoAudio.trim();
+
+      if (!textoNormalizado && !transcricaoNormalizada && !temMidia) {
+        throw new Error('Informe um relato em texto, grave um audio ou anexe midia antes de finalizar.');
+      }
+
       const payload = {
-        relatoTexto,
-        transcricaoAudio,
+        relatoTexto: textoNormalizado,
+        transcricaoAudio: transcricaoNormalizada,
       };
       const formData = new FormData();
       formData.append('payload', JSON.stringify(payload));
@@ -219,7 +236,10 @@ export default function FechamentoChamadoTecnicoCard(props: Props) {
           ? `Chamado concluido com sucesso. ${data.upload.totalArquivos} arquivo(s) enviados para o Drive.`
           : 'Chamado concluido com sucesso.'
       );
-      router.refresh();
+      setTimeout(() => {
+        router.push('/tecnico/chamados');
+        router.refresh();
+      }, 600);
     } catch (cause) {
       setErro(cause instanceof Error ? cause.message : 'Falha ao finalizar chamado.');
     } finally {

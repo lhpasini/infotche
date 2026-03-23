@@ -122,14 +122,14 @@ export async function POST(
     const relatoTexto = payload.relatoTexto?.trim() || '';
     const transcricaoAudio = payload.transcricaoAudio?.trim() || '';
 
-    if (!relatoTexto && !transcricaoAudio) {
+    const files = formData.getAll('files').filter((entry): entry is File => entry instanceof File);
+
+    if (!relatoTexto && !transcricaoAudio && files.length === 0) {
       return NextResponse.json(
-        { error: 'Informe um relato em texto ou grave um audio antes de finalizar.' },
+        { error: 'Informe um relato em texto, grave um audio ou anexe midia antes de finalizar.' },
         { status: 400 }
       );
     }
-
-    const files = formData.getAll('files').filter((entry): entry is File => entry instanceof File);
     const mediasCriadas = [];
 
     for (const file of files) {

@@ -22,6 +22,11 @@ function parseDateOnlyAsLocalDate(value: string | null | undefined) {
 export async function getChamados() {
   try {
     return await prisma.chamado.findMany({
+      include: {
+        midiasFechamento: {
+          orderBy: { criadoEm: 'desc' },
+        },
+      },
       orderBy: { criadoEm: 'desc' },
     });
   } catch (error) {
