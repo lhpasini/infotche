@@ -29,6 +29,7 @@ model Cliente {
   
   conexoes Conexao[] 
   chamados Chamado[] 
+  atendimentosMassivos AtendimentoMassivoCliente[]
   
   criadoEm DateTime  @default(now())
 }
@@ -45,6 +46,7 @@ model Conexao {
   cliente       Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
   
   chamados      Chamado[] 
+  atendimentosMassivos AtendimentoMassivoCliente[]
 }
 
 model Chamado {
@@ -142,6 +144,7 @@ model Usuario {
   // Relação com as capturas feitas pelo técnico
   capturas                CapturaEquipamento[]
   atendimentosEquipamento AtendimentoEquipamento[]
+  atendimentosMassivos    AtendimentoMassivo[]
   orcamentosCriados       Orcamento[]
 }
 
@@ -227,6 +230,53 @@ model TipoAtendimentoEquipamento {
   atualizadoEm DateTime @updatedAt
 
   @@index([ativo, ordem])
+}
+
+model AtendimentoMassivo {
+  id                String                     @id @default(uuid())
+  abertoEm          DateTime                   @default(now())
+  problema          String
+  latitude          Float?
+  longitude         Float?
+  observacoesEquipe String?
+  textoWhatsapp     String?
+  encerramentoInfo  String?
+  status            String                     @default("ABERTO")
+  finalizadoEm      DateTime?
+  criadoPorId       String?
+  criadoPor         Usuario?                   @relation(fields: [criadoPorId], references: [id], onDelete: SetNull)
+  clientesAfetados  AtendimentoMassivoCliente[]
+  criadoEm          DateTime                   @default(now())
+  atualizadoEm      DateTime                   @updatedAt
+
+  @@index([abertoEm])
+  @@index([problema])
+  @@index([criadoPorId])
+  @@index([status])
+}
+
+model AtendimentoMassivoCliente {
+  id            String             @id @default(uuid())
+  atendimentoId String
+  atendimento   AtendimentoMassivo @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  clienteId     String?
+  cliente       Cliente?           @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  conexaoId     String?
+  conexao       Conexao?           @relation(fields: [conexaoId], references: [id], onDelete: SetNull)
+  nomeCliente   String
+  rua           String?
+  tecnicoResponsavel String?
+  chamadoEm     DateTime?
+  normalizado   Boolean            @default(false)
+  normalizadoEm DateTime?
+  ordem         Int                @default(0)
+  criadoEm      DateTime           @default(now())
+  atualizadoEm  DateTime           @updatedAt
+
+  @@index([atendimentoId, ordem])
+  @@index([clienteId])
+  @@index([conexaoId])
+  @@index([nomeCliente])
 }
 
 model Orcamento {

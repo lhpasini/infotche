@@ -9,6 +9,7 @@ import { getChamados, createChamado, updateChamadoStatus, updateChamado, deleteC
 import { importarHistoricoLegado, buscarHistoricoLegado, getUltimosLegado, limparHistoricoLegado } from '../../actions/legado';
 import { fazerLogout, getSessao } from '../../actions/auth';
 import { getUsuarios, upsertUsuario, deleteUsuario, atualizarMeuPerfil, toggleUsuarioAtivo } from '../../actions/usuarios';
+import { getAtendimentosMassivosAdmin } from '../../actions/atendimentos-massivos';
 import {
   buscarArquivoMortoWhatsapp,
   deleteRegistroEquipamentoAdmin,
@@ -21,6 +22,7 @@ import {
   upsertTipoAtendimentoEquipamento,
   updateRegistroEquipamentoAdmin,
 } from '../../actions/tecnico-registros';
+import { AtendimentoMassivoPanel } from './components/AtendimentoMassivoPanel';
 import { TabelaClientes } from './components/TabelaClientes';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -35,7 +37,7 @@ type Ticket = {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clientes' | 'categorias' | 'relatorios' | 'historico' | 'usuarios' | 'equipamentos'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clientes' | 'categorias' | 'relatorios' | 'historico' | 'usuarios' | 'equipamentos' | 'massivo'>('dashboard');
   const [abaEquipamentos, setAbaEquipamentos] = useState<'registros' | 'arquivo-morto' | 'tipos'>('registros');
   
   const [usuarioLogado, setUsuarioLogado] = useState<{id: string, nome: string, role: string} | null>(null);
@@ -96,6 +98,7 @@ export default function AdminDashboard() {
   type ArquivoMortoWhatsappAdmin = { id: string; dataTexto: string | null; dataMensagem: any; autor: string | null; conteudo: string | null; arquivoNome: string | null; arquivoUrl: string | null; mensagemBruta: string | null; importacao: { nomeArquivo: string; criadoEm: any } };
   type TipoAtendimentoEquipamento = { id: string; nome: string; ativo: boolean; ordem: number; };
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [atendimentosMassivos, setAtendimentosMassivos] = useState<any[]>([]);
   const [registrosEquipamentos, setRegistrosEquipamentos] = useState<RegistroEquipamento[]>([]);
   const [arquivoMortoEquipamentos, setArquivoMortoEquipamentos] = useState<ArquivoMortoWhatsappAdmin[]>([]);
   const [tiposAtendimentoEquipamento, setTiposAtendimentoEquipamento] = useState<TipoAtendimentoEquipamento[]>([]);
@@ -116,8 +119,8 @@ export default function AdminDashboard() {
 
   async function loadData() {
     setLoading(true);
-    const [cats, clis, tks, usrs, sessao, registros] = await Promise.all([ getCategorias(), getClientes(), getChamados(), getUsuarios(), getSessao(), getRegistrosEquipamentosAdmin() ]);
-    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as unknown as Usuario[]); setUsuarioLogado(sessao); setRegistrosEquipamentos(registros as RegistroEquipamento[]);
+    const [cats, clis, tks, usrs, sessao, registros, massivos] = await Promise.all([ getCategorias(), getClientes(), getChamados(), getUsuarios(), getSessao(), getRegistrosEquipamentosAdmin(), getAtendimentosMassivosAdmin() ]);
+    setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as unknown as Usuario[]); setUsuarioLogado(sessao); setRegistrosEquipamentos(registros as RegistroEquipamento[]); setAtendimentosMassivos(massivos as any[]);
     setLoading(false);
   }
 
@@ -795,6 +798,7 @@ export default function AdminDashboard() {
         <div className="nav-links">
           <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}><span className="nav-icon">{'\u{1F4CA}'}</span>Dashboard</div>
           <div className={`nav-item ${activeTab === 'historico' ? 'active' : ''}`} onClick={() => setActiveTab('historico')}><span className="nav-icon">{'\u{1F5C2}\uFE0F'}</span>Atendimentos</div>
+          <div className={`nav-item ${activeTab === 'massivo' ? 'active' : ''}`} onClick={() => setActiveTab('massivo')}><span className="nav-icon">{'\u{1F4E1}'}</span>Atendimento Massivo</div>
           <div className={`nav-item ${activeTab === 'clientes' ? 'active' : ''}`} onClick={() => setActiveTab('clientes')}><span className="nav-icon">{'\u{1F465}'}</span>Clientes</div>
           <div className={`nav-item ${activeTab === 'categorias' ? 'active' : ''}`} onClick={() => setActiveTab('categorias')}><span className="nav-icon">{'\u{1F3F7}\uFE0F'}</span>Categorias</div>
           {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">{'\u{1F4C8}'}</span>Relatórios</div>}
@@ -839,6 +843,15 @@ export default function AdminDashboard() {
             </div>
             <KanbanBoard tickets={ticketsDashboard} expandedId={expandedTicketId} setExpandedId={setExpandedTicketId} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnter={(e) => e.preventDefault()} onDrop={handleDrop} onEdit={openEditTicket} onDelete={async (id) => { if(confirm('Excluir chamado?')) { await deleteChamado(id); loadData(); } }} />
           </>
+        )}
+
+        {activeTab === 'massivo' && (
+          <AtendimentoMassivoPanel
+            registros={atendimentosMassivos}
+            clientes={clientes as any}
+            usuarioLogado={usuarioLogado}
+            onRefresh={loadData}
+          />
         )}
 
         {/* --- ABA USUÁRIOS --- */}
