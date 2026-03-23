@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -186,7 +186,7 @@ export function AtendimentoMassivoPanel({
       longitude: null,
       observacoesEquipe: '',
       textoWhatsapp:
-        'Oi! Estamos com uma instabilidade massiva na regiao e nossa equipe ja esta atuando. Assim que tivermos previsao de normalizacao, avisamos por aqui.',
+        'Oi! Estamos com uma instabilidade massiva na região e nossa equipe já está atuando. Assim que tivermos previsão de normalização, avisamos por aqui.',
       encerramentoInfo: '',
       status: 'ABERTO',
       finalizadoEm: '',
@@ -572,12 +572,12 @@ export function AtendimentoMassivoPanel({
 
                 <div style={{ display: 'grid', gap: '14px' }}>
                   <div className="field">
-                    <label>Anotacoes da equipe</label>
+                    <label>Anotações da equipe</label>
                     <textarea
                       value={draft.observacoesEquipe}
                       onChange={(e) => setDraft({ ...draft, observacoesEquipe: e.target.value })}
                       style={{ minHeight: '88px' }}
-                      placeholder="Previsao, recados internos, atualizacoes tecnicas..."
+                      placeholder="Previsão, recados internos, atualizações técnicas..."
                     />
                   </div>
 
@@ -601,7 +601,7 @@ export function AtendimentoMassivoPanel({
                   </div>
 
                   <div className="field">
-                    <label>Informacoes do fim do atendimento</label>
+                    <label>Informações do fim do atendimento</label>
                     <textarea
                       value={draft.encerramentoInfo}
                       onChange={(e) => setDraft({ ...draft, encerramentoInfo: e.target.value })}
@@ -845,3 +845,4 @@ export function AtendimentoMassivoPanel({
     </div>
   );
 }
+
