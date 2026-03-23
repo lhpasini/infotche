@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
     loadEquipamentosContexto();
   }, [activeTab, abaEquipamentos, equipamentoLegadoBusca, equipamentoLegadoAutor, equipamentoLegadoDataInicio, equipamentoLegadoDataFim]);
 
-  // INJEÇÃO DINÂMICA: Puxa a cidade direto do cadastro do cliente em tempo real!
+  // INJEÃ‡ÃƒO DINÃ‚MICA: Puxa a cidade direto do cadastro do cliente em tempo real!
   const ticketsComCidade = tickets.map(t => {
     if (!t.clienteId) return t; // Se for chamado avulso, ignora
     const clienteVinculado = clientes.find(c => c.id === t.clienteId);
@@ -200,13 +200,13 @@ export default function AdminDashboard() {
     return true;
   });
 
-  const todosTecnicos = Array.from(new Set(ticketsFiltrados.map(t => t.tecnico || 'Sem Técnico')));
+  const todosTecnicos = Array.from(new Set(ticketsFiltrados.map(t => t.tecnico || 'Sem TÃ©cnico')));
   
   const ticketsRelatorio = ticketsFiltrados.filter(t => {
     if (relStatus === 'abertos' && t.status === 'concluidos') return false;
     if (relStatus === 'concluidos' && t.status !== 'concluidos') return false;
     if (relCats.length > 0 && !relCats.includes(t.categoria)) return false;
-    if (relTecs.length > 0 && !relTecs.includes(t.tecnico || 'Sem Técnico')) return false;
+    if (relTecs.length > 0 && !relTecs.includes(t.tecnico || 'Sem TÃ©cnico')) return false;
     return true;
   });
 
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
     });
 
     if (!resposta.sucesso) {
-      alert(resposta.erro || 'Não foi possível atualizar o registro.');
+      alert(resposta.erro || 'NÃ£o foi possÃ­vel atualizar o registro.');
       return;
     }
 
@@ -310,13 +310,13 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteRegistroEquipamento = async (id: string) => {
-    if (!confirm('Apagar este registro de equipamento? Esta ação remove o atendimento e todos os itens vinculados.')) {
+    if (!confirm('Apagar este registro de equipamento? Esta aÃ§Ã£o remove o atendimento e todos os itens vinculados.')) {
       return;
     }
 
     const resposta = await deleteRegistroEquipamentoAdmin(id);
     if (!resposta.sucesso) {
-      alert(resposta.erro || 'Não foi possível remover o registro.');
+      alert(resposta.erro || 'NÃ£o foi possÃ­vel remover o registro.');
       return;
     }
 
@@ -333,7 +333,7 @@ export default function AdminDashboard() {
     });
 
     if (!resposta.sucesso) {
-      alert(resposta.erro || 'Não foi possível salvar o tipo de atendimento.');
+      alert(resposta.erro || 'NÃ£o foi possÃ­vel salvar o tipo de atendimento.');
       return;
     }
 
@@ -350,7 +350,7 @@ export default function AdminDashboard() {
 
     const resposta = await deleteTipoAtendimentoEquipamento(id);
     if (!resposta.sucesso) {
-      alert(resposta.erro || 'Não foi possível apagar o tipo de atendimento.');
+      alert(resposta.erro || 'NÃ£o foi possÃ­vel apagar o tipo de atendimento.');
       return;
     }
 
@@ -359,8 +359,8 @@ export default function AdminDashboard() {
   };
 
   const chamadosPorCategoria = ticketsRelatorio.reduce((acc, t) => { acc[t.categoria] = (acc[t.categoria] || 0) + 1; return acc; }, {} as Record<string, number>);
-  const chamadosPorTecnico = ticketsRelatorio.reduce((acc, t) => { const tec = t.tecnico || 'Sem Técnico'; acc[tec] = (acc[tec] || 0) + 1; return acc; }, {} as Record<string, number>);
-  const chamadosPorPrioridade = ticketsRelatorio.reduce((acc, t) => { acc[t.prioridade || 'Média'] = (acc[t.prioridade || 'Média'] || 0) + 1; return acc; }, {} as Record<string, number>);
+  const chamadosPorTecnico = ticketsRelatorio.reduce((acc, t) => { const tec = t.tecnico || 'Sem TÃ©cnico'; acc[tec] = (acc[tec] || 0) + 1; return acc; }, {} as Record<string, number>);
+  const chamadosPorPrioridade = ticketsRelatorio.reduce((acc, t) => { acc[t.prioridade || 'MÃ©dia'] = (acc[t.prioridade || 'MÃ©dia'] || 0) + 1; return acc; }, {} as Record<string, number>);
 
   const slaBuckets = { '< 12h': 0, '12h - 24h': 0, '24h - 36h': 0, '36h - 48h': 0, '> 48h': 0 };
   let slaTotalHoras = 0;
@@ -622,10 +622,10 @@ export default function AdminDashboard() {
           await addConexao(editingCliente.id, dadosConexao);
         }
       }
-      alert('âœ… Cliente atualizado com sucesso!'); 
+      alert('Ã¢Å“â€¦ Cliente atualizado com sucesso!'); 
     } else {
       await createCliente(dadosCliente, dadosConexao); 
-      alert('âœ… Novo cliente cadastrado com sucesso!');
+      alert('Ã¢Å“â€¦ Novo cliente cadastrado com sucesso!');
       setIsClientModalOpen(false); 
     }
     
@@ -643,7 +643,7 @@ export default function AdminDashboard() {
     if (cli) setEditingCliente(cli as any); setIsConexaoModalOpen(false); setEditingConexao(null);
   };
 
-  // --- FUNÇÕES DO ARQUIVO MORTO ---
+  // --- FUNÃ‡Ã•ES DO ARQUIVO MORTO ---
   const handlePesquisaLegado = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (legadoBusca.trim() === '') { carregarUltimosLegado(legadoLimit); return; }
@@ -653,7 +653,7 @@ export default function AdminDashboard() {
   };
 
   const handleLimparLegado = async () => {
-    if (confirm('ATENÇÃO: Isso vai apagar TODOS os registros do Arquivo Morto para você importar um arquivo novo. Tem certeza?')) {
+    if (confirm('ATENÃ‡ÃƒO: Isso vai apagar TODOS os registros do Arquivo Morto para vocÃª importar um arquivo novo. Tem certeza?')) {
       await limparHistoricoLegado();
       setLegadoResultados([]);
       alert('Arquivo Morto limpo com sucesso! Pode importar o novo arquivo.');
@@ -674,12 +674,12 @@ export default function AdminDashboard() {
       for (let i = 1; i < linhas.length; i++) {
         const linha = linhas[i];
         
-        // 1. Extração Inteligente de Data
+        // 1. ExtraÃ§Ã£o Inteligente de Data
         const regexData = /(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})/;
         const matchData = linha.match(regexData);
         let dataEncontrada = matchData ? matchData[0] : 'Sem Data';
         
-        // 2. Extração Inteligente de Resumo (Baseado nos "Pipes" | do seu sistema)
+        // 2. ExtraÃ§Ã£o Inteligente de Resumo (Baseado nos "Pipes" | do seu sistema)
         let resumoEncontrado = 'Importado de Planilha Antiga';
         if (linha.includes('|')) {
             const partes = linha.split('|').map(p => p.trim()).filter(p => p.length > 0);
@@ -709,7 +709,7 @@ export default function AdminDashboard() {
         salvos += lote.length;
       }
 
-      alert(`✅ Sucesso! ${salvos} registros antigos foram importados para o Arquivo Morto.`);
+      alert(`âœ… Sucesso! ${salvos} registros antigos foram importados para o Arquivo Morto.`);
       setIsImporting(false);
       carregarUltimosLegado(legadoLimit); 
     };
@@ -795,15 +795,15 @@ export default function AdminDashboard() {
       `}} />
 
       <aside className="sidebar">
-        <div className="logo-container"><img src="/logo-admin.png" className="logo-img" alt="Infotchê" /><span className="logo-subtext">Infotchê</span></div>
+        <div className="logo-container"><img src="/logo-admin.png" className="logo-img" alt="InfotchÃª" /><span className="logo-subtext">InfotchÃª</span></div>
         <div className="nav-links">
           <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}><span className="nav-icon">{'\u{1F4CA}'}</span>Dashboard</div>
           <div className={`nav-item ${activeTab === 'historico' ? 'active' : ''}`} onClick={() => setActiveTab('historico')}><span className="nav-icon">{'\u{1F5C2}\uFE0F'}</span>Atendimentos</div>
           <div className={`nav-item ${activeTab === 'massivo' ? 'active' : ''}`} onClick={() => setActiveTab('massivo')}><span className="nav-icon">{'\u{1F4E1}'}</span>Atendimento Massivo</div>
           <div className={`nav-item ${activeTab === 'clientes' ? 'active' : ''}`} onClick={() => setActiveTab('clientes')}><span className="nav-icon">{'\u{1F465}'}</span>Clientes</div>
           <div className={`nav-item ${activeTab === 'categorias' ? 'active' : ''}`} onClick={() => setActiveTab('categorias')}><span className="nav-icon">{'\u{1F3F7}\uFE0F'}</span>Categorias</div>
-          {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">{'\u{1F4C8}'}</span>Relatórios</div>}
-          {isAdmin && <div className={`nav-item ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}><span className="nav-icon">{'\u{1F510}'}</span>Usuários</div>}
+          {isAdmin && <div className={`nav-item ${activeTab === 'relatorios' ? 'active' : ''}`} onClick={() => setActiveTab('relatorios')}><span className="nav-icon">{'\u{1F4C8}'}</span>RelatÃ³rios</div>}
+          {isAdmin && <div className={`nav-item ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}><span className="nav-icon">{'\u{1F510}'}</span>UsuÃ¡rios</div>}
           {isAdmin && <div className="nav-item" onClick={() => router.push('/admin/orcamentos')}><span className="nav-icon">{'\u{1F4C4}'}</span>Orcamentos</div>}
           <div className={`nav-item ${activeTab === 'equipamentos' ? 'active' : ''}`} onClick={() => setActiveTab('equipamentos')}><span className="nav-icon">{'\u{1F4E6}'}</span>Equipamentos</div>
         </div>
@@ -812,7 +812,7 @@ export default function AdminDashboard() {
       <div className="main">
         <header className="top-nav">
           {activeTab === 'dashboard' ? (
-            <input className="search-input" placeholder="🔍 Buscar cliente, pppoe, rua..." value={buscaGlobal} onChange={(e) => setBuscaGlobal(e.target.value)} />
+            <input className="search-input" placeholder="ðŸ” Buscar cliente, pppoe, rua..." value={buscaGlobal} onChange={(e) => setBuscaGlobal(e.target.value)} />
           ) : (
             <div style={{width:'280px'}}></div>
           )}
@@ -828,7 +828,7 @@ export default function AdminDashboard() {
               </div>
               <div style={{display:'flex', flexDirection:'column'}}>
                 <span style={{fontSize:'12px', fontWeight:'bold', color:'#2c3e50'}}>{usuarioLogado.nome}</span>
-                <span style={{fontSize:'10px', color:'#3498db', fontWeight:'bold'}}>✏️ Editar Perfil</span>
+                <span style={{fontSize:'10px', color:'#3498db', fontWeight:'bold'}}>âœï¸ Editar Perfil</span>
               </div>
             </div>
           )}
@@ -838,7 +838,7 @@ export default function AdminDashboard() {
         {activeTab === 'dashboard' && (
           <>
             <div className="board-header">
-              <h1>Gestão Atendimentos</h1>
+              <h1>GestÃ£o Atendimentos</h1>
               <button className="btn-new" onClick={() => { setEditingTicket(null); setClientSearch(""); setTempClientId(""); setTempConexaoId(""); setTempPppoe(""); setTempSenha(""); setTempContrato(""); setTicketFechamento(""); setTicketAgendamentoData(""); setTicketAgendamentoHora(""); setIsTicketModalOpen(true); }}>+ NOVO CHAMADO</button>
               <button className="btn-new btn-green" onClick={() => { setEditingCliente(null); setIsClientModalOpen(true); }}>+ NOVO CLIENTE</button>
             </div>
@@ -855,15 +855,15 @@ export default function AdminDashboard() {
           />
         )}
 
-        {/* --- ABA USUÁRIOS --- */}
+        {/* --- ABA USUÃRIOS --- */}
         {activeTab === 'usuarios' && isAdmin && (
           <div style={{padding:'30px'}}>
             <div style={{display:'flex', justifyContent:'space-between', marginBottom:'20px'}}>
               <h1>Controle de Acesso</h1>
-              <button className="btn-new" onClick={() => { setEditingUsuario(null); setIsUserModalOpen(true); }}>+ NOVO USUÁRIO</button>
+              <button className="btn-new" onClick={() => { setEditingUsuario(null); setIsUserModalOpen(true); }}>+ NOVO USUÃRIO</button>
             </div>
             <table className="data-table">
-              <thead><tr><th>NOME</th><th>LOGIN</th><th>PERMISSÃO</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
+              <thead><tr><th>NOME</th><th>LOGIN</th><th>PERMISSÃƒO</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
               <tbody>
                 {usuarios.map(usr => (
                   <tr key={usr.id}>
@@ -903,15 +903,15 @@ export default function AdminDashboard() {
         {activeTab === 'relatorios' && isAdmin && (
           <div style={{padding:'30px', overflowY:'auto'}}>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
-              <h1>Relatórios e Estatísticas</h1>
+              <h1>RelatÃ³rios e EstatÃ­sticas</h1>
             </div>
 
             <div className="filter-panel">
               <div className="filter-row">
-                <div className="filter-label">Período:</div>
+                <div className="filter-label">PerÃ­odo:</div>
                 <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
                   <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} style={{padding:'6px', border:'1px solid #ddd', borderRadius:'4px', fontSize:'12px'}} />
-                  <span>até</span>
+                  <span>atÃ©</span>
                   <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} style={{padding:'6px', border:'1px solid #ddd', borderRadius:'4px', fontSize:'12px'}} />
                 </div>
               </div>
@@ -932,7 +932,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="filter-row">
-                <div className="filter-label">Técnicos:</div>
+                <div className="filter-label">TÃ©cnicos:</div>
                 <div className="pill-container">
                   {todosTecnicos.map(tec => (
                     <div key={tec} className={`pill ${relTecs.includes(tec) ? 'active' : ''}`} onClick={() => togglePill(tec, relTecs, setRelTecs)}>{tec}</div>
@@ -944,21 +944,21 @@ export default function AdminDashboard() {
             <div className="report-grid">
               <div className="report-card" style={{borderLeftColor: '#3498db'}}>
                 <div><h3>Filtrados</h3><div className="value">{ticketsRelatorio.length}</div></div>
-                <span style={{fontSize:'30px'}}>📋</span>
+                <span style={{fontSize:'30px'}}>ðŸ“‹</span>
               </div>
               <div className="report-card" style={{borderLeftColor: '#2ecc71'}}>
-                <div><h3>Concluídos (SLA)</h3><div className="value">{slaContador}</div></div>
-                <span style={{fontSize:'30px'}}>✅</span>
+                <div><h3>ConcluÃ­dos (SLA)</h3><div className="value">{slaContador}</div></div>
+                <span style={{fontSize:'30px'}}>âœ…</span>
               </div>
               <div className="report-card" style={{borderLeftColor: '#9b59b6'}}>
-                <div><h3>Tempo Médio</h3><div className="value">{slaMedio}h</div></div>
-                <span style={{fontSize:'30px'}}>⏱️</span>
+                <div><h3>Tempo MÃ©dio</h3><div className="value">{slaMedio}h</div></div>
+                <span style={{fontSize:'30px'}}>â±ï¸</span>
               </div>
             </div>
 
             <div className="chart-row">
               <div className="chart-box">
-                <h3>Divisão por Categoria</h3>
+                <h3>DivisÃ£o por Categoria</h3>
                 <div className="pie-container">
                   <div className="pie" style={{ background: generatePieChart(chamadosPorCategoria) }}></div>
                   <div className="pie-legend">
@@ -973,7 +973,7 @@ export default function AdminDashboard() {
               </div>
               
               <div className="chart-box">
-                <h3>SLA: Tempo de Resolução (Em Horas) <span style={{fontSize:'10px', color:'#7f8c8d', fontWeight:'normal'}}>Apenas Concluídos</span></h3>
+                <h3>SLA: Tempo de ResoluÃ§Ã£o (Em Horas) <span style={{fontSize:'10px', color:'#7f8c8d', fontWeight:'normal'}}>Apenas ConcluÃ­dos</span></h3>
                 <div className="bar-chart-container">
                   {Object.entries(slaBuckets).map(([label, val]) => (
                     <div key={label} className="bar-item">
@@ -990,7 +990,7 @@ export default function AdminDashboard() {
 
             <div className="chart-row">
               <div className="chart-box">
-                <h3>Técnicos Responsáveis</h3>
+                <h3>TÃ©cnicos ResponsÃ¡veis</h3>
                 <div className="pie-container">
                   <div className="pie" style={{ background: generatePieChart(chamadosPorTecnico) }}></div>
                   <div className="pie-legend">
@@ -1004,7 +1004,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="chart-box">
-                <h3>Análise de Prioridades (Filtro de Orçamentos)</h3>
+                <h3>AnÃ¡lise de Prioridades (Filtro de OrÃ§amentos)</h3>
                 <div className="pie-container">
                   <div className="pie" style={{ background: generatePieChart(chamadosPorPrioridade) }}></div>
                   <div className="pie-legend">
@@ -1029,7 +1029,7 @@ export default function AdminDashboard() {
                       <td style={{fontWeight:'bold', color:'#3498db'}}>{t.protocolo}</td>
                       <td><strong>{t.nomeCliente}</strong></td>
                       <td>{t.categoria}</td>
-                      <td><span style={{fontSize:'10px', background: t.prioridade === 'Baixa (Orçamento)' ? '#f39c12' : '#eee', color: t.prioridade === 'Baixa (Orçamento)' ? '#fff' : '#333', padding:'2px 6px', borderRadius:'4px'}}>{t.prioridade || 'Média'}</span></td>
+                      <td><span style={{fontSize:'10px', background: t.prioridade === 'Baixa (OrÃ§amento)' ? '#f39c12' : '#eee', color: t.prioridade === 'Baixa (OrÃ§amento)' ? '#fff' : '#333', padding:'2px 6px', borderRadius:'4px'}}>{t.prioridade || 'MÃ©dia'}</span></td>
                       <td>{t.status.toUpperCase()}</td>
                     </tr>
                   ))}
@@ -1045,15 +1045,15 @@ export default function AdminDashboard() {
           <div style={{padding:'30px', overflowY:'auto'}}>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
               <div style={{display:'flex', gap:'10px'}}>
-                <button className={`btn-tab ${abaHistorico === 'sistema' ? 'active' : ''}`} onClick={() => setAbaHistorico('sistema')}>📋 Chamados do Sistema</button>
-                <button className={`btn-tab ${abaHistorico === 'legado' ? 'active' : ''}`} onClick={() => setAbaHistorico('legado')}>🗄️ Arquivo Morto (Antigos)</button>
+                <button className={`btn-tab ${abaHistorico === 'sistema' ? 'active' : ''}`} onClick={() => setAbaHistorico('sistema')}>ðŸ“‹ Chamados do Sistema</button>
+                <button className={`btn-tab ${abaHistorico === 'legado' ? 'active' : ''}`} onClick={() => setAbaHistorico('legado')}>ðŸ—„ï¸ Arquivo Morto (Antigos)</button>
               </div>
 
               {abaHistorico === 'sistema' ? (
                 <div style={{display:'flex', gap:'10px', alignItems:'center', background:'#fff', padding:'10px', borderRadius:'8px'}}>
-                  <input className="search-input" style={{width:'280px'}} placeholder="🔍 Buscar cliente, protocolo, categoria..." value={buscaHistoricoSistema} onChange={e => setBuscaHistoricoSistema(e.target.value)} />
+                  <input className="search-input" style={{width:'280px'}} placeholder="ðŸ” Buscar cliente, protocolo, categoria..." value={buscaHistoricoSistema} onChange={e => setBuscaHistoricoSistema(e.target.value)} />
                   <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
-                  <span>até</span>
+                  <span>atÃ©</span>
                   <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
                 </div>
               ) : (
@@ -1061,7 +1061,7 @@ export default function AdminDashboard() {
                   <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                     {isImporting && <span style={{fontSize:'12px', color:'#f39c12', fontWeight:'bold'}}>Importando... Pode levar 1 minuto.</span>}
                     <label className="btn-new btn-green" style={{cursor:'pointer', margin:0}}>
-                      {isImporting ? '⏳ AGUARDE...' : '📥 IMPORTAR ARQUIVO CSV'}
+                      {isImporting ? 'â³ AGUARDE...' : 'ðŸ“¥ IMPORTAR ARQUIVO CSV'}
                       <input type="file" accept=".csv" style={{display:'none'}} onChange={handleUploadLegado} disabled={isImporting} />
                     </label>
                   </div>
@@ -1080,7 +1080,13 @@ export default function AdminDashboard() {
                       <td><strong>{t.nomeCliente}</strong></td>
                       <td>{t.categoria}</td>
                       <td><span style={{padding:'4px 8px', borderRadius:'4px', color:'#fff', fontSize:'11px', fontWeight:'bold', background: t.status === 'novos' ? '#3498db' : t.status === 'agendados' ? '#f39c12' : t.status === 'andamento' ? '#1abc9c' : '#2ecc71'}}>{t.status.toUpperCase()}</span></td>
-                      <td><button onClick={async () => { if(confirm('Apagar?')) { await deleteChamado(t.id); loadData(); } }} style={{background:'none', border:'none', cursor:'pointer'}}>🗑️</button></td>
+                      <td>
+                        <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                          <button onClick={() => setViewingTicket(t)} style={{background:'none', border:'none', cursor:'pointer'}} title="Visualizar atendimento">👁️</button>
+                          <button onClick={() => openEditTicket(t)} style={{background:'none', border:'none', cursor:'pointer'}} title="Editar atendimento">✏️</button>
+                          <button onClick={async () => { if(confirm('Apagar?')) { await deleteChamado(t.id); loadData(); } }} style={{background:'none', border:'none', cursor:'pointer'}} title="Apagar atendimento">🗑️</button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                   {ticketsFiltrados.length === 0 && <tr><td colSpan={5} style={{textAlign:'center', color:'#999'}}>Nenhum chamado no período.</td></tr>}
@@ -1094,7 +1100,7 @@ export default function AdminDashboard() {
                 <div style={{display:'flex', gap:'15px', marginBottom:'20px'}}>
                   <form onSubmit={handlePesquisaLegado} style={{display:'flex', gap:'10px', flex: 1}}>
                     <input type="text" className="search-input" style={{flex:1}} placeholder="Busque por Nome do Cliente no Arquivo Morto..." value={legadoBusca} onChange={e => setLegadoBusca(e.target.value)} />
-                    <button type="submit" className="btn-new">🔍 BUSCAR NO PASSADO</button>
+                    <button type="submit" className="btn-new">ðŸ” BUSCAR NO PASSADO</button>
                   </form>
                   
                   <div style={{display:'flex', alignItems:'center', gap:'10px', background:'#f4f7f9', padding:'0 15px', borderRadius:'6px', border:'1px solid #dfe6ed'}}>
@@ -1108,16 +1114,16 @@ export default function AdminDashboard() {
                       }}
                       style={{border:'none', outline:'none', background:'transparent', fontSize:'12px', fontWeight:'bold', color:'#2c3e50', cursor:'pointer'}}
                     >
-                      <option value={100}>Últimos 100</option>
-                      <option value={500}>Últimos 500</option>
-                      <option value={1000}>Últimos 1000</option>
+                      <option value={100}>Ãšltimos 100</option>
+                      <option value={500}>Ãšltimos 500</option>
+                      <option value={1000}>Ãšltimos 1000</option>
                       <option value="todos">Todos (Lento)</option>
                     </select>
                   </div>
                 </div>
 
                 <table className="data-table">
-                  <thead><tr><th>CLIENTE (LEGADO)</th><th>DATA</th><th>RESUMO</th><th>AÇÃO</th></tr></thead>
+                  <thead><tr><th>CLIENTE (LEGADO)</th><th>DATA</th><th>RESUMO</th><th>AÃ‡ÃƒO</th></tr></thead>
                   <tbody>
                     {legadoResultados.map(leg => (
                       <React.Fragment key={leg.id}>
@@ -1154,12 +1160,12 @@ export default function AdminDashboard() {
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'15px', marginBottom:'20px', flexWrap:'wrap'}}>
               <div>
                 <h1>Controle de Equipamentos</h1>
-                <p style={{fontSize:'12px', color:'#7f8c8d', marginTop:'4px'}}>Registros novos, arquivo morto e tipos de atendimento do módulo técnico.</p>
+                <p style={{fontSize:'12px', color:'#7f8c8d', marginTop:'4px'}}>Registros novos, arquivo morto e tipos de atendimento do mÃ³dulo tÃ©cnico.</p>
               </div>
               <div style={{display:'flex', gap:'10px'}}>
-                <button className={`btn-tab ${abaEquipamentos === 'registros' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('registros')}>📦 Registros</button>
-                <button className={`btn-tab ${abaEquipamentos === 'arquivo-morto' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('arquivo-morto')}>🗄️ Arquivo Morto</button>
-                {isAdmin && <button className={`btn-tab ${abaEquipamentos === 'tipos' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('tipos')}>🧩 Tipos de Atendimento</button>}
+                <button className={`btn-tab ${abaEquipamentos === 'registros' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('registros')}>ðŸ“¦ Registros</button>
+                <button className={`btn-tab ${abaEquipamentos === 'arquivo-morto' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('arquivo-morto')}>ðŸ—„ï¸ Arquivo Morto</button>
+                {isAdmin && <button className={`btn-tab ${abaEquipamentos === 'tipos' ? 'active' : ''}`} onClick={() => setAbaEquipamentos('tipos')}>ðŸ§© Tipos de Atendimento</button>}
               </div>
             </div>
 
@@ -1168,12 +1174,12 @@ export default function AdminDashboard() {
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end', gap:'15px', marginBottom:'20px', flexWrap:'wrap'}}>
                   <div style={{display:'flex', gap:'10px', alignItems:'center', background:'#fff', padding:'10px 12px', borderRadius:'8px'}}>
                     <input type="date" value={equipamentoDataInicio} onChange={(e) => setEquipamentoDataInicio(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
-                    <span>até</span>
+                    <span>atÃ©</span>
                     <input type="date" value={equipamentoDataFim} onChange={(e) => setEquipamentoDataFim(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
                   </div>
                   <input
                     className="search-input"
-                    placeholder="Buscar cliente, técnico, MAC, serial, modelo..."
+                    placeholder="Buscar cliente, tÃ©cnico, MAC, serial, modelo..."
                     value={equipamentoBusca}
                     onChange={(e) => setEquipamentoBusca(e.target.value)}
                     style={{width:'360px'}}
@@ -1192,7 +1198,7 @@ export default function AdminDashboard() {
                           <h3 style={{fontSize:'18px', color:'#2c3e50', margin:0}}>{registro.clienteNome}</h3>
                           <div style={{marginTop:'6px', display:'flex', gap:'8px', flexWrap:'wrap'}}>
                             <span style={{background:'#eaf4ff', color:'#3498db', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{registro.tipoAtendimento}</span>
-                            <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>Técnico: {registro.tecnico?.nome || 'Sem técnico'}</span>
+                            <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>TÃ©cnico: {registro.tecnico?.nome || 'Sem tÃ©cnico'}</span>
                             <span style={{background:'#f4f7f9', color:'#7f8c8d', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>{new Date(registro.criadoEm).toLocaleString('pt-BR')}</span>
                             {registro.alteradoPor && registro.alteradoEm && (
                               <span style={{background:'#f8f1ff', color:'#7c3aed', padding:'4px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'bold'}}>
@@ -1213,7 +1219,7 @@ export default function AdminDashboard() {
                       </div>
 
                       <table className="data-table">
-                        <thead><tr><th>TIPO</th><th>MARCA / MODELO</th><th>MAC</th><th>SERIAL</th><th>CÓDIGO</th><th>FOTO</th></tr></thead>
+                        <thead><tr><th>TIPO</th><th>MARCA / MODELO</th><th>MAC</th><th>SERIAL</th><th>CÃ“DIGO</th><th>FOTO</th></tr></thead>
                         <tbody>
                           {registro.itens.map((item) => (
                             <tr key={item.id}>
@@ -1244,14 +1250,14 @@ export default function AdminDashboard() {
                     style={{width:'360px'}}
                   />
                   <select value={equipamentoLegadoAutor} onChange={(e) => setEquipamentoLegadoAutor(e.target.value)} style={{padding:'12px 14px', border:'1px solid #dce3e8', borderRadius:'8px', fontSize:'12px', minWidth:'220px'}}>
-                    <option value="">Todos os técnicos/autores</option>
+                    <option value="">Todos os tÃ©cnicos/autores</option>
                     {autoresArquivoMortoEquipamentos.map((autor) => (
                       <option key={autor} value={autor}>{autor}</option>
                     ))}
                   </select>
                   <div style={{display:'flex', gap:'10px', alignItems:'center', background:'#fff', padding:'10px 12px', borderRadius:'8px', border:'1px solid #eef2f5'}}>
                     <input type="date" value={equipamentoLegadoDataInicio} onChange={(e) => setEquipamentoLegadoDataInicio(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
-                    <span>até</span>
+                    <span>atÃ©</span>
                     <input type="date" value={equipamentoLegadoDataFim} onChange={(e) => setEquipamentoLegadoDataFim(e.target.value)} style={{fontSize:'12px', border:'1px solid #ddd'}} />
                   </div>
                   <button className="btn-new" onClick={async () => {
@@ -1281,7 +1287,7 @@ export default function AdminDashboard() {
                         </div>
                         {registro.arquivoUrl && <a href={registro.arquivoUrl} target="_blank" rel="noreferrer" style={{color:'#3498db', fontWeight:'bold'}}>Abrir anexo</a>}
                       </div>
-                      <div style={{marginTop:'12px', padding:'12px', borderRadius:'8px', background:'#f8fafc', whiteSpace:'pre-line', color:'#4a5568'}}>{registro.conteudo || 'Sem conteúdo tratado.'}</div>
+                      <div style={{marginTop:'12px', padding:'12px', borderRadius:'8px', background:'#f8fafc', whiteSpace:'pre-line', color:'#4a5568'}}>{registro.conteudo || 'Sem conteÃºdo tratado.'}</div>
                       <details style={{marginTop:'12px'}}>
                         <summary style={{cursor:'pointer', fontWeight:'bold', color:'#64748b'}}>Ver linha bruta</summary>
                         <pre style={{marginTop:'10px', whiteSpace:'pre-wrap', fontSize:'11px', color:'#475569'}}>{registro.mensagemBruta || 'Sem linha bruta.'}</pre>
@@ -1297,7 +1303,7 @@ export default function AdminDashboard() {
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
                   <div>
                     <h3 style={{margin:'0 0 6px 0'}}>Tipos de Atendimento</h3>
-                    <p style={{fontSize:'12px', color:'#7f8c8d', margin:0}}>Esses tipos aparecem no formulário do técnico em `/tecnico/novo`.</p>
+                    <p style={{fontSize:'12px', color:'#7f8c8d', margin:0}}>Esses tipos aparecem no formulÃ¡rio do tÃ©cnico em `/tecnico/novo`.</p>
                   </div>
                   <button className="btn-new" onClick={() => { setEditingTipoAtendimentoEquipamento(null); setIsTipoAtendimentoModalOpen(true); }}>+ NOVO TIPO</button>
                 </div>
@@ -1311,8 +1317,8 @@ export default function AdminDashboard() {
                         <td><strong>{tipo.nome}</strong></td>
                         <td>{tipo.ativo ? 'Ativo' : 'Inativo'}</td>
                         <td>
-                          <button onClick={() => { setEditingTipoAtendimentoEquipamento(tipo); setIsTipoAtendimentoModalOpen(true); }} style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}>✏️</button>
-                          <button onClick={() => handleDeleteTipoAtendimentoEquipamento(tipo.id)} style={{background:'none', border:'none', cursor:'pointer'}}>🗑️</button>
+                          <button onClick={() => { setEditingTipoAtendimentoEquipamento(tipo); setIsTipoAtendimentoModalOpen(true); }} style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}>âœï¸</button>
+                          <button onClick={() => handleDeleteTipoAtendimentoEquipamento(tipo.id)} style={{background:'none', border:'none', cursor:'pointer'}}>ðŸ—‘ï¸</button>
                         </td>
                       </tr>
                     ))}
@@ -1335,7 +1341,7 @@ export default function AdminDashboard() {
               <input
                 className="search-input"
                 style={{width:'100%', maxWidth:'520px'}}
-                placeholder="Buscar cliente, cidade, telefone, CPF, endereÃ§o, bairro, PPPoE ou cÃ³digo Mhnet..."
+                placeholder="Buscar cliente, cidade, telefone, CPF, endereÃƒÂ§o, bairro, PPPoE ou cÃƒÂ³digo Mhnet..."
                 value={buscaClientes}
                 onChange={(e) => setBuscaClientes(e.target.value)}
               />
@@ -1357,8 +1363,8 @@ export default function AdminDashboard() {
                   <tr key={cat.id}>
                     <td><strong>{cat.nome}</strong></td>
                     <td>
-                      <button onClick={() => { setEditingCat(cat); setIsCatModalOpen(true); }} style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}>✏️</button>
-                      <button onClick={async () => { if(confirm('Apagar?')) { await deleteCategoria(cat.id); loadData(); } }} style={{background:'none', border:'none', cursor:'pointer'}}>🗑️</button>
+                      <button onClick={() => { setEditingCat(cat); setIsCatModalOpen(true); }} style={{marginRight:'10px', background:'none', border:'none', cursor:'pointer'}}>âœï¸</button>
+                      <button onClick={async () => { if(confirm('Apagar?')) { await deleteCategoria(cat.id); loadData(); } }} style={{background:'none', border:'none', cursor:'pointer'}}>ðŸ—‘ï¸</button>
                     </td>
                   </tr>
                 ))}
@@ -1371,7 +1377,7 @@ export default function AdminDashboard() {
       {isEquipamentoModalOpen && editingRegistroEquipamento && (
         <div className="modal-overlay" style={{zIndex: 950}}>
           <div className="modal-box" style={{width:'900px'}}>
-            <button type="button" className="btn-close" onClick={() => { setIsEquipamentoModalOpen(false); setEditingRegistroEquipamento(null); }}>✖</button>
+            <button type="button" className="btn-close" onClick={() => { setIsEquipamentoModalOpen(false); setEditingRegistroEquipamento(null); }}>âœ–</button>
             <h2>Editar Registro de Equipamento</h2>
             <form onSubmit={handleSaveRegistroEquipamento}>
               <div className="field-group">
@@ -1421,7 +1427,7 @@ export default function AdminDashboard() {
                         <input value={item.modelo || ''} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, modelo: e.target.value } : currentItem) } : current)} />
                       </div>
                       <div className="field">
-                        <label>Código</label>
+                        <label>CÃ³digo</label>
                         <input value={item.codigoEquipamento || ''} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, codigoEquipamento: e.target.value } : currentItem) } : current)} />
                       </div>
                       <div className="field">
@@ -1461,7 +1467,7 @@ export default function AdminDashboard() {
                 + Adicionar item
               </button>
 
-              <button type="submit" className="btn-new btn-green" style={{width:'100%', marginTop:'15px'}}>Salvar Alterações</button>
+              <button type="submit" className="btn-new btn-green" style={{width:'100%', marginTop:'15px'}}>Salvar AlteraÃ§Ãµes</button>
             </form>
           </div>
         </div>
@@ -1470,7 +1476,7 @@ export default function AdminDashboard() {
       {isTipoAtendimentoModalOpen && (
         <div className="modal-overlay" style={{zIndex: 960}}>
           <div className="modal-box" style={{width:'420px'}}>
-            <button type="button" className="btn-close" onClick={() => { setIsTipoAtendimentoModalOpen(false); setEditingTipoAtendimentoEquipamento(null); }}>✖</button>
+            <button type="button" className="btn-close" onClick={() => { setIsTipoAtendimentoModalOpen(false); setEditingTipoAtendimentoEquipamento(null); }}>âœ–</button>
             <h2>{editingTipoAtendimentoEquipamento ? 'Editar Tipo de Atendimento' : 'Novo Tipo de Atendimento'}</h2>
             <form onSubmit={handleSaveTipoAtendimentoEquipamento}>
               <div className="field-group" style={{gridTemplateColumns:'1fr'}}>
@@ -1499,13 +1505,13 @@ export default function AdminDashboard() {
       {viewingTicket && (
         <div className="modal-overlay" style={{zIndex: 1400}}>
           <div className="modal-box" style={{width:'860px', maxWidth:'94vw'}}>
-            <button type="button" className="btn-close" onClick={() => setViewingTicket(null)}>✖</button>
+            <button type="button" className="btn-close" onClick={() => setViewingTicket(null)}>âœ–</button>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'20px', paddingRight:'30px'}}>
               <div>
                 <h2 style={{margin:'0 0 6px'}}>Atendimento {viewingTicket.protocolo}</h2>
                 <div style={{fontSize:'12px', color:'#7f8c8d'}}>
                   Aberto em {formatDateTime(viewingTicket.criadoEm)}
-                  {viewingTicket.fechadoEm ? ` • Encerrado em ${formatDateTime(viewingTicket.fechadoEm)}` : ''}
+                  {viewingTicket.fechadoEm ? ` â€¢ Encerrado em ${formatDateTime(viewingTicket.fechadoEm)}` : ''}
                 </div>
               </div>
               <span style={{padding:'6px 10px', borderRadius:'999px', color:'#fff', fontSize:'11px', fontWeight:'bold', background: viewingTicket.status === 'novos' ? '#3498db' : viewingTicket.status === 'agendados' ? '#f39c12' : viewingTicket.status === 'andamento' ? '#1abc9c' : '#2ecc71'}}>
@@ -1517,12 +1523,12 @@ export default function AdminDashboard() {
               <div style={{background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
                 <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'6px'}}>Cliente</div>
                 <div style={{fontSize:'18px', fontWeight:'800', color:'#2c3e50'}}>{viewingTicket.nomeCliente}</div>
-                <div style={{fontSize:'12px', color:'#64748b', marginTop:'6px'}}>{viewingTicket.cidadeCliente || 'Cidade não informada'}</div>
+                <div style={{fontSize:'12px', color:'#64748b', marginTop:'6px'}}>{viewingTicket.cidadeCliente || 'Cidade nÃ£o informada'}</div>
               </div>
               <div style={{background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
                 <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'6px'}}>Categoria e prioridade</div>
                 <div style={{fontSize:'15px', fontWeight:'700', color:'#2c3e50'}}>{viewingTicket.categoria}</div>
-                <div style={{fontSize:'12px', color:'#64748b', marginTop:'6px'}}>Prioridade: {viewingTicket.prioridade || 'Média'}</div>
+                <div style={{fontSize:'12px', color:'#64748b', marginTop:'6px'}}>Prioridade: {viewingTicket.prioridade || 'MÃ©dia'}</div>
               </div>
             </div>
 
@@ -1534,30 +1540,30 @@ export default function AdminDashboard() {
 
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
                 <div style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
-                  <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>Local e conexão</div>
+                  <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>Local e conexÃ£o</div>
                   <div style={{fontSize:'13px', color:'#334155', lineHeight:1.7}}>
-                    <div><strong>Endereço:</strong> {viewingTicket.enderecoCompleto || '-'}</div>
+                    <div><strong>EndereÃ§o:</strong> {viewingTicket.enderecoCompleto || '-'}</div>
                     <div><strong>WhatsApp:</strong> {viewingTicket.whatsCliente || '-'}</div>
                     <div><strong>PPPoE:</strong> {viewingTicket.pppoe || '-'}</div>
                     <div><strong>Senha PPPoE:</strong> {viewingTicket.senhaPpoe || '-'}</div>
-                    <div><strong>Código MHNet:</strong> {viewingTicket.contratoMhnet || '-'}</div>
+                    <div><strong>CÃ³digo MHNet:</strong> {viewingTicket.contratoMhnet || '-'}</div>
                   </div>
                 </div>
 
                 <div style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
-                  <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>Responsáveis</div>
+                  <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>ResponsÃ¡veis</div>
                   <div style={{fontSize:'13px', color:'#334155', lineHeight:1.7}}>
                     <div><strong>Aberto por:</strong> {viewingTicket.abertoPor || '-'}</div>
-                    <div><strong>Técnico:</strong> {viewingTicket.tecnico || '-'}</div>
-                    <div><strong>Agendamento:</strong> {viewingTicket.agendamentoData ? `${new Date(viewingTicket.agendamentoData).toLocaleDateString('pt-BR')}${viewingTicket.agendamentoHora ? ` às ${viewingTicket.agendamentoHora}` : ''}` : '-'}</div>
+                    <div><strong>TÃ©cnico:</strong> {viewingTicket.tecnico || '-'}</div>
+                    <div><strong>Agendamento:</strong> {viewingTicket.agendamentoData ? `${new Date(viewingTicket.agendamentoData).toLocaleDateString('pt-BR')}${viewingTicket.agendamentoHora ? ` Ã s ${viewingTicket.agendamentoHora}` : ''}` : '-'}</div>
                   </div>
                 </div>
               </div>
 
               <div style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px'}}>
-                <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>Observações e fechamento</div>
+                <div style={{fontSize:'11px', textTransform:'uppercase', color:'#7f8c8d', fontWeight:'bold', marginBottom:'8px'}}>ObservaÃ§Ãµes e fechamento</div>
                 <div style={{fontSize:'13px', color:'#334155', lineHeight:1.7}}>
-                  <div style={{marginBottom:'10px'}}><strong>Observações:</strong><br />{viewingTicket.obs || 'Nenhuma observação.'}</div>
+                  <div style={{marginBottom:'10px'}}><strong>ObservaÃ§Ãµes:</strong><br />{viewingTicket.obs || 'Nenhuma observaÃ§Ã£o.'}</div>
                   <div><strong>Fechamento:</strong><br />{viewingTicket.resolucao || 'Chamado ainda sem fechamento registrado.'}</div>
                 </div>
               </div>
@@ -1575,7 +1581,7 @@ export default function AdminDashboard() {
       {isTicketModalOpen && (
         <div className="modal-overlay" style={{zIndex: 1000}}>
           <div className="modal-box">
-            <button type="button" className="btn-close" onClick={resetTicketModal}>✖</button>
+            <button type="button" className="btn-close" onClick={resetTicketModal}>âœ–</button>
             <h2>{editingTicket ? `Editar Chamado ${editingTicket.protocolo}` : 'Abertura de Chamado'}</h2>
             <form ref={ticketFormRef} onSubmit={handleSaveTicket}>
               <div className="field-group">
@@ -1618,7 +1624,7 @@ export default function AdminDashboard() {
                         const cli = clientes.find(c => c.id === tempClientId);
                         if(cli) { setEditingCliente(cli); setIsClientModalOpen(true); }
                       }} style={{fontSize:'10px', color:'#3498db', background:'none', border:'none', cursor:'pointer', fontWeight:'bold'}}>
-                        ✏️ EDITAR DADOS DESTE CLIENTE
+                        âœï¸ EDITAR DADOS DESTE CLIENTE
                       </button>
                     )}
                   </div>
@@ -1636,7 +1642,7 @@ export default function AdminDashboard() {
                         if (drop) drop.style.display = 'none';
                       }
                     }}
-                    placeholder="Digite o nome (Tecle TAB para ocultar sugestões)..." 
+                    placeholder="Digite o nome (Tecle TAB para ocultar sugestÃµes)..." 
                     required 
                     autoComplete="off" 
                   />
@@ -1657,11 +1663,11 @@ export default function AdminDashboard() {
                 {tempClientId && (
                   <div className="field" style={{gridColumn:'span 2'}}>
                     <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                      <label>2. Instalação / Endereço</label>
-                      <button type="button" onClick={() => { setEditingCliente(clientes.find(c => c.id === tempClientId) || null); setIsConexaoModalOpen(true); }} style={{fontSize:'10px', color:'#3498db', background:'none', border:'none', cursor:'pointer', fontWeight:'bold'}}>+ Nova Instalação</button>
+                      <label>2. InstalaÃ§Ã£o / EndereÃ§o</label>
+                      <button type="button" onClick={() => { setEditingCliente(clientes.find(c => c.id === tempClientId) || null); setIsConexaoModalOpen(true); }} style={{fontSize:'10px', color:'#3498db', background:'none', border:'none', cursor:'pointer', fontWeight:'bold'}}>+ Nova InstalaÃ§Ã£o</button>
                     </div>
                     <select value={tempConexaoId} onChange={(e) => { const cId = e.target.value; setTempConexaoId(cId); const con = clientes.find(cli => cli.id === tempClientId)?.conexoes.find(cx => cx.id === cId); if(con){ setTempPppoe(con.pppoe || ""); setTempSenha(con.senhaPpoe || ""); setTempContrato(con.contratoMhnet || ""); } }}>
-                      <option value="">-- Selecione o Endereço --</option>
+                      <option value="">-- Selecione o EndereÃ§o --</option>
                       {clientes.find(c => c.id === tempClientId)?.conexoes.map(cx => <option key={cx.id} value={cx.id}>{cx.endereco}</option>)}
                     </select>
                   </div>
@@ -1681,10 +1687,10 @@ export default function AdminDashboard() {
                 <div className="field" style={{gridColumn:'span 2'}}><label>Detalhes do Chamado *</label><input name="motivo" required defaultValue={editingTicket?.motivo || ""} placeholder="Descreva o problema inicial..." /></div>
                 
                 <div className="field" style={{gridColumn:'span 2'}}>
-                  <label>Prioridade (Atenção ao SLA) *</label>
-                  <select name="prioridade" required defaultValue={editingTicket?.prioridade || "Média"}>
-                    <option value="Baixa (Orçamento)">Baixa (Orçamentos / Esperando Cliente)</option>
-                    <option value="Média">Média (Padrão)</option>
+                  <label>Prioridade (AtenÃ§Ã£o ao SLA) *</label>
+                  <select name="prioridade" required defaultValue={editingTicket?.prioridade || "MÃ©dia"}>
+                    <option value="Baixa (OrÃ§amento)">Baixa (OrÃ§amentos / Esperando Cliente)</option>
+                    <option value="MÃ©dia">MÃ©dia (PadrÃ£o)</option>
                     <option value="Alta">Alta</option>
                     <option value="Urgente">Urgente (Cabo Rompido / Empresa)</option>
                   </select>
@@ -1692,11 +1698,11 @@ export default function AdminDashboard() {
 
                 <div className="field"><label>PPPoE</label><input name="pppoe" value={tempPppoe} onChange={e => setTempPppoe(e.target.value)} /></div>
                 <div className="field"><label>Senha PPPoE</label><input name="senhaPpoe" value={tempSenha} onChange={e => setTempSenha(e.target.value)} /></div>
-                <div className="field" style={{gridColumn:'span 2'}}><label>Código da Conexão (Mhnet)</label><input name="contratoMhnet" value={tempContrato} onChange={e => setTempContrato(e.target.value)} /></div>
+                <div className="field" style={{gridColumn:'span 2'}}><label>CÃ³digo da ConexÃ£o (Mhnet)</label><input name="contratoMhnet" value={tempContrato} onChange={e => setTempContrato(e.target.value)} /></div>
                 
                 <div className="field"><label>Aberto por</label><input name="abertoPor" value={editingTicket?.abertoPor || usuarioLogado?.nome || "Admin"} readOnly /></div>
                 <div className="field">
-                  <label>Técnico Responsável</label>
+                  <label>TÃ©cnico ResponsÃ¡vel</label>
                   <input 
                     name="tecnico" 
                     list="lista-tecnicos" 
@@ -1707,14 +1713,14 @@ export default function AdminDashboard() {
                   <datalist id="lista-tecnicos">
                     <option value="Renan Vargas" />
                     <option value="GILSON DA COSTA" />
-                    <option value="João Maia" />
+                    <option value="JoÃ£o Maia" />
                     <option value="Luiz Pasini" />
                     <option value="Pedro Zenatti" />
                   </datalist>
                 </div>
 
-                <div className="field" style={{gridColumn:'span 2'}}><label>Observações</label><textarea name="obs" defaultValue={editingTicket?.obs || ""} style={{height:'40px'}} /></div>
-                <div className="field" style={{gridColumn:'span 2'}}><label>Fechamento da Ordem</label><textarea name="resolucao" defaultValue={editingTicket?.resolucao || ""} style={{height:'40px'}} placeholder="Preencher após a conclusão..." /></div>
+                <div className="field" style={{gridColumn:'span 2'}}><label>ObservaÃ§Ãµes</label><textarea name="obs" defaultValue={editingTicket?.obs || ""} style={{height:'40px'}} /></div>
+                <div className="field" style={{gridColumn:'span 2'}}><label>Fechamento da Ordem</label><textarea name="resolucao" defaultValue={editingTicket?.resolucao || ""} style={{height:'40px'}} placeholder="Preencher apÃ³s a conclusÃ£o..." /></div>
               </div>
               <div style={{display:'flex', gap:'10px', marginTop:'10px'}}>
                 <button type="submit" className="btn-new btn-green" style={{width:'100%'}}>{editingTicket ? 'Atualizar Chamado' : 'Salvar e Abrir Chamado'}</button>
@@ -1730,7 +1736,7 @@ export default function AdminDashboard() {
       {isAgendamentoModalOpen && (
         <div className="modal-overlay" style={{zIndex: 1100}}>
           <div className="modal-box" style={{width:'460px'}}>
-            <button type="button" className="btn-close" onClick={resetAgendamentoState}>âœ–</button>
+            <button type="button" className="btn-close" onClick={resetAgendamentoState}>Ã¢Å“â€“</button>
             <h2>Agendar atendimento</h2>
             <div className="field-group" style={{gridTemplateColumns:'1fr'}}>
               <div className="field">
@@ -1758,7 +1764,7 @@ export default function AdminDashboard() {
       {isClientModalOpen && (
         <div className="modal-overlay" style={{zIndex: 2000}}>
           <div className="modal-box" style={{width:'700px'}}>
-            <button type="button" className="btn-close" onClick={() => setIsClientModalOpen(false)}>✖</button>
+            <button type="button" className="btn-close" onClick={() => setIsClientModalOpen(false)}>âœ–</button>
             <h2>{editingCliente ? 'Atualizar Cliente' : 'Cadastro Completo de Cliente'}</h2>
             <form onSubmit={handleSaveCliente}>
               {(() => {
@@ -1775,7 +1781,7 @@ export default function AdminDashboard() {
                         <label>Cidade</label>
                         <select name="cidade" defaultValue={editingCliente?.cidade || ''} style={{padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px'}}>
                           <option value="">-- Selecione ou digite abaixo --</option>
-                          <option value="Santa BÃ¡rbara do Sul">Santa BÃ¡rbara do Sul</option>
+                          <option value="Santa BÃƒÂ¡rbara do Sul">Santa BÃƒÂ¡rbara do Sul</option>
                           <option value="Saldanha Marinho">Saldanha Marinho</option>
                           <option value="Panambi">Panambi</option>
                         </select>
@@ -1792,11 +1798,11 @@ export default function AdminDashboard() {
                         />
                       </div>
                     </div>
-                    <h3 style={{fontSize:'13px', color:'#3498db', borderBottom:'1px solid #eee', paddingBottom:'5px', marginTop:'15px'}}>Dados da ConexÃ£o</h3>
+                    <h3 style={{fontSize:'13px', color:'#3498db', borderBottom:'1px solid #eee', paddingBottom:'5px', marginTop:'15px'}}>Dados da ConexÃƒÂ£o</h3>
                     <div className="field-group">
-                      <div className="field" style={{gridColumn:'span 2'}}><label>EndereÃ§o Completo {!editingCliente && '*'}</label><input name="endereco" required={!editingCliente} defaultValue={conexaoPrincipal?.endereco || ''} /></div>
+                      <div className="field" style={{gridColumn:'span 2'}}><label>EndereÃƒÂ§o Completo {!editingCliente && '*'}</label><input name="endereco" required={!editingCliente} defaultValue={conexaoPrincipal?.endereco || ''} /></div>
                       <div className="field"><label>Bairro</label><input name="bairro" defaultValue={conexaoPrincipal?.bairro || ''} /></div>
-                      <div className="field"><label>CÃ³digo Mhnet</label><input name="contratoMhnet" defaultValue={conexaoPrincipal?.contratoMhnet || ''} /></div>
+                      <div className="field"><label>CÃƒÂ³digo Mhnet</label><input name="contratoMhnet" defaultValue={conexaoPrincipal?.contratoMhnet || ''} /></div>
                       <div className="field"><label>PPPoE</label><input name="pppoe" defaultValue={conexaoPrincipal?.pppoe || ''} /></div>
                       <div className="field"><label>Senha PPPoE</label><input name="senhaPpoe" defaultValue={conexaoPrincipal?.senhaPpoe || ''} /></div>
                     </div>
@@ -1809,21 +1815,21 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* --- MODAL CONEXÃO E CATEGORIA INTACTOS --- */}
+      {/* --- MODAL CONEXÃƒO E CATEGORIA INTACTOS --- */}
       {isConexaoModalOpen && (
         <div className="modal-overlay" style={{zIndex:3000}}>
           <div className="modal-box" style={{width:'500px'}}>
-            <button type="button" className="btn-close" onClick={() => setIsConexaoModalOpen(false)}>✖</button>
-            <h2>Nova Instalação para {editingCliente?.nome}</h2>
+            <button type="button" className="btn-close" onClick={() => setIsConexaoModalOpen(false)}>âœ–</button>
+            <h2>Nova InstalaÃ§Ã£o para {editingCliente?.nome}</h2>
             <form onSubmit={handleSaveConexao}>
               <div className="field-group">
-                <div className="field" style={{gridColumn:'span 2'}}><label>Endereço *</label><input name="endereco" required defaultValue={editingConexao?.endereco} /></div>
+                <div className="field" style={{gridColumn:'span 2'}}><label>EndereÃ§o *</label><input name="endereco" required defaultValue={editingConexao?.endereco} /></div>
                 <div className="field"><label>Bairro</label><input name="bairro" defaultValue={editingConexao?.bairro || ''} /></div>
-                <div className="field"><label>Cód. Contrato</label><input name="contratoMhnet" defaultValue={editingConexao?.contratoMhnet || ''} /></div>
+                <div className="field"><label>CÃ³d. Contrato</label><input name="contratoMhnet" defaultValue={editingConexao?.contratoMhnet || ''} /></div>
                 <div className="field"><label>PPPoE</label><input name="pppoe" defaultValue={editingConexao?.pppoe || ''} /></div>
                 <div className="field"><label>Senha</label><input name="senhaPpoe" defaultValue={editingConexao?.senhaPpoe || ''} /></div>
               </div>
-              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'10px'}}>Salvar Conexão</button>
+              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'10px'}}>Salvar ConexÃ£o</button>
             </form>
           </div>
         </div>
@@ -1844,8 +1850,8 @@ export default function AdminDashboard() {
       {isUserModalOpen && (
         <div className="modal-overlay" style={{zIndex:5000}}>
           <div className="modal-box" style={{width:'400px'}}>
-            <button type="button" className="btn-close" onClick={() => setIsUserModalOpen(false)}>✖</button>
-            <h2>{editingUsuario ? 'Editar Usuário' : 'Novo Usuário'}</h2>
+            <button type="button" className="btn-close" onClick={() => setIsUserModalOpen(false)}>âœ–</button>
+            <h2>{editingUsuario ? 'Editar UsuÃ¡rio' : 'Novo UsuÃ¡rio'}</h2>
             <form onSubmit={async (e) => { 
               e.preventDefault(); 
               const formData = new FormData(e.currentTarget); 
@@ -1856,7 +1862,7 @@ export default function AdminDashboard() {
               };
               const resposta = await upsertUsuario(editingUsuario?.id || null, data); 
               if (!resposta.sucesso) {
-                alert(resposta.erro || 'Não foi possível salvar o usuário.');
+                alert(resposta.erro || 'NÃ£o foi possÃ­vel salvar o usuÃ¡rio.');
                 return;
               }
               loadData(); setIsUserModalOpen(false); 
@@ -1865,13 +1871,13 @@ export default function AdminDashboard() {
                 <div className="field"><label>Nome Completo *</label><input name="nome" required defaultValue={editingUsuario?.nome} /></div>
                 <div className="field"><label>Login de Acesso *</label><input name="login" required defaultValue={editingUsuario?.login} disabled={editingUsuario?.login === 'admin'} style={{textTransform:'lowercase'}} /></div>
                 <div className="field">
-                  <label>Senha {editingUsuario ? '(Deixe em branco para não alterar)' : '*'}</label>
+                  <label>Senha {editingUsuario ? '(Deixe em branco para nÃ£o alterar)' : '*'}</label>
                   <input type="password" name="senha" required={!editingUsuario} minLength={4} />
                 </div>
                 <div className="field">
-                  <label>Permissão *</label>
+                  <label>PermissÃ£o *</label>
                   <select name="role" required defaultValue={editingUsuario?.role || 'TECNICO'} disabled={editingUsuario?.login === 'admin'}>
-                    <option value="TECNICO">Técnico (Apenas Kanban, Clientes, Legado)</option>
+                    <option value="TECNICO">TÃ©cnico (Apenas Kanban, Clientes, Legado)</option>
                     <option value="ADMIN">Administrador (Acesso Total)</option>
                   </select>
                 </div>
@@ -1883,7 +1889,7 @@ export default function AdminDashboard() {
                   </select>
                 </div>
               </div>
-              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar Usuário</button>
+              <button type="submit" className="btn-new" style={{width:'100%', marginTop:'15px'}}>Salvar UsuÃ¡rio</button>
             </form>
           </div>
         </div>
@@ -1892,7 +1898,7 @@ export default function AdminDashboard() {
       {isPerfilModalOpen && usuarioLogado && (
         <div className="modal-overlay" style={{zIndex:6000}}>
           <div className="modal-box" style={{width:'400px'}}>
-            <button type="button" className="btn-close" onClick={() => setIsPerfilModalOpen(false)}>✖</button>
+            <button type="button" className="btn-close" onClick={() => setIsPerfilModalOpen(false)}>âœ–</button>
             <h2>Meu Perfil</h2>
             <form onSubmit={async (e) => { 
               e.preventDefault(); 
@@ -1921,3 +1927,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
