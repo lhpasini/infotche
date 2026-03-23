@@ -74,13 +74,33 @@ model Chamado {
   abertoPor        String?  @default("Admin")
   agendamentoData  DateTime?
   agendamentoHora  String?
-  resolucao        String?  
-  prioridade       String   @default("Média")
+  resolucao        String?
+  fechamentoTecnicoTexto       String?
+  fechamentoTecnicoTranscricao String?
+  fechamentoTecnicoPor         String?
+  fechamentoTecnicoEm          DateTime?
+  prioridade       String   @default("M??dia")
   status           String   @default("novos") 
 
   criadoEm         DateTime @default(now())
   fechadoEm        DateTime?
   atualizadoEm     DateTime @updatedAt
+  midiasFechamento ChamadoFechamentoMidia[]
+}
+
+model ChamadoFechamentoMidia {
+  id          String   @id @default(uuid())
+  chamadoId   String
+  chamado     Chamado  @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+  tipo        String
+  nomeArquivo String?
+  mimeType    String?
+  arquivoUrl  String
+  driveFileId String?
+  transcricao String?
+  criadoEm    DateTime @default(now())
+
+  @@index([chamadoId, tipo])
 }
 
 // -------------------------------------------------

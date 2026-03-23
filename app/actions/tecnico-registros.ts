@@ -34,6 +34,9 @@ export async function getResumoTecnico() {
   }
 
   const recentes = await prisma.atendimentoEquipamento.findMany({
+    where: {
+      tecnicoId: sessao.id,
+    },
     include: {
       itens: true,
       tecnico: true,
@@ -43,6 +46,34 @@ export async function getResumoTecnico() {
   });
 
   return { sessao, recentes };
+}
+
+export async function getRegistroEquipamentoTecnicoById(id: string) {
+  const sessao = await getAuthSession();
+
+  if (!sessao) {
+    return null;
+  }
+
+  const registro = await prisma.atendimentoEquipamento.findUnique({
+    where: { id },
+    include: {
+      tecnico: true,
+      itens: true,
+    },
+  });
+
+  if (!registro) {
+    return null;
+  }
+
+  const podeVer = sessao.role === 'ADMIN' || registro.tecnicoId === sessao.id;
+
+  if (!podeVer) {
+    return null;
+  }
+
+  return { sessao, registro };
 }
 
 export async function getTiposAtendimentoEquipamento() {

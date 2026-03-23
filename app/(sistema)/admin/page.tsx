@@ -622,10 +622,10 @@ export default function AdminDashboard() {
           await addConexao(editingCliente.id, dadosConexao);
         }
       }
-      alert('Ã¢Å“â€¦ Cliente atualizado com sucesso!'); 
+      alert('Cliente atualizado com sucesso!');
     } else {
       await createCliente(dadosCliente, dadosConexao); 
-      alert('Ã¢Å“â€¦ Novo cliente cadastrado com sucesso!');
+      alert('Novo cliente cadastrado com sucesso!');
       setIsClientModalOpen(false); 
     }
     
@@ -1219,7 +1219,7 @@ export default function AdminDashboard() {
                       </div>
 
                       <table className="data-table">
-                        <thead><tr><th>TIPO</th><th>MARCA / MODELO</th><th>MAC</th><th>SERIAL</th><th>CÓDIGO</th><th>FOTO</th></tr></thead>
+                        <thead><tr><th>TIPO</th><th>MARCA / MODELO</th><th>MAC</th><th>SERIAL</th><th>CÓDIGO</th><th>OBSERVAÇÕES</th><th>TEXTO OCR</th><th>FOTO</th></tr></thead>
                         <tbody>
                           {registro.itens.map((item) => (
                             <tr key={item.id}>
@@ -1228,6 +1228,8 @@ export default function AdminDashboard() {
                               <td style={{fontFamily:'monospace'}}>{item.macAddress || '-'}</td>
                               <td style={{fontFamily:'monospace'}}>{item.serialNumber || '-'}</td>
                               <td style={{fontFamily:'monospace'}}>{item.codigoEquipamento || '-'}</td>
+                              <td style={{maxWidth:'180px', whiteSpace:'pre-wrap', color:'#475569'}}>{item.observacao || '-'}</td>
+                              <td style={{maxWidth:'260px', whiteSpace:'pre-wrap', fontSize:'11px', color:'#475569'}}>{item.ocrTextoBruto || '-'}</td>
                               <td>{item.imagemUrl ? <a href={item.imagemUrl} target="_blank" rel="noreferrer" style={{color:'#3498db', fontWeight:'bold'}}>Abrir</a> : '-'}</td>
                             </tr>
                           ))}

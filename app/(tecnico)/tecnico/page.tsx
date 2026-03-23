@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getResumoTecnico } from '../../actions/tecnico-registros';
+import { getResumoChamadosTecnico } from '../../actions/tecnico-chamados';
 import { fazerLogout } from '../../actions/auth';
 
 function formatDate(value: Date | string) {
@@ -9,6 +10,7 @@ function formatDate(value: Date | string) {
 
 export default async function TecnicoDashboardPage() {
   const { sessao, recentes } = await getResumoTecnico();
+  const resumoChamados = await getResumoChamadosTecnico();
 
   if (!sessao) {
     redirect('/tecnico/login');
@@ -71,6 +73,28 @@ export default async function TecnicoDashboardPage() {
         </Link>
 
         <Link
+          href="/tecnico/chamados"
+          className="overflow-hidden rounded-[30px] bg-[linear-gradient(145deg,#14532d_0%,#166534_45%,#14532d_100%)] px-5 py-6 text-white shadow-[0_22px_38px_rgba(21,128,61,0.2)] transition hover:translate-y-[-1px]"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-100">Minha agenda</p>
+              <h2 className="mt-2 text-2xl font-black text-white">Meus atendimentos</h2>
+            </div>
+            <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white">
+              {resumoChamados.total}
+            </span>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-emerald-50">
+            Veja apenas os chamados direcionados para voce, marque inicio e finalize o atendimento com texto, audio e midia.
+          </p>
+          <div className="mt-4 flex gap-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-100">
+            <span>{resumoChamados.agendados} agendado(s)</span>
+            <span>{resumoChamados.andamento} em andamento</span>
+          </div>
+        </Link>
+
+        <Link
           href="/tecnico/historico"
           className="rounded-[30px] border border-white/70 bg-white/95 px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition hover:translate-y-[-1px]"
         >
@@ -92,14 +116,6 @@ export default async function TecnicoDashboardPage() {
           </p>
         </Link>
 
-        <section className="rounded-[28px] border border-emerald-100 bg-[linear-gradient(180deg,#f0fdf4_0%,#ffffff_100%)] px-5 py-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Instalar no celular</p>
-          <h2 className="mt-2 text-lg font-black text-slate-900">Usar como aplicativo</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            No Android, abra o menu do navegador e toque em instalar app ou adicionar a tela inicial para usar o tecnico como atalho.
-          </p>
-        </section>
-
         <section className="rounded-[30px] border border-white/70 bg-white/95 px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -119,7 +135,11 @@ export default async function TecnicoDashboardPage() {
             )}
 
             {recentes.map((registro) => (
-              <div key={registro.id} className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-4">
+              <Link
+                key={registro.id}
+                href={`/tecnico/registros/${registro.id}`}
+                className="block rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-4 transition hover:border-sky-300 hover:bg-white"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-base font-black text-slate-900">{registro.clienteNome}</p>
@@ -133,7 +153,7 @@ export default async function TecnicoDashboardPage() {
                 </div>
                 <p className="mt-3 text-xs text-slate-500">{formatDate(registro.criadoEm)}</p>
                 <p className="mt-1 text-xs text-slate-500">Tecnico: {registro.tecnico?.nome || 'Nao identificado'}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
