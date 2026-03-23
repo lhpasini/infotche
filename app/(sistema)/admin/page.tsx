@@ -129,14 +129,54 @@ export default function AdminDashboard() {
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
   const [isPerfilModalOpen, setIsPerfilModalOpen] = useState(false);
 
-  async function loadData() {
-    setLoading(true);
+  async function loadData(silent = false) {
+    if (!silent) {
+      setLoading(true);
+    }
     const [cats, clis, tks, usrs, sessao, registros, massivos] = await Promise.all([ getCategorias(), getClientes(), getChamados(), getUsuarios(), getSessao(), getRegistrosEquipamentosAdmin(), getAtendimentosMassivosAdmin() ]);
     setCategorias(cats as Categoria[]); setClientes(clis as Cliente[]); setTickets(tks as any[]); setUsuarios(usrs as unknown as Usuario[]); setUsuarioLogado(sessao); setRegistrosEquipamentos(registros as RegistroEquipamento[]); setAtendimentosMassivos(massivos as any[]);
-    setLoading(false);
+    if (!silent) {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    const algumModalAberto =
+      isTicketModalOpen ||
+      isClientModalOpen ||
+      isConexaoModalOpen ||
+      isCatModalOpen ||
+      isUserModalOpen ||
+      isPerfilModalOpen ||
+      isEquipamentoModalOpen ||
+      isTipoAtendimentoModalOpen ||
+      isAgendamentoModalOpen ||
+      Boolean(viewingTicket);
+
+    if (algumModalAberto) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      void loadData(true);
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [
+    activeTab,
+    isTicketModalOpen,
+    isClientModalOpen,
+    isConexaoModalOpen,
+    isCatModalOpen,
+    isUserModalOpen,
+    isPerfilModalOpen,
+    isEquipamentoModalOpen,
+    isTipoAtendimentoModalOpen,
+    isAgendamentoModalOpen,
+    viewingTicket,
+  ]);
 
   const carregarUltimosLegado = async (limite: number | 'todos') => {
     const ultimos = await getUltimosLegado(limite);
