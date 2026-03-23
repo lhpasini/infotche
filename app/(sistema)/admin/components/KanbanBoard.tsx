@@ -46,6 +46,7 @@ const ICONS = {
   copy: '\u{1F4CB}',
   edit: '\u{270F}\u{FE0F}',
   delete: '\u{1F5D1}\u{FE0F}',
+  view: '\u{1F441}\u{FE0F}',
   location: '\u{1F4CD}',
   phone: '\u{1F4F1}',
   category: '\u{1F3F7}\u{FE0F}',
@@ -312,30 +313,6 @@ export function KanbanBoard({
           </span>
         </div>
 
-        {ticket.status === 'concluidos' && onView && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onView(ticket);
-            }}
-            style={{
-              marginTop: '8px',
-              width: '100%',
-              padding: '8px 10px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              borderRadius: '8px',
-              color: '#1e3a8a',
-              fontSize: '11px',
-            }}
-          >
-            Visualizar atendimento
-          </button>
-        )}
-
         {expandedId === ticket.id && (
           <div className="card-details">
             <div className="detail-line"><strong>{ICONS.location} End.:</strong> <span>{ticket.enderecoCompleto}</span></div>
@@ -348,6 +325,18 @@ export function KanbanBoard({
             >
               {ICONS.copy} COPIAR RESUMO TECNICO
             </button>
+            {ticket.status === 'concluidos' && onView && (
+              <button
+                type="button"
+                style={{ marginTop: '8px', width: '100%', padding: '8px', cursor: 'pointer', fontWeight: 'bold', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '4px', color: '#1d4ed8' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onView(ticket);
+                }}
+              >
+                {ICONS.view} VER ATENDIMENTO
+              </button>
+            )}
           </div>
         )}
       </div>
