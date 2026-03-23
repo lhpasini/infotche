@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { buildDriveMediaUrl, inferDriveMediaKind } from '../lib/drive-media';
 
 type Props = {
@@ -10,9 +11,11 @@ type Props = {
   nomeArquivo?: string | null;
   heightClassName?: string;
   compact?: boolean;
+  expandable?: boolean;
 };
 
 export default function DriveMediaPreview(props: Props) {
+  const [open, setOpen] = useState(false);
   const resolvedUrl = buildDriveMediaUrl(props.fileId, props.url);
   const kind = inferDriveMediaKind({
     tipo: props.tipo,
@@ -29,12 +32,20 @@ export default function DriveMediaPreview(props: Props) {
 
   if (kind === 'image') {
     return (
+      <>
       <div className="space-y-3">
-        <img
-          src={resolvedUrl}
-          alt={props.nomeArquivo || 'Imagem enviada'}
-          className={`w-full rounded-2xl border border-slate-200 bg-slate-100 object-cover ${heightClassName}`}
-        />
+        <button
+          type="button"
+          onClick={() => props.expandable && setOpen(true)}
+          className={`w-full ${props.expandable ? 'cursor-zoom-in' : 'cursor-default'} bg-transparent p-0 text-left border-none`}
+          style={{ border: 'none', background: 'transparent' }}
+        >
+          <img
+            src={resolvedUrl}
+            alt={props.nomeArquivo || 'Imagem enviada'}
+            className={`w-full rounded-2xl border border-slate-200 bg-slate-100 object-cover ${heightClassName}`}
+          />
+        </button>
         {!props.compact && (
           <a
             href={resolvedUrl}
@@ -46,6 +57,34 @@ export default function DriveMediaPreview(props: Props) {
           </a>
         )}
       </div>
+      {props.expandable && open && (
+        <div
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-[1700] flex items-center justify-center bg-slate-950/80 p-6"
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="max-h-[92vh] max-w-[92vw] rounded-[28px] bg-white p-4 shadow-2xl"
+          >
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <p className="text-sm font-black text-slate-900">{props.nomeArquivo || 'Imagem enviada'}</p>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700"
+              >
+                Fechar
+              </button>
+            </div>
+            <img
+              src={resolvedUrl}
+              alt={props.nomeArquivo || 'Imagem enviada'}
+              className="max-h-[80vh] max-w-[88vw] rounded-[20px] object-contain"
+            />
+          </div>
+        </div>
+      )}
+      </>
     );
   }
 

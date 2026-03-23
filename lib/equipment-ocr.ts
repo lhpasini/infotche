@@ -31,6 +31,7 @@ const OCR_NOISE_PATTERNS = [
   /QUICK\s*START/gi,
   /HUAWEI\s+AI\s+LIFE/gi,
   /WIFI\s+CERTIFIED/gi,
+  /MADE\s+IN\s+CHINA/gi,
 ];
 
 function cleanValue(value: string | undefined) {
@@ -151,6 +152,7 @@ function sanitizeSerial(value: string) {
   const compact = cleanValue(value)
     .replace(/SCANFORQUICKSTART/gi, '')
     .replace(/QUICKSTART/gi, '')
+    .replace(/MADEINCHINA/gi, '')
     .replace(/\s+/g, '');
 
   if (compact.length > 14 && compact.endsWith('40')) {
@@ -164,6 +166,16 @@ function sanitizeSerial(value: string) {
   return compact;
 }
 
+function sanitizeMacLine(value: string) {
+  return (value || '')
+    .toUpperCase()
+    .replace(/MADEINCHINA/gi, '')
+    .replace(/IPDEFAULT.*/gi, '')
+    .replace(/USER(NAME)?.*/gi, '')
+    .replace(/PASSWORD.*/gi, '')
+    .trim();
+}
+
 export function parseEquipmentText(rawText: string): ParsedEquipmentText {
   const normalized = normalizeInlineText(rawText);
   const upper = normalized.toUpperCase();
@@ -173,11 +185,11 @@ export function parseEquipmentText(rawText: string): ParsedEquipmentText {
   const explicitFiberhomeModel = upper.match(/\bAN5506-01-A\b|\bAN5506-01-B\b|\bAN5506-02-B\b/i);
 
   const labeledMac = findByLabeledLine(
-    [/(?:MAC|MAC ADDRESS)\s*[:#-]?\s*([A-Z0-9 :.-]{10,24})/i],
+    [/(?:MAC|MAC ADDRESS)\s*[:#-]?\s*([A-Z0-9 :.-]{10,32})/i],
     normalized,
   );
   const macPattern = upper.match(
-    /(?:MAC|MAC ADDRESS)\s*[:#-]?\s*([A-F0-9OQI]{12,24})|(?:\b([A-F0-9OQI]{2}(?:[:-]?[A-F0-9OQI]{2}){5})\b)/i,
+    /(?:MAC|MAC ADDRESS)\s*[:#-]?\s*([A-F0-9OQI :.-]{12,32})|(?:\b([A-F0-9OQI]{2}(?:[:-]?[A-F0-9OQI]{2}){5})\b)/i,
   );
   const serial = findBestMatch(
     [
@@ -245,7 +257,8 @@ export function parseEquipmentText(rawText: string): ParsedEquipmentText {
     model = '';
   }
 
-  const macValue = labeledMac || macPattern?.[1] || macPattern?.[2] || '';
+  const compactMacLine = upper.match(/(?:MAC|MAC ADDRESS)\s*[:#-]?\s*([A-Z0-9]{10,20})/i);
+  const macValue = sanitizeMacLine(labeledMac || macPattern?.[1] || macPattern?.[2] || compactMacLine?.[1] || '');
   const formattedMac = macValue ? formatMac(macValue) : '';
 
   return {

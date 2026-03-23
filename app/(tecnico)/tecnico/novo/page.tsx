@@ -107,6 +107,58 @@ async function buildEnhancedImage(file: File) {
   }
 }
 
+async function buildRotatedEnhancedImages(file: File) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await loadImageFromUrl(objectUrl);
+    const variants: Blob[] = [];
+
+    for (const angle of [90, 270]) {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+
+      if (!context) {
+        continue;
+      }
+
+      canvas.width = image.height * 2;
+      canvas.height = image.width * 2;
+
+      context.translate(canvas.width / 2, canvas.height / 2);
+      context.rotate((angle * Math.PI) / 180);
+      context.filter = 'grayscale(1) contrast(1.35) brightness(1.08)';
+      context.drawImage(image, -image.width, -image.height, image.width * 2, image.height * 2);
+
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data;
+
+      for (let index = 0; index < pixels.length; index += 4) {
+        const average = (pixels[index] + pixels[index + 1] + pixels[index + 2]) / 3;
+        const boosted = average > 176 ? 255 : average < 118 ? 0 : Math.min(255, average * 1.08);
+
+        pixels[index] = boosted;
+        pixels[index + 1] = boosted;
+        pixels[index + 2] = boosted;
+      }
+
+      context.putImageData(imageData, 0, 0);
+
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((nextBlob) => resolve(nextBlob), 'image/png', 1);
+      });
+
+      if (blob) {
+        variants.push(blob);
+      }
+    }
+
+    return variants;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 function mergeOcrTexts(primaryText: string, secondaryText: string) {
   if (!secondaryText.trim()) {
     return primaryText;
@@ -205,11 +257,22 @@ export default function NovoRegistroTecnicoPage() {
       const primaryResult = await recognize(file, 'eng');
       const enhancedImage = await buildEnhancedImage(file);
       const secondaryResult = enhancedImage ? await recognize(enhancedImage, 'eng') : null;
-      const mergedText = mergeOcrTexts(
+      let mergedText = mergeOcrTexts(
         primaryResult.data.text || '',
         secondaryResult?.data.text || '',
       );
-      const data = parseEquipmentText(mergedText);
+      let data = parseEquipmentText(mergedText);
+
+      if (!data.macAddress || !data.serialNumber) {
+        const rotatedImages = await buildRotatedEnhancedImages(file);
+
+        for (const rotatedImage of rotatedImages) {
+          const rotatedResult = await recognize(rotatedImage, 'eng');
+          mergedText = mergeOcrTexts(mergedText, rotatedResult.data.text || '');
+        }
+
+        data = parseEquipmentText(mergedText);
+      }
 
       setDraftItem((current) => ({
         ...current,

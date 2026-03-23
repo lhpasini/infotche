@@ -1354,6 +1354,7 @@ export default function AdminDashboard() {
                                       nomeArquivo={item.modelo || item.tipoEquipamento}
                                       heightClassName="h-24"
                                       compact
+                                      expandable
                                     />
                                   </div>
                                 ) : '-'}
