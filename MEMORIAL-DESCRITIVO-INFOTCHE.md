@@ -98,6 +98,7 @@ Funções principais:
 - dashboard simplificado;
 - criação de novo registro de equipamentos;
 - captura de foto na hora ou escolha de imagem do celular;
+- ajuste manual da foto antes do OCR, com zoom, deslocamento e rotaÃ§Ã£o;
 - leitura OCR da etiqueta;
 - revisão e correção manual dos dados;
 - múltiplos itens dentro do mesmo atendimento;
@@ -673,6 +674,15 @@ O OCR já está funcional, mas naturalmente depende de:
 - iluminação;
 - contraste;
 - enquadramento.
+
+O formulÃ¡rio `/tecnico/novo` passou a abrir uma etapa de ajuste da foto antes do OCR. Nessa etapa, o tÃ©cnico pode:
+
+- aproximar a etiqueta com zoom;
+- mover a imagem na horizontal e na vertical;
+- girar a foto em 0Â°, 90Â°, 180Â° ou 270Â°;
+- confirmar a imagem ajustada antes da leitura.
+
+O OCR passa a usar essa imagem ajustada, o que melhora a leitura quando a foto vem inclinada ou com muito fundo ao redor da etiqueta.
 
 Recomendação:
 

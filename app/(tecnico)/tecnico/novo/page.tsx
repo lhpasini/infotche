@@ -21,6 +21,15 @@ type DraftItem = {
   imagePreview: string;
 };
 
+type ImageEditorState = {
+  originalFile: File;
+  previewUrl: string;
+  scale: number;
+  offsetX: number;
+  offsetY: number;
+  rotation: number;
+};
+
 const SERVICE_TYPES = [
   'Nova instalacao',
   'Troca de equipamento',
@@ -159,6 +168,53 @@ async function buildRotatedEnhancedImages(file: File) {
   }
 }
 
+async function renderEditedImage(editor: ImageEditorState) {
+  const image = await loadImageFromUrl(editor.previewUrl);
+  const previewWidth = 280;
+  const previewHeight = 210;
+  const outputWidth = 1600;
+  const outputHeight = 1200;
+  const canvas = document.createElement('canvas');
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
+
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    throw new Error('Nao foi possivel preparar a imagem ajustada.');
+  }
+
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, outputWidth, outputHeight);
+  context.save();
+
+  const baseScale = Math.max(outputWidth / image.width, outputHeight / image.height);
+  const translateX = (editor.offsetX / previewWidth) * outputWidth;
+  const translateY = (editor.offsetY / previewHeight) * outputHeight;
+
+  context.translate(outputWidth / 2 + translateX, outputHeight / 2 + translateY);
+  context.rotate((editor.rotation * Math.PI) / 180);
+  context.scale(baseScale * editor.scale, baseScale * editor.scale);
+  context.drawImage(image, -image.width / 2, -image.height / 2, image.width, image.height);
+  context.restore();
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((nextBlob) => resolve(nextBlob), 'image/jpeg', 0.95);
+  });
+
+  if (!blob) {
+    throw new Error('Nao foi possivel salvar a imagem ajustada.');
+  }
+
+  const extension = editor.originalFile.name.toLowerCase().endsWith('.png') ? 'png' : 'jpg';
+  const fileName = editor.originalFile.name.replace(/\.[^.]+$/, '') || `etiqueta-${Date.now()}`;
+
+  return new File([blob], `${fileName}-ajustada.${extension}`, {
+    type: blob.type || 'image/jpeg',
+    lastModified: Date.now(),
+  });
+}
+
 function mergeOcrTexts(primaryText: string, secondaryText: string) {
   if (!secondaryText.trim()) {
     return primaryText;
@@ -185,6 +241,7 @@ export default function NovoRegistroTecnicoPage() {
   const [submitting, setSubmitting] = useState(false);
   const [mensagem, setMensagem] = useState('');
   const [erro, setErro] = useState('');
+  const [imageEditor, setImageEditor] = useState<ImageEditorState | null>(null);
 
   const canSaveCurrentItem =
     !ocrLoading &&
@@ -233,18 +290,11 @@ export default function NovoRegistroTecnicoPage() {
     setDraftItem(createEmptyItem());
   }
 
-  async function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
+  async function processImageFile(file: File, preview: string) {
     setErro('');
     setMensagem('');
     setOcrLoading(true);
 
-    const preview = URL.createObjectURL(file);
     setDraftItem((current) => ({
       ...current,
       imageFile: file,
@@ -308,8 +358,58 @@ export default function NovoRegistroTecnicoPage() {
       setErro(message);
     } finally {
       setOcrLoading(false);
-      event.target.value = '';
     }
+  }
+
+  function openImageEditor(file: File) {
+    const previewUrl = URL.createObjectURL(file);
+    setImageEditor({
+      originalFile: file,
+      previewUrl,
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+      rotation: 0,
+    });
+  }
+
+  function closeImageEditor() {
+    setImageEditor((current) => {
+      if (current) {
+        URL.revokeObjectURL(current.previewUrl);
+      }
+
+      return null;
+    });
+  }
+
+  async function confirmImageEditor() {
+    if (!imageEditor) {
+      return;
+    }
+
+    try {
+      const adjustedFile = await renderEditedImage(imageEditor);
+      const adjustedPreview = URL.createObjectURL(adjustedFile);
+      closeImageEditor();
+      await processImageFile(adjustedFile, adjustedPreview);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : 'Falha ao ajustar a imagem.';
+      setErro(message);
+    }
+  }
+
+  async function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setErro('');
+    setMensagem('');
+    openImageEditor(file);
+    event.target.value = '';
   }
 
   function saveCurrentItem() {
@@ -533,11 +633,24 @@ export default function NovoRegistroTecnicoPage() {
           </div>
 
           {draftItem.imagePreview && (
-            <img
-              src={draftItem.imagePreview}
-              alt="Previa da etiqueta"
-              className="mt-4 h-44 w-full rounded-[24px] object-cover shadow-sm"
-            />
+            <div className="mt-4">
+              <img
+                src={draftItem.imagePreview}
+                alt="Previa da etiqueta"
+                className="h-44 w-full rounded-[24px] object-cover shadow-sm"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (draftItem.imageFile) {
+                    openImageEditor(draftItem.imageFile);
+                  }
+                }}
+                className="mt-3 rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-black text-sky-700"
+              >
+                Ajustar foto
+              </button>
+            </div>
           )}
 
           <div className="mt-4 grid grid-cols-2 gap-3">
@@ -737,6 +850,132 @@ export default function NovoRegistroTecnicoPage() {
           </button>
         </div>
       </div>
+
+      {imageEditor && (
+        <div className="fixed inset-0 z-[80] bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
+          <div className="mx-auto flex max-w-md flex-col rounded-[28px] border border-white/15 bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.35)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Ajuste da foto</p>
+                <h2 className="mt-2 text-2xl font-black text-slate-900">Recortar etiqueta</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Posicione a etiqueta, aproxime com zoom e gire se precisar. O OCR vai usar essa imagem ajustada.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeImageEditor}
+                className="rounded-full border border-slate-200 px-3 py-2 text-sm font-black text-slate-500"
+              >
+                Fechar
+              </button>
+            </div>
+
+            <div className="mt-5 rounded-[28px] bg-slate-100 p-4">
+              <div className="relative mx-auto h-[210px] w-[280px] overflow-hidden rounded-[24px] border-2 border-dashed border-sky-300 bg-slate-200 shadow-inner">
+                <img
+                  src={imageEditor.previewUrl}
+                  alt="Ajuste da etiqueta"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  style={{
+                    transform: `translate(${imageEditor.offsetX}px, ${imageEditor.offsetY}px) scale(${imageEditor.scale}) rotate(${imageEditor.rotation}deg)`,
+                    transformOrigin: 'center center',
+                  }}
+                />
+              </div>
+              <p className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Area que sera usada na leitura
+              </p>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <label className="block">
+                <span className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Zoom</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.05"
+                  value={imageEditor.scale}
+                  onChange={(event) =>
+                    setImageEditor((current) => current ? { ...current, scale: Number(event.target.value) } : current)
+                  }
+                  className="w-full"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Mover na horizontal</span>
+                <input
+                  type="range"
+                  min="-140"
+                  max="140"
+                  step="1"
+                  value={imageEditor.offsetX}
+                  onChange={(event) =>
+                    setImageEditor((current) => current ? { ...current, offsetX: Number(event.target.value) } : current)
+                  }
+                  className="w-full"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Mover na vertical</span>
+                <input
+                  type="range"
+                  min="-140"
+                  max="140"
+                  step="1"
+                  value={imageEditor.offsetY}
+                  onChange={(event) =>
+                    setImageEditor((current) => current ? { ...current, offsetY: Number(event.target.value) } : current)
+                  }
+                  className="w-full"
+                />
+              </label>
+
+              <div>
+                <span className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Rotacao</span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[0, 90, 180, 270].map((angle) => (
+                    <button
+                      key={angle}
+                      type="button"
+                      onClick={() =>
+                        setImageEditor((current) => current ? { ...current, rotation: angle } : current)
+                      }
+                      className={`rounded-2xl px-3 py-3 text-sm font-black transition ${
+                        imageEditor.rotation === angle
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {angle}°
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={closeImageEditor}
+                className="rounded-[20px] border border-slate-200 px-4 py-4 text-base font-black text-slate-700"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmImageEditor()}
+                className="rounded-[20px] bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_100%)] px-4 py-4 text-base font-black text-white shadow-[0_18px_30px_rgba(2,132,199,0.28)]"
+              >
+                Usar esta foto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
