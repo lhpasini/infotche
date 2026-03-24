@@ -47,6 +47,10 @@ function cleanHexLike(value: string | undefined) {
     .trim();
 }
 
+function normalizeMac(value: string | undefined) {
+  return cleanHexLike(value).slice(0, 12);
+}
+
 function normalizeInlineText(text: string) {
   let normalized = text
     .replace(/\r/g, '\n')
@@ -81,13 +85,13 @@ function normalizeModel(value: string) {
 }
 
 function formatMac(value: string) {
-  const hex = cleanHexLike(value);
+  const hex = normalizeMac(value);
 
   if (hex.length < 12) {
-    return value.trim().toUpperCase();
+    return hex || value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
   }
 
-  return hex.slice(0, 12).match(/.{1,2}/g)?.join(':') || value.trim().toUpperCase();
+  return hex;
 }
 
 function inferEquipmentType(text: string) {

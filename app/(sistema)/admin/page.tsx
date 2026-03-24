@@ -1562,7 +1562,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="field">
                         <label>MAC</label>
-                        <input value={item.macAddress || ''} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, macAddress: e.target.value } : currentItem) } : current)} />
+                        <input value={item.macAddress || ''} onChange={(e) => setEditingRegistroEquipamento((current) => current ? { ...current, itens: current.itens.map((currentItem, itemIndex) => itemIndex === index ? { ...currentItem, macAddress: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) } : currentItem) } : current)} />
                       </div>
                       <div className="field">
                         <label>Serial</label>

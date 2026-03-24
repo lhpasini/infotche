@@ -10,6 +10,10 @@ const DEFAULT_TIPOS_ATENDIMENTO_EQUIPAMENTO = [
   'Cancelamento / devolucao',
 ];
 
+function normalizeMacAddress(value: string | null | undefined) {
+  return (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+}
+
 async function ensureTiposAtendimentoEquipamento() {
   const total = await prisma.tipoAtendimentoEquipamento.count();
 
@@ -489,7 +493,7 @@ export async function updateRegistroEquipamentoAdmin(id: string, data: Equipamen
       marca: item.marca?.trim() || null,
       modelo: item.modelo?.trim() || null,
       codigoEquipamento: item.codigoEquipamento?.trim() || null,
-      macAddress: item.macAddress?.trim() || null,
+      macAddress: normalizeMacAddress(item.macAddress) || null,
       serialNumber: item.serialNumber?.trim() || null,
       usuarioAcesso: item.usuarioAcesso?.trim() || null,
       senhaAcesso: item.senhaAcesso?.trim() || null,

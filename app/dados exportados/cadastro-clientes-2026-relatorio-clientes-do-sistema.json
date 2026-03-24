@@ -1,0 +1,800 @@
+{
+  "linhasLidas": 4914,
+  "linhasIgnoradas": 841,
+  "linhasIgnoradasPorClienteExistente": 35,
+  "clientesUnificados": 2863,
+  "gruposComDuplicidade": 735,
+  "duplicidadesAbsorvidas": 1175,
+  "geradoEm": "2026-03-24T20:17:18.055Z",
+  "arquivoOrigem": "C:\\Users\\lhpas\\OneDrive\\Documentos\\GitHub\\infotche\\app\\dados exportados\\cadastro clientes 2026 .xlsx",
+  "clientesDoSistemaPreservados": 27,
+  "clientesEncontradosNaPlanilha": 22,
+  "clientesNaoEncontradosNaPlanilha": 5,
+  "matches": [
+    {
+      "nome": "Luiz Osorio Dumoncel",
+      "nomeKey": "LUIZ OSORIO DUMONCEL",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "46387331072",
+        "whatsapp": "5599437064",
+        "endereco": "Quadros Lirio, 216",
+        "bairro": "Tiradentes",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 883,
+          "nome": "LUIZ OSORIO DUMONCEL",
+          "nomeKey": "LUIZ OSORIO DUMONCEL",
+          "cpfCnpj": "46387331072",
+          "telefone1": "",
+          "telefone2": "5599437064",
+          "endereco": "QUADROS LIRIO, 216",
+          "bairro": "TIRADENTES",
+          "cidade": "SBS"
+        }
+      ]
+    },
+    {
+      "nome": "Marcelo Gomes",
+      "nomeKey": "MARCELO GOMES",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 2,
+      "dadosSistema": {
+        "cpfCnpj": "70867372087",
+        "whatsapp": "55991635530",
+        "endereco": "Rua Jose Neto, 46",
+        "bairro": "Centro",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 4252,
+          "nome": "MARCELO GOMES",
+          "nomeKey": "MARCELO GOMES",
+          "cpfCnpj": "708.673.720-87",
+          "telefone1": "5.599163553E10",
+          "telefone2": "5.599163553E10",
+          "endereco": "RUA JOSE NETO, 46",
+          "bairro": "Centro",
+          "cidade": "Sta Bárbara do Sul"
+        },
+        {
+          "origemId": 4127,
+          "nome": "MARCELO GOMES",
+          "nomeKey": "MARCELO GOMES",
+          "cpfCnpj": "708.673.720-87",
+          "telefone1": "5.599163553E10",
+          "telefone2": "5.599163553E10",
+          "endereco": "Av. eduardo de brito",
+          "bairro": "Tiradentes",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Aquiles Danilo Dias",
+      "nomeKey": "AQUILES DANILO DIAS",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "01523875011",
+        "whatsapp": "55996993965",
+        "endereco": "Rua Beco Juventude, 151",
+        "bairro": "São Jose",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 2648,
+          "nome": "Aquiles Danilo Dias",
+          "nomeKey": "AQUILES DANILO DIAS",
+          "cpfCnpj": "01523875011",
+          "telefone1": "5.5996389473E10",
+          "telefone2": "5.5996993965E10",
+          "endereco": "Rua Beco Juventude, 151",
+          "bairro": "São Jose",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Bruno Aguiar Da Silva",
+      "nomeKey": "BRUNO AGUIAR DA SILVA",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "02423342020",
+        "whatsapp": "5596777698",
+        "endereco": "Rua João Lauredano Lirio, 157",
+        "bairro": "Fatima",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 2254,
+          "nome": "BRUNO AGUIAR DA SILVA",
+          "nomeKey": "BRUNO AGUIAR DA SILVA",
+          "cpfCnpj": "024.233.420-20",
+          "telefone1": "5.596777698E9",
+          "telefone2": "5.596777698E9",
+          "endereco": "RUA JOÃO LAUREDANO LIRIO, 157",
+          "bairro": "FATIMA",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Ivanete Maria Gehlen",
+      "nomeKey": "IVANETE MARIA GEHLEN",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "00165779063",
+        "whatsapp": "",
+        "endereco": "AV. SILVA TAVARES, 1808",
+        "bairro": "CENTRO",
+        "cidade": "Saldanha"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 567,
+          "nome": "IVANETE MARIA GEHLEN",
+          "nomeKey": "IVANETE MARIA GEHLEN",
+          "cpfCnpj": "00165779063",
+          "telefone1": "",
+          "telefone2": "2793",
+          "endereco": "",
+          "bairro": "CENTRO",
+          "cidade": "SALDANHA"
+        }
+      ]
+    },
+    {
+      "nome": "Deividi Rosa Da Silva",
+      "nomeKey": "DEIVIDI ROSA DA SILVA",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "03856280057",
+        "whatsapp": "55992097870",
+        "endereco": "Rua Jango Mello, 539",
+        "bairro": "Centro",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 3431,
+          "nome": "DEIVIDI ROSA DA SILVA",
+          "nomeKey": "DEIVIDI ROSA DA SILVA",
+          "cpfCnpj": "03856280057",
+          "telefone1": "5.599209787E10",
+          "telefone2": "5.599209787E10",
+          "endereco": "RUA JANGO MELLO, 539",
+          "bairro": "CENTRO",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "NATHA FELIPE KEITEL DE QUADROS",
+      "nomeKey": "NATHA FELIPE KEITEL DE QUADROS",
+      "encontradoNaPlanilha": false,
+      "totalOcorrenciasNaPlanilha": 0,
+      "dadosSistema": {
+        "cpfCnpj": "",
+        "whatsapp": "5599971-6775",
+        "endereco": "Rua Travessa Nilo Felice Orsolini , 195",
+        "bairro": "Aparecida",
+        "cidade": "Santa Bárbara do Sul"
+      },
+      "ocorrenciasPlanilha": []
+    },
+    {
+      "nome": "Paulo Affonso Dumoncel",
+      "nomeKey": "PAULO AFFONSO DUMONCEL",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "04804090053",
+        "whatsapp": "5533721411",
+        "endereco": "Av Coronel Victor Dumoncel, 610",
+        "bairro": "Centro",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 1125,
+          "nome": "PAULO AFFONSO DUMONCEL",
+          "nomeKey": "PAULO AFFONSO DUMONCEL",
+          "cpfCnpj": "4.804090053E9",
+          "telefone1": "",
+          "telefone2": "5.533721411E9",
+          "endereco": "AV CORONEL VICTOR DUMONCEL, 610",
+          "bairro": "CENTRO",
+          "cidade": "SBS"
+        }
+      ]
+    },
+    {
+      "nome": "Rogerio Costella",
+      "nomeKey": "ROGERIO COSTELLA",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "66640610078",
+        "whatsapp": "55996536160",
+        "endereco": "Rua Eduardo De Brito, 9",
+        "bairro": "Centro",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 2382,
+          "nome": "Rogerio Costella",
+          "nomeKey": "ROGERIO COSTELLA",
+          "cpfCnpj": "666.406.100-78",
+          "telefone1": "5.5999631822E10",
+          "telefone2": "5.599653616E10",
+          "endereco": "Rua Eduardo de Brito, 9",
+          "bairro": "Centro",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Natalia Castelli Siqueira",
+      "nomeKey": "NATALIA CASTELLI SIQUEIRA",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "02881119077",
+        "whatsapp": "55997085479",
+        "endereco": "Rua Jacob Limberger, 392",
+        "bairro": "Centro",
+        "cidade": "Saldanha Marinho"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 3194,
+          "nome": "Natalia Castelli Siqueira",
+          "nomeKey": "NATALIA CASTELLI SIQUEIRA",
+          "cpfCnpj": "028.811.190-77",
+          "telefone1": "5.5997163602E10",
+          "telefone2": "5.5997085479E10",
+          "endereco": "Rua Jacob Limberger, 392",
+          "bairro": "Centro",
+          "cidade": "Saldanha Marinho"
+        }
+      ]
+    },
+    {
+      "nome": "Rejane De Fatima Dellay Bender",
+      "nomeKey": "REJANE DE FATIMA DELLAY BENDER",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "92205127004",
+        "whatsapp": "55996197189",
+        "endereco": "Avenida Liberdade 34",
+        "bairro": "Cohab",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 1658,
+          "nome": "REJANE DE FATIMA DELLAY BENDER",
+          "nomeKey": "REJANE DE FATIMA DELLAY BENDER",
+          "cpfCnpj": "9.2205127004E10",
+          "telefone1": "",
+          "telefone2": "5.5996197189E10",
+          "endereco": "AVENIDA LIBERDADE 34",
+          "bairro": "COHAB",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Aline Gularte Besestil",
+      "nomeKey": "ALINE GULARTE BESESTIL",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "93812795000",
+        "whatsapp": "55996732729",
+        "endereco": "Alberto Pasqualini 171, Apto 02",
+        "bairro": "Centro",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 1352,
+          "nome": "Aline Gularte Besestil",
+          "nomeKey": "ALINE GULARTE BESESTIL",
+          "cpfCnpj": "938.127.950-00",
+          "telefone1": "",
+          "telefone2": "55 996732729",
+          "endereco": "Alberto Pasqualini 171, apto 02",
+          "bairro": "Centro",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Igreja Evangelica Assembleia De Deus",
+      "nomeKey": "IGREJA EVANGELICA ASSEMBLEIA DE DEUS",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 2,
+      "dadosSistema": {
+        "cpfCnpj": "04885623000140",
+        "whatsapp": "55981203469",
+        "endereco": "Rua Afonso Vicente Lirio, 289",
+        "bairro": "Aparecida",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 3618,
+          "nome": "IGREJA EVANGELICA ASSEMBLEIA DE DEUS",
+          "nomeKey": "IGREJA EVANGELICA ASSEMBLEIA DE DEUS",
+          "cpfCnpj": "04.885.623/0001-40",
+          "telefone1": "(55) 98120-3469",
+          "telefone2": "(55) 98120-3469",
+          "endereco": "RUA AFONSO VICENTE LIRIO, 289",
+          "bairro": "APARECIDA",
+          "cidade": "Sta Bárbara do Sul"
+        },
+        {
+          "origemId": 2268,
+          "nome": "IGREJA EVANGELICA ASSEMBLEIA DE DEUS",
+          "nomeKey": "IGREJA EVANGELICA ASSEMBLEIA DE DEUS",
+          "cpfCnpj": "04.885.623/0001-40",
+          "telefone1": "5.5999361024E10",
+          "telefone2": "5.5999361024E10",
+          "endereco": "RUA GABRIEL SANTOS, 226",
+          "bairro": "CENTRO",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Vitor Antonio Da Cruz",
+      "nomeKey": "VITOR ANTONIO DA CRUZ",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 2,
+      "dadosSistema": {
+        "cpfCnpj": "05327656055",
+        "whatsapp": "55999527787",
+        "endereco": "Rua Josefa Otero Dumoncel, 356",
+        "bairro": "Morada Do Sol",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 3909,
+          "nome": "Vitor Antonio da Cruz",
+          "nomeKey": "VITOR ANTONIO DA CRUZ",
+          "cpfCnpj": "053.276.560-55",
+          "telefone1": "5.5999234392E10",
+          "telefone2": "5.5999527787E10",
+          "endereco": "RUA JOSEFA OTERO DUMONCEL, 356",
+          "bairro": "Morada do sol",
+          "cidade": "Sta Bárbara do Sul"
+        },
+        {
+          "origemId": 3080,
+          "nome": "Vitor Antonio da Cruz",
+          "nomeKey": "VITOR ANTONIO DA CRUZ",
+          "cpfCnpj": "053.276.560-55",
+          "telefone1": "5.5999234392E10",
+          "telefone2": "5.5999527787E10",
+          "endereco": "Rua Josefa Otero Dumoncel, 371",
+          "bairro": "Morada do sol",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Sinara Regina Malheiros Martins",
+      "nomeKey": "SINARA REGINA MALHEIROS MARTINS",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "01591200040",
+        "whatsapp": "55991308205",
+        "endereco": "Rua Eulino Samuel Da Rosa, 140",
+        "bairro": "Aparecida",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 2088,
+          "nome": "SINARA REGINA MALHEIROS MARTINS",
+          "nomeKey": "SINARA REGINA MALHEIROS MARTINS",
+          "cpfCnpj": "015.912.000-40",
+          "telefone1": "",
+          "telefone2": "5.5991308205E10",
+          "endereco": "RUA EULINO SAMUEL DA ROSA, 140",
+          "bairro": "APARECIDA",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Carlos Roberto Marques De Camargo",
+      "nomeKey": "CARLOS ROBERTO MARQUES DE CAMARGO",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "66640423049",
+        "whatsapp": "55991090571",
+        "endereco": " LAUREDANO LIRIO, 526",
+        "bairro": "Fatima",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 78,
+          "nome": "CARLOS ROBERTO MARQUES DE CAMARGO",
+          "nomeKey": "CARLOS ROBERTO MARQUES DE CAMARGO",
+          "cpfCnpj": "66640423049",
+          "telefone1": "",
+          "telefone2": "381",
+          "endereco": "",
+          "bairro": "FATIMA",
+          "cidade": "SBS"
+        }
+      ]
+    },
+    {
+      "nome": "Ana Flávia Machado",
+      "nomeKey": "ANA FLAVIA MACHADO",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 7,
+      "dadosSistema": {
+        "cpfCnpj": "03004588005",
+        "whatsapp": "55997317152",
+        "endereco": "Alcides Neves 117",
+        "bairro": "Morada Do Sol",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 4112,
+          "nome": "Ana Flávia Machado",
+          "nomeKey": "ANA FLAVIA MACHADO",
+          "cpfCnpj": "03004588005",
+          "telefone1": "5.59913304E10",
+          "telefone2": "5.5997317152E10",
+          "endereco": "Alcides Neves 117",
+          "bairro": "Morada do sol",
+          "cidade": "Sta Bárbara do Sul"
+        },
+        {
+          "origemId": 3926,
+          "nome": "Ana Flávia Machado",
+          "nomeKey": "ANA FLAVIA MACHADO",
+          "cpfCnpj": "03004588005",
+          "telefone1": "5.59913304E10",
+          "telefone2": "5.5997317152E10",
+          "endereco": "Rua Ondina Dumoncel, 306",
+          "bairro": "5548",
+          "cidade": ""
+        },
+        {
+          "origemId": 3825,
+          "nome": "Ana Flávia Machado",
+          "nomeKey": "ANA FLAVIA MACHADO",
+          "cpfCnpj": "03004588005",
+          "telefone1": "5.59913304E10",
+          "telefone2": "5.5997317152E10",
+          "endereco": "cristovão colombo 329",
+          "bairro": "fatima",
+          "cidade": "Sta Bárbara do Sul"
+        },
+        {
+          "origemId": 3727,
+          "nome": "Ana Flávia Machado",
+          "nomeKey": "ANA FLAVIA MACHADO",
+          "cpfCnpj": "03004588005",
+          "telefone1": "5.59913304E10",
+          "telefone2": "5.5997317152E10",
+          "endereco": "RUA JANGO MELLO, 65",
+          "bairro": "Centro",
+          "cidade": "Sta Bárbara do Sul"
+        },
+        {
+          "origemId": 3595,
+          "nome": "Ana Flávia Machado",
+          "nomeKey": "ANA FLAVIA MACHADO",
+          "cpfCnpj": "03004588005",
+          "telefone1": "5.59913304E10",
+          "telefone2": "5.5997317152E10",
+          "endereco": "otto radke 745",
+          "bairro": "Fatima",
+          "cidade": "Sta Bárbara do Sul"
+        },
+        {
+          "origemId": 3594,
+          "nome": "Ana Flávia Machado",
+          "nomeKey": "ANA FLAVIA MACHADO",
+          "cpfCnpj": "03004588005",
+          "telefone1": "5.59913304E10",
+          "telefone2": "5.5997317152E10",
+          "endereco": "Lauredano Lirio 366",
+          "bairro": "Fatima",
+          "cidade": "Sta Bárbara do Sul"
+        },
+        {
+          "origemId": 3261,
+          "nome": "Ana Flávia Machado",
+          "nomeKey": "ANA FLAVIA MACHADO",
+          "cpfCnpj": "03004588005",
+          "telefone1": "5.59913304E10",
+          "telefone2": "5.5997317152E10",
+          "endereco": "Rua Jango Mello, 491",
+          "bairro": "Fatima",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Gustavo Junior De Oliveira",
+      "nomeKey": "GUSTAVO JUNIOR DE OLIVEIRA",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 4,
+      "dadosSistema": {
+        "cpfCnpj": "03233179014",
+        "whatsapp": "054996262310",
+        "endereco": "Rua Prestes Guimarães, 417",
+        "bairro": "Centro",
+        "cidade": "Saldanha Marinho"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 2857,
+          "nome": "Gustavo Junior De Oliveira",
+          "nomeKey": "GUSTAVO JUNIOR DE OLIVEIRA",
+          "cpfCnpj": "032.331.790-14",
+          "telefone1": "",
+          "telefone2": "054 996262310",
+          "endereco": "Rua Prestes Guimarães, 417",
+          "bairro": "Centro",
+          "cidade": "Saldanha Marinho"
+        },
+        {
+          "origemId": 2110,
+          "nome": "Gustavo Junior De Oliveira",
+          "nomeKey": "GUSTAVO JUNIOR DE OLIVEIRA",
+          "cpfCnpj": "032.331.790-14",
+          "telefone1": "",
+          "telefone2": "054 996262310",
+          "endereco": "Rua Cornélio Limberguer, 527",
+          "bairro": "CENTRO",
+          "cidade": "Saldanha Marinho"
+        },
+        {
+          "origemId": 1954,
+          "nome": "Gustavo Junior De Oliveira",
+          "nomeKey": "GUSTAVO JUNIOR DE OLIVEIRA",
+          "cpfCnpj": "032.331.790-14",
+          "telefone1": "",
+          "telefone2": "054 996262310",
+          "endereco": "Rua João Gobbi - 292",
+          "bairro": "CENTRO",
+          "cidade": "Saldanha Marinho"
+        },
+        {
+          "origemId": 863,
+          "nome": "GUSTAVO JUNIOR DE OLIVEIRA",
+          "nomeKey": "GUSTAVO JUNIOR DE OLIVEIRA",
+          "cpfCnpj": "03233179014",
+          "telefone1": "",
+          "telefone2": "5591974253",
+          "endereco": "AFONSO VICENTE LIRIO, 347",
+          "bairro": "APARECIDA",
+          "cidade": "SBS"
+        }
+      ]
+    },
+    {
+      "nome": "Marluce Bolico",
+      "nomeKey": "MARLUCE BOLICO",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "02766394052",
+        "whatsapp": "5591082973",
+        "endereco": "Rua Das Margaridas, 129",
+        "bairro": "Tiradentes",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 906,
+          "nome": "MARLUCE BOLICO",
+          "nomeKey": "MARLUCE BOLICO",
+          "cpfCnpj": "02766394052",
+          "telefone1": "",
+          "telefone2": "5591082973",
+          "endereco": "RUA DAS MARGARIDAS, 129",
+          "bairro": "TIRADENTES",
+          "cidade": "SBS"
+        }
+      ]
+    },
+    {
+      "nome": "Roberto Oliveira Fagundes",
+      "nomeKey": "ROBERTO OLIVEIRA FAGUNDES",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "",
+        "whatsapp": "55999587662",
+        "endereco": "Rua Reinaldo vicente lirio 2690",
+        "bairro": "São Jose",
+        "cidade": "Santa Bárbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 4146,
+          "nome": "roberto oliveira fagundes",
+          "nomeKey": "ROBERTO OLIVEIRA FAGUNDES",
+          "cpfCnpj": "16495",
+          "telefone1": "",
+          "telefone2": "",
+          "endereco": "",
+          "bairro": "juventude",
+          "cidade": ""
+        }
+      ]
+    },
+    {
+      "nome": "BRANDINA LENITA DOS SANTOS OLIVEIRA",
+      "nomeKey": "BRANDINA LENITA DOS SANTOS OLIVEIRA",
+      "encontradoNaPlanilha": false,
+      "totalOcorrenciasNaPlanilha": 0,
+      "dadosSistema": {
+        "cpfCnpj": "",
+        "whatsapp": "55999306024",
+        "endereco": "Rua ALBERTO PASQUALINI, 71",
+        "bairro": "CENTRO",
+        "cidade": "Santa Bárbara do Sul"
+      },
+      "ocorrenciasPlanilha": []
+    },
+    {
+      "nome": "DANIELI MOREIRA CHAVES FEIDEN",
+      "nomeKey": "DANIELI MOREIRA CHAVES FEIDEN",
+      "encontradoNaPlanilha": false,
+      "totalOcorrenciasNaPlanilha": 0,
+      "dadosSistema": {
+        "cpfCnpj": "",
+        "whatsapp": "55996536165",
+        "endereco": "Avenida Presidente Vargas, 295",
+        "bairro": "CENTRO",
+        "cidade": "Santa Bárbara do Sul"
+      },
+      "ocorrenciasPlanilha": []
+    },
+    {
+      "nome": "Rosa Maria Tirloni Vendrusculo",
+      "nomeKey": "ROSA MARIA TIRLONI VENDRUSCULO",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "66919266091",
+        "whatsapp": "55999886499",
+        "endereco": "Reinaldo Cerutti, 191",
+        "bairro": "Cerutti",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 2118,
+          "nome": "ROSA MARIA TIRLONI VENDRUSCULO",
+          "nomeKey": "ROSA MARIA TIRLONI VENDRUSCULO",
+          "cpfCnpj": "669.192.660-91",
+          "telefone1": "",
+          "telefone2": "5.5999886499E10",
+          "endereco": "REINALDO CERUTTI, 191",
+          "bairro": "CERUTTI",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "luiz pasini",
+      "nomeKey": "LUIZ PASINI",
+      "encontradoNaPlanilha": false,
+      "totalOcorrenciasNaPlanilha": 0,
+      "dadosSistema": {
+        "cpfCnpj": "",
+        "whatsapp": "",
+        "endereco": "elena cerutti 377",
+        "bairro": "",
+        "cidade": ""
+      },
+      "ocorrenciasPlanilha": []
+    },
+    {
+      "nome": "Sibeli Florencio",
+      "nomeKey": "SIBELI FLORENCIO",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 2,
+      "dadosSistema": {
+        "cpfCnpj": "01819242005",
+        "whatsapp": "54991046668",
+        "endereco": "Rua Helena Pinto Lírio, 17",
+        "bairro": "Morada Do Sol",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 3784,
+          "nome": "SIBELI FLORENCIO",
+          "nomeKey": "SIBELI FLORENCIO",
+          "cpfCnpj": "018.192.420-05",
+          "telefone1": "5.4996094625E10",
+          "telefone2": "5.4991046668E10",
+          "endereco": "Rua Helena Pinto Lírio, 17",
+          "bairro": "Morada do sol",
+          "cidade": "Sta Bárbara do Sul"
+        },
+        {
+          "origemId": 2593,
+          "nome": "SIBELI FLORENCIO",
+          "nomeKey": "SIBELI FLORENCIO",
+          "cpfCnpj": "018.192.420-05",
+          "telefone1": "5.4996094625E10",
+          "telefone2": "5.4991046668E10",
+          "endereco": "RUA LUCIANO VOLLINO, 337",
+          "bairro": "LOEBLEIN",
+          "cidade": "Sta Bárbara do Sul"
+        }
+      ]
+    },
+    {
+      "nome": "Sabrina de Campos Freitas",
+      "nomeKey": "SABRINA DE CAMPOS FREITAS",
+      "encontradoNaPlanilha": false,
+      "totalOcorrenciasNaPlanilha": 0,
+      "dadosSistema": {
+        "cpfCnpj": "",
+        "whatsapp": "55 99968-3628",
+        "endereco": "Rua Tuiuti 398",
+        "bairro": "centro",
+        "cidade": "Santa Bárbara do Sul"
+      },
+      "ocorrenciasPlanilha": []
+    },
+    {
+      "nome": "Alcides Augusto Burtet Prestes",
+      "nomeKey": "ALCIDES AUGUSTO BURTET PRESTES",
+      "encontradoNaPlanilha": true,
+      "totalOcorrenciasNaPlanilha": 1,
+      "dadosSistema": {
+        "cpfCnpj": "97346020049",
+        "whatsapp": "5591244764",
+        "endereco": "Josefina Dorneles De Brito, 84",
+        "bairro": "Cerutti",
+        "cidade": "Santa Barbara do Sul"
+      },
+      "ocorrenciasPlanilha": [
+        {
+          "origemId": 1107,
+          "nome": "ALCIDES AUGUSTO BURTET PRESTES",
+          "nomeKey": "ALCIDES AUGUSTO BURTET PRESTES",
+          "cpfCnpj": "97346020049",
+          "telefone1": "",
+          "telefone2": "5591244764",
+          "endereco": "JOSEFINA DORNELES DE BRITO, 84",
+          "bairro": "CERUTTI",
+          "cidade": "SBS"
+        }
+      ]
+    }
+  ]
+}

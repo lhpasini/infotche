@@ -27,6 +27,10 @@ type AtendimentoPayload = {
   itens: ItemPayload[];
 };
 
+function normalizeMacAddress(value: string | undefined) {
+  return (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+}
+
 async function buildItensComUpload(payload: AtendimentoPayload, formData: FormData) {
   let imagesReceived = 0;
   let imagesUploaded = 0;
@@ -59,15 +63,15 @@ async function buildItensComUpload(payload: AtendimentoPayload, formData: FormDa
         }
       }
 
-      return {
-        tipoEquipamento: item.tipoEquipamento,
-        marca: item.marca || null,
-        modelo: item.modelo || null,
-        codigoEquipamento: item.codigoEquipamento || null,
-        macAddress: item.macAddress || null,
-        serialNumber: item.serialNumber || null,
-        usuarioAcesso: item.usuarioAcesso || null,
-        senhaAcesso: item.senhaAcesso || null,
+        return {
+          tipoEquipamento: item.tipoEquipamento,
+          marca: item.marca || null,
+          modelo: item.modelo || null,
+          codigoEquipamento: item.codigoEquipamento || null,
+          macAddress: normalizeMacAddress(item.macAddress) || null,
+          serialNumber: item.serialNumber || null,
+          usuarioAcesso: item.usuarioAcesso || null,
+          senhaAcesso: item.senhaAcesso || null,
         observacao: item.observacao || null,
         ocrTextoBruto: item.ocrTextoBruto || null,
         imagemUrl: imagemUrl || null,

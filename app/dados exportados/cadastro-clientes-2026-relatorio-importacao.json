@@ -1,0 +1,211 @@
+{
+  "linhasLidas": 4914,
+  "linhasIgnoradas": 841,
+  "clientesUnificados": 2885,
+  "gruposComDuplicidade": 741,
+  "duplicidadesAbsorvidas": 1188,
+  "geradoEm": "2026-03-24T20:02:16.478Z",
+  "arquivoOrigem": "C:\\Users\\lhpas\\OneDrive\\Documentos\\GitHub\\infotche\\app\\dados exportados\\cadastro clientes 2026 .xlsx",
+  "exemplosDuplicados": [
+    {
+      "nome": "Wellington Adelino Quintalino",
+      "totalDuplicados": 12,
+      "origemMaisNova": 4171,
+      "enderecoEscolhido": "Reinaldo Vicente Lirio, 338",
+      "bairroEscolhido": "Centro",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Valdinei Martins França",
+      "totalDuplicados": 10,
+      "origemMaisNova": 3599,
+      "enderecoEscolhido": "Av. Coronel Vitor Dumoncel 1157 105",
+      "bairroEscolhido": "Centro",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Marcos Andre Weidle",
+      "totalDuplicados": 9,
+      "origemMaisNova": 3319,
+      "enderecoEscolhido": "Travessa Quintilho Pasqualotto, 21",
+      "bairroEscolhido": "Aparecida",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Osmar Dos Santos Costa",
+      "totalDuplicados": 9,
+      "origemMaisNova": 3159,
+      "enderecoEscolhido": "Rua Márcia Volino, 247",
+      "bairroEscolhido": "Loeblein",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Mara Silva",
+      "totalDuplicados": 8,
+      "origemMaisNova": 3792,
+      "enderecoEscolhido": "Travessa Nilo Felice Orsolini, 168",
+      "bairroEscolhido": "Aparecida",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Ana Flávia Machado",
+      "totalDuplicados": 7,
+      "origemMaisNova": 4112,
+      "enderecoEscolhido": "Alcides Neves 117",
+      "bairroEscolhido": "Morada Do Sol",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "André Lasta",
+      "totalDuplicados": 7,
+      "origemMaisNova": 3668,
+      "enderecoEscolhido": "Rua Jesus Rodrigues Polini, 49",
+      "bairroEscolhido": "Aparecida",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Cristiane Teresinha Saldanha Alves Caldeira",
+      "totalDuplicados": 7,
+      "origemMaisNova": 2958,
+      "enderecoEscolhido": "Otto Gollub 143",
+      "bairroEscolhido": "Aparecida",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Roger Alves Da Silva",
+      "totalDuplicados": 7,
+      "origemMaisNova": 3634,
+      "enderecoEscolhido": "Rua Eulino Samuel Da Rosa, 148",
+      "bairroEscolhido": "Aparecida",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Vanderleia Dias",
+      "totalDuplicados": 7,
+      "origemMaisNova": 3899,
+      "enderecoEscolhido": "Rua Loures Albuquerque, 877",
+      "bairroEscolhido": "Aparecida",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Arilson Dos Santos Martins",
+      "totalDuplicados": 6,
+      "origemMaisNova": 3116,
+      "enderecoEscolhido": "Rua Luciano Vollino, 358",
+      "bairroEscolhido": "Loeblein",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Camila Da Silva",
+      "totalDuplicados": 6,
+      "origemMaisNova": 4219,
+      "enderecoEscolhido": "Rua Prestes Guimarães 1077",
+      "bairroEscolhido": "Centro",
+      "cidadeEscolhida": "Saldanha Marinho"
+    },
+    {
+      "nome": "Camila Maciel",
+      "totalDuplicados": 6,
+      "origemMaisNova": 3911,
+      "enderecoEscolhido": "Rua Gabriel Santos 659",
+      "bairroEscolhido": "Centro",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Derli Roque De Godoy",
+      "totalDuplicados": 6,
+      "origemMaisNova": 4228,
+      "enderecoEscolhido": "Rua Gabriel Santos, 205",
+      "bairroEscolhido": "Centro",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Marcos Douglas De Lima Kist",
+      "totalDuplicados": 6,
+      "origemMaisNova": 3993,
+      "enderecoEscolhido": "Rua Serafim Ribas, 46",
+      "bairroEscolhido": "Aparecida",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Vinicius Xavier Pinheiro",
+      "totalDuplicados": 6,
+      "origemMaisNova": 2810,
+      "enderecoEscolhido": "Rua Josefa Otero Dumoncel, 353",
+      "bairroEscolhido": "Morada Do Sol",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Amanda Moreira Fagundes",
+      "totalDuplicados": 5,
+      "origemMaisNova": 4074,
+      "enderecoEscolhido": "Alcides Neves 986, Ap1",
+      "bairroEscolhido": "Morada Do Sol",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Ana Paula Da Silva Lirio",
+      "totalDuplicados": 5,
+      "origemMaisNova": 2584,
+      "enderecoEscolhido": "Travessa Brenner Gonçalves, 23",
+      "bairroEscolhido": "Morada Do Sol",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Bárbara Regina Tasso Ritter",
+      "totalDuplicados": 5,
+      "origemMaisNova": 3524,
+      "enderecoEscolhido": "Rua Alcides Neves 665",
+      "bairroEscolhido": "Morada Do Sol",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Beno Osmar De Faveri",
+      "totalDuplicados": 5,
+      "origemMaisNova": 2307,
+      "enderecoEscolhido": "Rua Alberto Pasqualini, 629",
+      "bairroEscolhido": "Centro",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Carmem Rosane Frá",
+      "totalDuplicados": 5,
+      "origemMaisNova": 2304,
+      "enderecoEscolhido": "Av Prestes Guimaraes 1045",
+      "bairroEscolhido": "Centro",
+      "cidadeEscolhida": "Saldanha Marinho"
+    },
+    {
+      "nome": "Carmen Apolônia Holdefer",
+      "totalDuplicados": 5,
+      "origemMaisNova": 4202,
+      "enderecoEscolhido": "Rua Castro Alves 293",
+      "bairroEscolhido": "Morada Do Sol",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Clarissa Napp Siqueira",
+      "totalDuplicados": 5,
+      "origemMaisNova": 4151,
+      "enderecoEscolhido": "Rua Cristóvão Colombo 34",
+      "bairroEscolhido": "Fatima",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Dari José Wachtmann",
+      "totalDuplicados": 5,
+      "origemMaisNova": 3896,
+      "enderecoEscolhido": "Rua Loures Albuquerque, 750",
+      "bairroEscolhido": "Aparecida",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    },
+    {
+      "nome": "Dienifer Raiana Da Silva Rodrigues",
+      "totalDuplicados": 5,
+      "origemMaisNova": 4153,
+      "enderecoEscolhido": "Cristovao Colombo 743",
+      "bairroEscolhido": "Fatima",
+      "cidadeEscolhida": "Santa Barbara do Sul"
+    }
+  ]
+}

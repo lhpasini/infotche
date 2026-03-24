@@ -70,6 +70,10 @@ function createEmptyItem(): DraftItem {
   };
 }
 
+function normalizeMacInput(value: string) {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+}
+
 function createDraftItemFromRegistro(item: {
   id: string;
   tipoEquipamento: string;
@@ -868,7 +872,7 @@ function NovoRegistroTecnicoContent() {
               <span className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-slate-500">MAC Address</span>
               <input
                 value={draftItem.macAddress}
-                onChange={(event) => updateDraft('macAddress', event.target.value.toUpperCase())}
+                onChange={(event) => updateDraft('macAddress', normalizeMacInput(event.target.value))}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 font-mono text-base outline-none transition focus:border-sky-500 focus:bg-white"
               />
             </label>

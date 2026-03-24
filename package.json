@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "import:whatsapp": "node scripts/import-whatsapp-archive.mjs",
-    "attach:whatsapp-media": "node scripts/attach-whatsapp-media.mjs"
+    "attach:whatsapp-media": "node scripts/attach-whatsapp-media.mjs",
+    "import:clientes:xlsx": "node scripts/import-clientes-xlsx.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
