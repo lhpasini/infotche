@@ -135,10 +135,9 @@ export default async function TecnicoDashboardPage() {
             )}
 
             {recentes.map((registro) => (
-              <Link
+              <div
                 key={registro.id}
-                href={`/tecnico/registros/${registro.id}`}
-                className="block rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-4 transition hover:border-sky-300 hover:bg-white"
+                className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-4 transition hover:border-sky-300 hover:bg-white"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -153,7 +152,21 @@ export default async function TecnicoDashboardPage() {
                 </div>
                 <p className="mt-3 text-xs text-slate-500">{formatDate(registro.criadoEm)}</p>
                 <p className="mt-1 text-xs text-slate-500">Tecnico: {registro.tecnico?.nome || 'Nao identificado'}</p>
-              </Link>
+                <div className="mt-4 flex gap-2">
+                  <Link
+                    href={`/tecnico/registros/${registro.id}`}
+                    className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700"
+                  >
+                    Ver registro
+                  </Link>
+                  <Link
+                    href={`/tecnico/novo?reabrir=${registro.id}`}
+                    className="rounded-full border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-black text-sky-700"
+                  >
+                    Reabrir ordem
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         </section>

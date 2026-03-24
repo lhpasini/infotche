@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { getTiposAtendimentoEquipamento } from '../../../actions/tecnico-registros';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getRegistroEquipamentoTecnicoById, getTiposAtendimentoEquipamento } from '../../../actions/tecnico-registros';
 import { parseEquipmentText } from '../../../../lib/equipment-ocr';
 
 type DraftItem = {
   tempId: string;
+  persistedItemId: string | null;
   tipoEquipamento: string;
   marca: string;
   modelo: string;
@@ -19,6 +21,8 @@ type DraftItem = {
   ocrTextoBruto: string;
   imageFile: File | null;
   imagePreview: string;
+  imagemUrlSalva: string;
+  driveFileIdSalvo: string;
 };
 
 type ImageEditorState = {
@@ -48,6 +52,7 @@ function createTempId() {
 function createEmptyItem(): DraftItem {
   return {
     tempId: createTempId(),
+    persistedItemId: null,
     tipoEquipamento: 'ONT',
     marca: '',
     modelo: '',
@@ -60,6 +65,43 @@ function createEmptyItem(): DraftItem {
     ocrTextoBruto: '',
     imageFile: null,
     imagePreview: '',
+    imagemUrlSalva: '',
+    driveFileIdSalvo: '',
+  };
+}
+
+function createDraftItemFromRegistro(item: {
+  id: string;
+  tipoEquipamento: string;
+  marca: string | null;
+  modelo: string | null;
+  codigoEquipamento: string | null;
+  macAddress: string | null;
+  serialNumber: string | null;
+  usuarioAcesso: string | null;
+  senhaAcesso: string | null;
+  observacao: string | null;
+  ocrTextoBruto: string | null;
+  imagemUrl: string | null;
+  driveFileId: string | null;
+}): DraftItem {
+  return {
+    tempId: item.id,
+    persistedItemId: item.id,
+    tipoEquipamento: item.tipoEquipamento,
+    marca: item.marca || '',
+    modelo: item.modelo || '',
+    codigoEquipamento: item.codigoEquipamento || '',
+    macAddress: item.macAddress || '',
+    serialNumber: item.serialNumber || '',
+    usuarioAcesso: item.usuarioAcesso || '',
+    senhaAcesso: item.senhaAcesso || '',
+    observacao: item.observacao || '',
+    ocrTextoBruto: item.ocrTextoBruto || '',
+    imageFile: null,
+    imagePreview: item.imagemUrl || '',
+    imagemUrlSalva: item.imagemUrl || '',
+    driveFileIdSalvo: item.driveFileId || '',
   };
 }
 
@@ -231,7 +273,10 @@ function mergeOcrTexts(primaryText: string, secondaryText: string) {
   return Array.from(new Set(lines)).join('\n');
 }
 
-export default function NovoRegistroTecnicoPage() {
+function NovoRegistroTecnicoContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const registroIdEmEdicao = searchParams.get('reabrir');
   const [serviceTypes, setServiceTypes] = useState<string[]>(SERVICE_TYPES);
   const [clienteNome, setClienteNome] = useState('');
   const [tipoAtendimento, setTipoAtendimento] = useState(SERVICE_TYPES[0]);
@@ -242,6 +287,7 @@ export default function NovoRegistroTecnicoPage() {
   const [mensagem, setMensagem] = useState('');
   const [erro, setErro] = useState('');
   const [imageEditor, setImageEditor] = useState<ImageEditorState | null>(null);
+  const [carregandoRegistro, setCarregandoRegistro] = useState(false);
 
   const canSaveCurrentItem =
     !ocrLoading &&
@@ -275,12 +321,62 @@ export default function NovoRegistroTecnicoPage() {
 
       if (nomes.length > 0) {
         setServiceTypes(nomes);
-        setTipoAtendimento((current) => (nomes.includes(current) ? current : nomes[0]));
+        setTipoAtendimento((current) => (current ? current : nomes[0]));
       }
     }
 
     loadTipos();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRegistroEmEdicao() {
+      if (!registroIdEmEdicao) {
+        setCarregandoRegistro(false);
+        return;
+      }
+
+      setCarregandoRegistro(true);
+
+      try {
+        const data = await getRegistroEquipamentoTecnicoById(registroIdEmEdicao);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!data?.registro) {
+          setErro('Nao foi possivel reabrir esse atendimento para edicao.');
+          return;
+        }
+
+        setClienteNome(data.registro.clienteNome);
+        setTipoAtendimento(data.registro.tipoAtendimento);
+        setItens(data.registro.itens.map((item) => createDraftItemFromRegistro(item)));
+        setDraftItem(createEmptyItem());
+        setMensagem('Atendimento reaberto. Ajuste os dados e finalize novamente para salvar.');
+        setErro('');
+      } catch (cause) {
+        if (cancelled) {
+          return;
+        }
+
+        const message = cause instanceof Error ? cause.message : 'Falha ao abrir o atendimento.';
+        setErro(message);
+      } finally {
+        if (!cancelled) {
+          setCarregandoRegistro(false);
+        }
+      }
+    }
+
+    void loadRegistroEmEdicao();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [registroIdEmEdicao]);
 
   function updateDraft(field: keyof DraftItem, value: string | File | null) {
     setDraftItem((current) => ({ ...current, [field]: value }));
@@ -295,12 +391,15 @@ export default function NovoRegistroTecnicoPage() {
     setMensagem('');
     setOcrLoading(true);
 
-    setDraftItem((current) => ({
-      ...current,
-      imageFile: file,
-      imagePreview: preview,
-      ocrTextoBruto: '',
-    }));
+      setDraftItem((current) => ({
+        ...current,
+        persistedItemId: null,
+        imageFile: file,
+        imagePreview: preview,
+        imagemUrlSalva: '',
+        driveFileIdSalvo: '',
+        ocrTextoBruto: '',
+      }));
 
     try {
       const { recognize } = await import('tesseract.js');
@@ -326,8 +425,11 @@ export default function NovoRegistroTecnicoPage() {
 
       setDraftItem((current) => ({
         ...current,
+        persistedItemId: current.persistedItemId,
         imageFile: file,
         imagePreview: preview,
+        imagemUrlSalva: '',
+        driveFileIdSalvo: '',
         tipoEquipamento: data.tipoEquipamento || current.tipoEquipamento,
         marca: data.marca || current.marca,
         modelo: data.modelo || current.modelo,
@@ -450,6 +552,25 @@ export default function NovoRegistroTecnicoPage() {
     setItens((current) => current.filter((item) => item.tempId !== tempId));
   }
 
+  function editSavedItem(tempId: string) {
+    setItens((current) => {
+      const item = current.find((entry) => entry.tempId === tempId);
+
+      if (!item) {
+        return current;
+      }
+
+      setDraftItem({
+        ...item,
+        imageFile: null,
+      });
+      setMensagem('Item carregado para edicao. Ajuste os campos e salve novamente.');
+      setErro('');
+
+      return current.filter((entry) => entry.tempId !== tempId);
+    });
+  }
+
   async function finishRegistration() {
     if (!clienteNome.trim()) {
       setErro('Informe o nome do cliente.');
@@ -466,10 +587,12 @@ export default function NovoRegistroTecnicoPage() {
     setMensagem('');
 
     const payload = {
+      id: registroIdEmEdicao,
       clienteNome,
       tipoAtendimento,
       itens: itens.map((item) => ({
         tempId: item.tempId,
+        persistedItemId: item.persistedItemId,
         tipoEquipamento: item.tipoEquipamento,
         marca: item.marca,
         modelo: item.modelo,
@@ -480,6 +603,8 @@ export default function NovoRegistroTecnicoPage() {
         senhaAcesso: item.senhaAcesso,
         observacao: item.observacao,
         ocrTextoBruto: item.ocrTextoBruto,
+        existingImageUrl: item.imagemUrlSalva,
+        existingDriveFileId: item.driveFileIdSalvo,
       })),
     };
 
@@ -494,7 +619,7 @@ export default function NovoRegistroTecnicoPage() {
 
     try {
       const response = await fetch('/api/tecnico/atendimentos', {
-        method: 'POST',
+        method: registroIdEmEdicao ? 'PUT' : 'POST',
         body: formData,
       });
 
@@ -506,6 +631,12 @@ export default function NovoRegistroTecnicoPage() {
 
       const uploaded = Number(data.upload?.imagesUploaded || 0);
       const received = Number(data.upload?.imagesReceived || 0);
+
+      if (registroIdEmEdicao) {
+        router.push(`/tecnico/registros/${registroIdEmEdicao}`);
+        router.refresh();
+        return;
+      }
 
       setClienteNome('');
       setTipoAtendimento(serviceTypes[0] || SERVICE_TYPES[0]);
@@ -529,8 +660,12 @@ export default function NovoRegistroTecnicoPage() {
       <div className="mx-auto flex max-w-md flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Novo atendimento</p>
-            <h1 className="mt-2 text-3xl font-black text-slate-900">Registrar equipamentos</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              {registroIdEmEdicao ? 'Reabrir atendimento' : 'Novo atendimento'}
+            </p>
+            <h1 className="mt-2 text-3xl font-black text-slate-900">
+              {registroIdEmEdicao ? 'Editar registro salvo' : 'Registrar equipamentos'}
+            </h1>
           </div>
           <Link href="/tecnico" className="rounded-full border border-white/70 bg-white/90 px-4 py-2 text-sm font-bold text-slate-700 shadow-sm">
             Voltar
@@ -551,6 +686,14 @@ export default function NovoRegistroTecnicoPage() {
             <p className="mt-2 text-sm font-black text-slate-900">{itens.length} item(ns)</p>
           </div>
         </section>
+
+        {registroIdEmEdicao && (
+          <section className="rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-4 text-sm font-semibold text-amber-800 shadow-sm">
+            {carregandoRegistro
+              ? 'Carregando atendimento salvo para edicao...'
+              : 'Modo reabertura ativo. Ao finalizar, o registro existente sera atualizado.'}
+          </section>
+        )}
 
         {(mensagem || erro) && (
           <div className={`rounded-[24px] border px-4 py-4 text-sm font-semibold shadow-sm ${erro ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
@@ -805,6 +948,13 @@ export default function NovoRegistroTecnicoPage() {
                     </div>
                     <button
                       type="button"
+                      onClick={() => editSavedItem(item.tempId)}
+                      className="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => removeSavedItem(item.tempId)}
                       className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700"
                     >
@@ -843,17 +993,19 @@ export default function NovoRegistroTecnicoPage() {
           <button
             type="button"
             onClick={finishRegistration}
-            disabled={!canFinishRegistration}
+            disabled={!canFinishRegistration || carregandoRegistro}
             className="w-full rounded-[24px] bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_100%)] px-5 py-4 text-lg font-black text-white shadow-[0_18px_30px_rgba(2,132,199,0.28)] transition hover:translate-y-[-1px] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Finalizando...' : 'Finalizar cadastro completo ->'}
+            {submitting
+              ? (registroIdEmEdicao ? 'Salvando alteracoes...' : 'Finalizando...')
+              : (registroIdEmEdicao ? 'Salvar alteracoes do atendimento ->' : 'Finalizar cadastro completo ->')}
           </button>
         </div>
       </div>
 
       {imageEditor && (
-        <div className="fixed inset-0 z-[80] bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
-          <div className="mx-auto flex max-w-md flex-col rounded-[28px] border border-white/15 bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.35)]">
+        <div className="fixed inset-0 z-[80] overflow-y-auto bg-slate-950/70 px-4 py-6 backdrop-blur-sm [overscroll-behavior:contain]">
+          <div className="mx-auto flex max-w-md flex-col rounded-[28px] border border-white/15 bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.35)] max-h-[calc(100vh-3rem)] overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Ajuste da foto</p>
@@ -977,5 +1129,23 @@ export default function NovoRegistroTecnicoPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function NovoRegistroTecnicoPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[radial-gradient(circle_at_top,#dbeafe,transparent_30%),linear-gradient(180deg,#f8fbff_0%,#eef3f8_55%,#e8edf3_100%)] px-4 py-6">
+          <div className="mx-auto flex max-w-md flex-col gap-4">
+            <section className="rounded-[28px] border border-white/70 bg-white/95 p-5 text-sm font-semibold text-slate-600 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+              Preparando formulario tecnico...
+            </section>
+          </div>
+        </main>
+      }
+    >
+      <NovoRegistroTecnicoContent />
+    </Suspense>
   );
 }
