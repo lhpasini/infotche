@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 
 import DriveMediaPreview from '../../../../../components/DriveMediaPreview';
 import { getChamadoTecnicoById } from '../../../../actions/tecnico-chamados';
+import CampoCopiavelTecnico from './CampoCopiavelTecnico';
 import FechamentoChamadoTecnicoCard from './FechamentoChamadoTecnicoCard';
 
 function formatDateTime(value: Date | string | null | undefined) {
@@ -76,10 +77,9 @@ export default async function ChamadoTecnicoDetailPage(
               <dt className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Contato</dt>
               <dd className="mt-1">{chamado.whatsCliente || 'Sem WhatsApp informado'}</dd>
             </div>
-            <div>
-              <dt className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">PPPoE</dt>
-              <dd className="mt-1">{chamado.pppoe || 'Nao informado'}</dd>
-            </div>
+            <CampoCopiavelTecnico label="Codigo do cliente" value={chamado.contratoMhnet} />
+            <CampoCopiavelTecnico label="PPPoE" value={chamado.pppoe} />
+            <CampoCopiavelTecnico label="Senha do cliente" value={chamado.senhaPpoe} />
             <div>
               <dt className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Agendamento</dt>
               <dd className="mt-1">
