@@ -86,6 +86,54 @@ interface Props {
 
 const MAP_DEFAULT_CENTER: [number, number] = [-28.367752, -53.251977];
 
+function parseGoogleMapsCoordinates(value: string) {
+  const input = value.trim();
+  if (!input) return null;
+
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(input);
+    } catch {
+      return input;
+    }
+  })();
+
+  const atMatch = decoded.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+  if (atMatch?.[1] && atMatch?.[2]) {
+    return {
+      latitude: Number(atMatch[1]),
+      longitude: Number(atMatch[2]),
+    };
+  }
+
+  const dataMatch = decoded.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+  if (dataMatch?.[1] && dataMatch?.[2]) {
+    return {
+      latitude: Number(dataMatch[1]),
+      longitude: Number(dataMatch[2]),
+    };
+  }
+
+  const coordTextMatch = decoded.match(/(\d{1,2})°(\d{1,2})'(\d{1,2}(?:\.\d+)?)"([NS])\s+(\d{1,3})°(\d{1,2})'(\d{1,2}(?:\.\d+)?)"([WE])/i);
+  if (coordTextMatch) {
+    const latitudeBase =
+      Number(coordTextMatch[1]) +
+      Number(coordTextMatch[2]) / 60 +
+      Number(coordTextMatch[3]) / 3600;
+    const longitudeBase =
+      Number(coordTextMatch[5]) +
+      Number(coordTextMatch[6]) / 60 +
+      Number(coordTextMatch[7]) / 3600;
+
+    return {
+      latitude: /S/i.test(coordTextMatch[4]) ? -latitudeBase : latitudeBase,
+      longitude: /W/i.test(coordTextMatch[8]) ? -longitudeBase : longitudeBase,
+    };
+  }
+
+  return null;
+}
+
 const createDraftItem = (): DraftItem => ({
   tempId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
   clienteId: null,
@@ -168,6 +216,7 @@ export function AtendimentoMassivoPanel({
   const [draft, setDraft] = useState<DraftAtendimentoMassivo | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [isWhatsappPreviewOpen, setIsWhatsappPreviewOpen] = useState(false);
+  const [mapsUrlInput, setMapsUrlInput] = useState('');
 
   const clientesPorNome = useMemo(() => {
     const mapa = new Map<string, Cliente>();
@@ -178,6 +227,7 @@ export function AtendimentoMassivoPanel({
   }, [clientes]);
 
   const abrirNovoAtendimento = () => {
+    setMapsUrlInput('');
     setDraft({
       id: null,
       abertoEm: toDateTimeLocalValue(new Date()),
@@ -193,12 +243,6 @@ export function AtendimentoMassivoPanel({
       clientesAfetados: [createDraftItem()],
     });
   };
-
-  useEffect(() => {
-    if (!draft) {
-      abrirNovoAtendimento();
-    }
-  }, [draft]);
 
   useEffect(() => {
     let cancelled = false;
@@ -454,6 +498,25 @@ export function AtendimentoMassivoPanel({
     alert(finalizar ? 'Atendimento massivo finalizado com sucesso.' : 'Atendimento massivo salvo com sucesso.');
   };
 
+  const aplicarLinkGoogleMaps = () => {
+    const coordinates = parseGoogleMapsCoordinates(mapsUrlInput);
+
+    if (!coordinates) {
+      alert('Nao foi possivel localizar latitude e longitude nesse link do Google Maps.');
+      return;
+    }
+
+    setDraft((current) =>
+      current
+        ? {
+            ...current,
+            latitude: Number(coordinates.latitude.toFixed(6)),
+            longitude: Number(coordinates.longitude.toFixed(6)),
+          }
+        : current
+    );
+  };
+
   return (
     <div style={{ padding: '30px', overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -525,7 +588,7 @@ export function AtendimentoMassivoPanel({
         </div>
 
         <div className="chart-box">
-          {draft && (
+          {draft ? (
             <>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '18px', alignItems: 'start' }}>
                 <div style={{ display: 'grid', gap: '14px' }}>
@@ -560,6 +623,27 @@ export function AtendimentoMassivoPanel({
                           Limpar ponto
                         </button>
                       )}
+                    </div>
+                    <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', background: '#f8fafc', display: 'grid', gap: '8px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>
+                        Link do Google Maps
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
+                        <input
+                          value={mapsUrlInput}
+                          onChange={(e) => setMapsUrlInput(e.target.value)}
+                          placeholder="Cole aqui o link do Google Maps para localizar o ponto"
+                          style={{ padding: '12px 14px', border: '1px solid #dce3e8', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={aplicarLinkGoogleMaps}
+                          className="btn-new"
+                          style={{ padding: '0 14px', whiteSpace: 'nowrap' }}
+                        >
+                          Localizar
+                        </button>
+                      </div>
                     </div>
                     <div ref={mapRef} style={{ height: '250px', width: '100%' }} />
                     <div style={{ padding: '10px 12px', borderTop: '1px solid #e5e7eb', fontSize: '12px', color: '#475569' }}>
@@ -734,6 +818,54 @@ export function AtendimentoMassivoPanel({
                 </div>
               </div>
             </>
+          ) : (
+            <div
+              style={{
+                minHeight: '520px',
+                display: 'grid',
+                placeItems: 'center',
+                padding: '40px 24px',
+              }}
+            >
+              <div
+                style={{
+                  maxWidth: '440px',
+                  textAlign: 'center',
+                  display: 'grid',
+                  gap: '14px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '72px',
+                    height: '72px',
+                    margin: '0 auto',
+                    borderRadius: '999px',
+                    background: '#eff6ff',
+                    color: '#2563eb',
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontSize: '30px',
+                    fontWeight: 800,
+                  }}
+                >
+                  +
+                </div>
+                <h2 style={{ margin: 0, color: '#1e293b', fontSize: '24px' }}>
+                  Nenhum atendimento massivo aberto
+                </h2>
+                <p style={{ margin: 0, color: '#64748b', fontSize: '14px', lineHeight: 1.7 }}>
+                  Clique em <strong>+ Abrir atendimento</strong> para registrar uma nova ocorrência
+                  massiva ou selecione um atendimento já cadastrado na lista ao lado para consultar
+                  e atualizar as informações.
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <button className="btn-new" onClick={abrirNovoAtendimento}>
+                    + ABRIR ATENDIMENTO
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
